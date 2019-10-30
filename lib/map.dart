@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
@@ -14,16 +15,20 @@ class Map extends StatefulWidget {
 
 class MapState extends State<Map> {
   LocationData _currentUserLocation;
-  TileLayerOptions _tileLayerOptions;
+  MapController _mapController;
 
   @override
   void initState() {
     super.initState();
-    getCurrentLocation();
-    updateStateOnLocationChange();
+
+
+    _mapController = new MapController();
+
+    updateCurrentLocation();
+    updateCurrentLocationOnChange();
   }
 
-  Future<LocationData> getCurrentLocation() async {
+  Future<void> updateCurrentLocation() async {
     LocationData currentLocation;
 
     var location = new Location();
@@ -37,22 +42,18 @@ class MapState extends State<Map> {
       setState(() {
         this._currentUserLocation = currentLocation;
       });
-
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
         String error = 'Permission denied';
         print(error);
       }
-      currentLocation = null;
     }
-    return currentLocation;
   }
 
-  void updateStateOnLocationChange() {
+  void updateCurrentLocationOnChange() {
     var location = new Location();
 
     location.onLocationChanged().listen((LocationData currentLocation) {
-
       print("location has changed!");
 
       print(currentLocation.latitude);
@@ -62,11 +63,14 @@ class MapState extends State<Map> {
         this._currentUserLocation = currentLocation;
       });
 
+
+      centerOnPosition(currentLocation);
+
     });
   }
 
-  TileLayerOptions getTileLayerOptions({TileLayerType tl = TileLayerType.normal}) {
-
+  TileLayerOptions getTileLayerOptions(
+      {TileLayerType tl = TileLayerType.normal}) {
     TileLayerOptions options;
 
     switch (tl) {
@@ -83,7 +87,7 @@ class MapState extends State<Map> {
       case TileLayerType.monochrome:
         options = TileLayerOptions(
             urlTemplate:
-            "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
+                "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']);
         break;
       default:
@@ -95,25 +99,41 @@ class MapState extends State<Map> {
     return options;
   }
 
-  LatLng getMapLatLong(){
+  LatLng getMapLatLong() {
     LatLng mapLocation;
-    if(_currentUserLocation != null){
-      mapLocation = new LatLng(_currentUserLocation.latitude, _currentUserLocation.longitude);
-
+    if (_currentUserLocation != null) {
+      mapLocation = new LatLng(
+          _currentUserLocation.latitude, _currentUserLocation.longitude);
     } else {
       mapLocation = new LatLng(52.52, 13.4);
     }
     return mapLocation;
   }
 
+  Future<void> centerOnPosition(LocationData locationData) async {
+
+    LatLng center = new LatLng(locationData.latitude, locationData.longitude);
+
+    _mapController.move(center, _mapController.zoom);
+
+    setState(() {
+      _mapController = _mapController;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
     LatLng mapLocation = getMapLatLong();
-    TileLayerOptions tileLayerOptions = getTileLayerOptions(tl:TileLayerType.hike); 
+    TileLayerOptions tileLayerOptions =
+        getTileLayerOptions(tl: TileLayerType.hike);
+
+    print("MapLocation --> " + mapLocation.toString());
 
     return new FlutterMap(
-      options: new MapOptions(center: mapLocation),
+      mapController: _mapController,
+      //options: new MapOptions(center: mapLocation),
+      options: new MapOptions(),
       layers: [
         tileLayerOptions,
         new MarkerLayerOptions(markers: [
