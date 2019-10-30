@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
+import 'types.dart';
 
 class Map extends StatefulWidget {
   @override
@@ -12,13 +13,14 @@ class Map extends StatefulWidget {
 }
 
 class MapState extends State<Map> {
-  LocationData currentUserLocation;
+  LocationData _currentUserLocation;
+  TileLayerOptions _tileLayerOptions;
 
   @override
   void initState() {
     super.initState();
-    print("initState");
     getCurrentLocation();
+    updateStateOnLocationChange();
   }
 
   Future<LocationData> getCurrentLocation() async {
@@ -33,7 +35,7 @@ class MapState extends State<Map> {
       print("getCurrentLocation --> " + currentLocation.toString());
 
       setState(() {
-        this.currentUserLocation = currentLocation;
+        this._currentUserLocation = currentLocation;
       });
 
     } on PlatformException catch (e) {
@@ -46,34 +48,74 @@ class MapState extends State<Map> {
     return currentLocation;
   }
 
-  void onLocationChanged() {
+  void updateStateOnLocationChange() {
     var location = new Location();
 
     location.onLocationChanged().listen((LocationData currentLocation) {
+
+      print("location has changed!");
+
       print(currentLocation.latitude);
       print(currentLocation.longitude);
+
+      setState(() {
+        this._currentUserLocation = currentLocation;
+      });
+
     });
+  }
+
+  TileLayerOptions getTileLayerOptions({TileLayerType tl = TileLayerType.normal}) {
+
+    TileLayerOptions options;
+
+    switch (tl) {
+      case TileLayerType.hike:
+        options = TileLayerOptions(
+            urlTemplate: "https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      case TileLayerType.topography:
+        options = TileLayerOptions(
+            urlTemplate: "http://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      case TileLayerType.monochrome:
+        options = TileLayerOptions(
+            urlTemplate:
+            "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      default:
+        options = TileLayerOptions(
+            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+    }
+
+    return options;
+  }
+
+  LatLng getMapLatLong(){
+    LatLng mapLocation;
+    if(_currentUserLocation != null){
+      mapLocation = new LatLng(_currentUserLocation.latitude, _currentUserLocation.longitude);
+
+    } else {
+      mapLocation = new LatLng(52.52, 13.4);
+    }
+    return mapLocation;
   }
 
   @override
   Widget build(BuildContext context) {
 
-    LatLng mapLocation;
-    if(currentUserLocation != null){
-      mapLocation = new LatLng(currentUserLocation.latitude, currentUserLocation.longitude);
-
-    } else {
-      mapLocation = new LatLng(52.52, 13.4);
-    }
-
-    print("build --> " + mapLocation.toString());
+    LatLng mapLocation = getMapLatLong();
+    TileLayerOptions tileLayerOptions = getTileLayerOptions(tl:TileLayerType.hike); 
 
     return new FlutterMap(
       options: new MapOptions(center: mapLocation),
       layers: [
-        new TileLayerOptions(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: ['a', 'b', 'c']),
+        tileLayerOptions,
         new MarkerLayerOptions(markers: [
           new Marker(
               width: 45.0,
