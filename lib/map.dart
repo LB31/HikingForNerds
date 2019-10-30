@@ -16,13 +16,15 @@ class Map extends StatefulWidget {
 class MapState extends State<Map> {
   LocationData _currentUserLocation;
   MapController _mapController;
+  bool _autoCenter;
 
   @override
   void initState() {
     super.initState();
 
-
+    _currentUserLocation = null;
     _mapController = new MapController();
+    _autoCenter = true;
 
     updateCurrentLocation();
     updateCurrentLocationOnChange();
@@ -63,9 +65,7 @@ class MapState extends State<Map> {
         this._currentUserLocation = currentLocation;
       });
 
-
-      centerOnPosition(currentLocation);
-
+      if (_autoCenter) centerOnPosition(currentLocation);
     });
   }
 
@@ -111,7 +111,6 @@ class MapState extends State<Map> {
   }
 
   Future<void> centerOnPosition(LocationData locationData) async {
-
     LatLng center = new LatLng(locationData.latitude, locationData.longitude);
 
     _mapController.move(center, _mapController.zoom);
@@ -123,7 +122,6 @@ class MapState extends State<Map> {
 
   @override
   Widget build(BuildContext context) {
-
     LatLng mapLocation = getMapLatLong();
     TileLayerOptions tileLayerOptions =
         getTileLayerOptions(tl: TileLayerType.hike);
