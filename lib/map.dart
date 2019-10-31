@@ -65,7 +65,7 @@ class MapState extends State<Map> {
         this._currentUserLocation = currentLocation;
       });
 
-      if (_autoCenter) centerOnPosition(currentLocation);
+      if (this._autoCenter) centerOnPosition(currentLocation);
     });
   }
 
@@ -101,9 +101,9 @@ class MapState extends State<Map> {
 
   LatLng getMapLatLong() {
     LatLng mapLocation;
-    if (_currentUserLocation != null) {
+    if (this._currentUserLocation != null) {
       mapLocation = new LatLng(
-          _currentUserLocation.latitude, _currentUserLocation.longitude);
+          this._currentUserLocation.latitude, this._currentUserLocation.longitude);
     } else {
       mapLocation = new LatLng(52.52, 13.4);
     }
@@ -112,12 +112,7 @@ class MapState extends State<Map> {
 
   Future<void> centerOnPosition(LocationData locationData) async {
     LatLng center = new LatLng(locationData.latitude, locationData.longitude);
-
-    _mapController.move(center, _mapController.zoom);
-
-    setState(() {
-      _mapController = _mapController;
-    });
+    this._mapController.move(center, this._mapController.zoom);
   }
 
   @override
@@ -129,7 +124,7 @@ class MapState extends State<Map> {
     print("MapLocation --> " + mapLocation.toString());
 
     return new FlutterMap(
-      mapController: _mapController,
+      mapController: this._mapController,
       //options: new MapOptions(center: mapLocation),
       options: new MapOptions(),
       layers: [
