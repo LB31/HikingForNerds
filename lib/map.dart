@@ -121,6 +121,13 @@ class MapState extends State<Map> {
     TileLayerOptions tileLayerOptions =
         getTileLayerOptions(tl: TileLayerType.hike);
 
+
+    //TODO draw some lines
+    PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions();
+
+
+    
+
     print("MapLocation --> " + mapLocation.toString());
 
     return new FlutterMap(
@@ -129,6 +136,7 @@ class MapState extends State<Map> {
       options: new MapOptions(),
       layers: [
         tileLayerOptions,
+        polylineLayerOptions,
         new MarkerLayerOptions(markers: [
           new Marker(
               width: 45.0,
@@ -141,7 +149,7 @@ class MapState extends State<Map> {
                           print('Marker tapped!');
                         }),
                   ))
-        ])
+        ]),
       ],
     );
   }
