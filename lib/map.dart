@@ -65,7 +65,13 @@ class MapState extends State<Map> {
         this._currentUserLocation = currentLocation;
       });
 
-      if (this._autoCenter) centerOnPosition(currentLocation);
+      if (this._autoCenter) {
+        centerOnPosition(currentLocation);
+        setState(() {
+          this._autoCenter = false;
+        });
+      }
+
     });
   }
 
@@ -99,11 +105,36 @@ class MapState extends State<Map> {
     return options;
   }
 
+  PolylineLayerOptions getPolyLineLayerOptions(){
+    var points = <LatLng>[
+      LatLng(52.5, 13.455),
+      LatLng(52.51, 13.456),
+      LatLng(52.52, 13.457),
+    ];
+
+    var points2 = <LatLng>[
+      LatLng(52.52, 13.457),
+      LatLng(52.53, 13.458),
+      LatLng(52.54, 13.459),
+    ];
+
+
+    PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions(
+      polylines: [
+        Polyline(points: points, strokeWidth: 4.0, color: Colors.purple),
+        Polyline(points: points2, strokeWidth: 4.0, color: Colors.purple),
+      ],
+    );
+
+    return polylineLayerOptions;
+
+  }
+
   LatLng getMapLatLong() {
     LatLng mapLocation;
     if (this._currentUserLocation != null) {
-      mapLocation = new LatLng(
-          this._currentUserLocation.latitude, this._currentUserLocation.longitude);
+      mapLocation = new LatLng(this._currentUserLocation.latitude,
+          this._currentUserLocation.longitude);
     } else {
       mapLocation = new LatLng(52.52, 13.4);
     }
@@ -120,13 +151,8 @@ class MapState extends State<Map> {
     LatLng mapLocation = getMapLatLong();
     TileLayerOptions tileLayerOptions =
         getTileLayerOptions(tl: TileLayerType.hike);
+    PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
-
-    //TODO draw some lines
-    PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions();
-
-
-    
 
     print("MapLocation --> " + mapLocation.toString());
 
