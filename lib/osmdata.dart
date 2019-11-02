@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:collection';
+import 'dart:ffi';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 
@@ -62,6 +63,63 @@ class Graph {
     return adjacencies.length;
   }
 
+
+  List<Node> AStar(Node start, Node end){
+    //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
+    //https://en.wikipedia.org/wiki/A*_search_algorithm
+
+    // The set of discovered nodes that may need to be (re-)expanded.
+    // Initially, only the start node is known.
+    Set<Node> openSet = Set();
+    openSet.add(start);
+
+    // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
+    h(Node node) => OsmData.getDistance(node, end);
+
+    // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start to n currently known.
+    Map<Node,Node> cameFrom = Map();
+    List<Node> reconstructPath(current){
+      var totalPath = List<Node>();
+      totalPath.add(current);
+      while(cameFrom.containsKey(current)){
+        current = cameFrom[current];
+        totalPath.insert(0, current);
+      }
+      return totalPath;
+    }
+
+    // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
+    Map<Node, double> gScore = Map();
+    gScore[start] = 0;
+
+    // For node n, fScore[n] := gScore[n] + h(n).
+    Map<Node, double> fScore = Map();
+    fScore[start] = h(start);
+
+    while(openSet.isNotEmpty){
+      var current = openSet.reduce((curr, next) => (fScore[curr] ?? double.infinity) < (fScore[next] ?? double.infinity) ? curr : next);
+      if(current == end){
+        return reconstructPath(current);
+      }
+      openSet.remove(current);
+      for(Edge neighborEdge in adjacencies[current]){
+        // d(current,neighbor) is the weight of the edge from current to neighbor
+        // tentative_gScore is the distance from start to the neighbor through current
+        var tentativeGScore = (gScore[current] ?? double.infinity) + neighborEdge.weight;
+        var neighbor = neighborEdge.neighbor;
+        if(tentativeGScore < (gScore[neighbor] ?? double.infinity)){
+          // This path to neighbor is better than any previous one. Record it!
+          cameFrom[neighbor] = current;
+          gScore[neighbor] = tentativeGScore;
+          fScore[neighbor] = tentativeGScore + h(neighbor);
+          openSet.add(neighbor);
+        }
+      }
+    }
+    return null;
+
+  }
+
 }
 
 class OsmData{
@@ -83,7 +141,7 @@ class OsmData{
     }
   }
 
-  double getDistance(Node nodeA, Node nodeB){
+  static double getDistance(Node nodeA, Node nodeB){
     var a = (nodeA.latitude - nodeB.latitude).abs();
     var b = (nodeA.longitude - nodeB.longitude).abs();
     return sqrt(a*a + b*b);
@@ -119,7 +177,11 @@ class OsmData{
 }
 
 Future<String> getWaysJson() async {
-  var url = 'http://overpass-api.de/api/interpreter?data=[bbox:47.998150, 8.175187,48.001172, 8.180809][out:json][timeout:25];(node["name"~"Fernh.usle"];)'
+  double southernBorder = 47.987811;
+  double westernBorder = 8.166028;
+  double northernBorder = 48.008402;
+  double easternBorder = 8.198229;
+  var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder][out:json][timeout:25];(node["name"~"Fernh.usle"];)'
       '->.poi;way["highway"](around:10000)->.poiWays;(.poiWays;.poiWays >;)'
       '->.waysAndTheirNodes;.waysAndTheirNodes out skel qt;';
 
@@ -134,5 +196,6 @@ void main() async{
   dynamic parsedData = jsonDecoder.convert(rawData)['elements'];
   parsedData.forEach((element) => osmData.parseToObject(element));
   osmData.buildGraph();
+  var path = osmData.graph.AStar(Node(300719693, 47.9906575, 8.1934962), Node(318655383, 47.9906117, 8.1726893));
   print(osmData.graph.getNodeCount());
 }
