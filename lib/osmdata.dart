@@ -213,7 +213,7 @@ class OsmData{
     }
     locationIndex = rtree.RTree();
     for(Node node in graph.adjacencies.keys){
-      var nodeRect = Rectangle(node.longitude, node.latitude, 0,0);
+      var nodeRect = Rectangle(node.latitude, node.longitude, 0.1,0.1);
       locationIndex.insert(rtree.RTreeDatum(nodeRect, node));
     }
   }
@@ -221,8 +221,15 @@ class OsmData{
   //something like this  https://blog.mapbox.com/a-dive-into-spatial-search-algorithms-ebd0c5e39d2a (knn nearest neighbor search)
   //would be better, but the rtree package doesn't give access to the root node, which would be required to implement that algorithm
   Node getClosestToPoint(double latitude, double longitude){
-
+    var topLeft = projectCoordinate(latitude, longitude, 50, 315);
+    var bottomRight = projectCoordinate(latitude, longitude, 50, 135);
+    var searchRect = Rectangle.fromPoints(Point(topLeft[0], topLeft[1]), Point(bottomRight[0], bottomRight[1]));
+    var closeNodes = locationIndex.search(searchRect);
+    return closeNodes.map((datum) => datum.value)
+        .reduce((curr, next) => OsmData.getDistance(curr, Node(0, latitude, longitude))
+        < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
+
 
 }
 
@@ -248,5 +255,6 @@ void main() async{
   osmData.buildGraph();
   osmData.buildLocationIndex();
   var path = osmData.graph.AStar(Node(300719693, 47.9906575, 8.1934962), Node(318655383, 47.9906117, 8.1726893));
+  var closestNode = osmData.getClosestToPoint(47.9906117, 8.1726893);
   print(osmData.graph.getNodeCount());
 }
