@@ -230,31 +230,54 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
+  Future<List<Node>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, double initialHeading) async{
+    var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
+    _importJsonNodesAndWays(jsonNodesAndWays);
 
+    var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
+    var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
+
+    var nodeA = getClosestToPoint(startLat, startLong);
+    var nodeB = getClosestToPoint(pointB[0], pointB[1]);
+    var nodeC = getClosestToPoint(pointC[0], pointC[1]);
+
+    List<Node> result = graph.AStar(nodeA, nodeB);
+    result.addAll(graph.AStar(nodeB, nodeC));
+    result.addAll(graph.AStar(nodeC, nodeA));
+    return result;
+  }
+
+  void _importJsonNodesAndWays(String jsonNodesAndWays){
+    var jsonDecoder = JsonDecoder();
+    dynamic parsedData = jsonDecoder.convert(jsonNodesAndWays)['elements'];
+    parsedData.forEach((element) => parseToObject(element));
+    buildGraph();
+    buildLocationIndex();
+  }
+
+   Future<String> getWaysJson(double aroundLat, double aroundLong, radius) async {
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 315);
+    var northernBorder = topLeftBoundingBox[0];
+    var westernBorder = topLeftBoundingBox[1];
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 135);
+    var southernBorder = bottomRightBoundingBox[0];
+    var easternBorder = bottomRightBoundingBox[1];
+
+    var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
+        '[out:json][timeout:25]'
+        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
+        '(._;>;); out skel qt;';
+
+    var response = await http.get(url);
+
+    return response.body;
 }
 
-Future<String> getWaysJson() async {
-  double southernBorder = 47.987811;
-  double westernBorder = 8.166028;
-  double northernBorder = 48.008402;
-  double easternBorder = 8.198229;
-  var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder][out:json][timeout:25];(node["name"~"Fernh.usle"];)'
-      '->.poi;way["highway"](around:10000)->.poiWays;(.poiWays;.poiWays >;)'
-      '->.waysAndTheirNodes;.waysAndTheirNodes out skel qt;';
-
-  var response = await http.get(url);
-  return response.body;
 }
 
 void main() async{
-  String rawData = await getWaysJson();
-  var jsonDecoder = JsonDecoder();
+
   var osmData = OsmData();
-  dynamic parsedData = jsonDecoder.convert(rawData)['elements'];
-  parsedData.forEach((element) => osmData.parseToObject(element));
-  osmData.buildGraph();
-  osmData.buildLocationIndex();
-  var path = osmData.graph.AStar(Node(300719693, 47.9906575, 8.1934962), Node(318655383, 47.9906117, 8.1726893));
-  var closestNode = osmData.getClosestToPoint(47.9906117, 8.1726893);
-  print(osmData.graph.getNodeCount());
+  var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 90);
+  print(route.length);
 }
