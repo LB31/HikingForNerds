@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:collection';
-import 'dart:ffi';
 import 'dart:math';
 import 'package:http/http.dart' as http;
+import 'package:r_tree/r_tree.dart' as rtree;
 
 class Node{
   int _id;
@@ -48,23 +48,23 @@ class Edge{
 class Graph {
   Map<Node, List<Edge>> adjacencies;
 
-  Graph(){
+  Graph() {
     adjacencies = Map();
   }
 
-  void addEdge(Node nodeA, Node nodeB, double weight){
+  void addEdge(Node nodeA, Node nodeB, double weight) {
     adjacencies.putIfAbsent(nodeA, () => List<Edge>());
     adjacencies.putIfAbsent(nodeB, () => List<Edge>());
     adjacencies[nodeA].add(Edge(nodeB, weight));
     adjacencies[nodeB].add(Edge(nodeA, weight));
   }
 
-  int getNodeCount(){
+  int getNodeCount() {
     return adjacencies.length;
   }
 
 
-  List<Node> AStar(Node start, Node end){
+  List<Node> AStar(Node start, Node end) {
     //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
     //https://en.wikipedia.org/wiki/A*_search_algorithm
 
@@ -77,11 +77,11 @@ class Graph {
     h(Node node) => OsmData.getDistance(node, end);
 
     // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start to n currently known.
-    Map<Node,Node> cameFrom = Map();
-    List<Node> reconstructPath(current){
+    Map<Node, Node> cameFrom = Map();
+    List<Node> reconstructPath(current) {
       var totalPath = List<Node>();
       totalPath.add(current);
-      while(cameFrom.containsKey(current)){
+      while (cameFrom.containsKey(current)) {
         current = cameFrom[current];
         totalPath.insert(0, current);
       }
@@ -96,18 +96,22 @@ class Graph {
     Map<Node, double> fScore = Map();
     fScore[start] = h(start);
 
-    while(openSet.isNotEmpty){
-      var current = openSet.reduce((curr, next) => (fScore[curr] ?? double.infinity) < (fScore[next] ?? double.infinity) ? curr : next);
-      if(current == end){
+    while (openSet.isNotEmpty) {
+      var current = openSet.reduce((curr, next) =>
+      (fScore[curr] ?? double.infinity) < (fScore[next] ?? double.infinity)
+          ? curr
+          : next);
+      if (current == end) {
         return reconstructPath(current);
       }
       openSet.remove(current);
-      for(Edge neighborEdge in adjacencies[current]){
+      for (Edge neighborEdge in adjacencies[current]) {
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
-        var tentativeGScore = (gScore[current] ?? double.infinity) + neighborEdge.weight;
+        var tentativeGScore = (gScore[current] ?? double.infinity) +
+            neighborEdge.weight;
         var neighbor = neighborEdge.neighbor;
-        if(tentativeGScore < (gScore[neighbor] ?? double.infinity)){
+        if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
           // This path to neighbor is better than any previous one. Record it!
           cameFrom[neighbor] = current;
           gScore[neighbor] = tentativeGScore;
@@ -117,7 +121,6 @@ class Graph {
       }
     }
     return null;
-
   }
 
 }
@@ -126,6 +129,7 @@ class OsmData{
   HashSet<Node> nodes;
   List<Way> ways;
   Graph graph;
+  rtree.RTree locationIndex;
 
   OsmData(){
     nodes = HashSet();
@@ -141,6 +145,8 @@ class OsmData{
     }
   }
 
+  //Todo: improve this distance function. Right now it assumes the earth is flat (which might be true).
+  //http://edwilliams.org/avform.htm#Dist
   static double getDistance(Node nodeA, Node nodeB){
     var a = (nodeA.latitude - nodeB.latitude).abs();
     var b = (nodeA.longitude - nodeB.longitude).abs();
@@ -174,6 +180,50 @@ class OsmData{
       }
     }
   }
+
+  List<double> projectCoordinate(double latInDeg, double longInDeg, double distanceInM, double headingFromNorth){
+    var latInRadians = (latInDeg*pi)/180.0;
+    var longInRadians = (longInDeg*pi)/180.0;
+    var headingInRadians = (headingFromNorth*pi)/180.0;
+
+    double angularDistance = distanceInM / 6371000.0;
+
+    // This formula is taken from: http://williams.best.vwh.net/avform.htm#LL
+    // (http://www.movable-type.co.uk/scripts/latlong.html -> https://github.com/chrisveness/geodesy  ->  https://github.com/graphhopper/graphhopper Apache 2.0)
+    // θ=heading,δ=distance,φ1=latInRadians
+    // lat2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ )     
+    // lon2 = λ1 + atan2( sin θ ⋅ sin δ ⋅ cos φ1, cos δ − sin φ1 ⋅ sin φ2 )
+    double projectedLat = asin(sin(latInRadians) * cos(angularDistance)
+        + cos(latInRadians) * sin(angularDistance) * cos(headingInRadians));
+    double projectedLon = longInRadians + atan2(sin(headingInRadians) * sin(angularDistance) * cos(latInRadians),
+        cos(angularDistance) - sin(latInRadians) * sin(projectedLat));
+
+    projectedLon = (projectedLon + 3 * pi) % (2 * pi) - pi; // normalise to -180..+180°
+
+    projectedLat = projectedLat * 180/pi;
+    projectedLon = projectedLon * 180/pi;
+
+    return [projectedLat, projectedLon];
+  }
+
+  void buildLocationIndex(){
+    if(graph == null) {
+      print('graph has to be built before locationIndex');
+      return;
+    }
+    locationIndex = rtree.RTree();
+    for(Node node in graph.adjacencies.keys){
+      var nodeRect = Rectangle(node.longitude, node.latitude, 0,0);
+      locationIndex.insert(rtree.RTreeDatum(nodeRect, node));
+    }
+  }
+  //This is a suboptimal solution, but its all i can do right now without implementing an rtree myself
+  //something like this  https://blog.mapbox.com/a-dive-into-spatial-search-algorithms-ebd0c5e39d2a (knn nearest neighbor search)
+  //would be better, but the rtree package doesn't give access to the root node, which would be required to implement that algorithm
+  Node getClosestToPoint(double latitude, double longitude){
+
+  }
+
 }
 
 Future<String> getWaysJson() async {
@@ -196,6 +246,7 @@ void main() async{
   dynamic parsedData = jsonDecoder.convert(rawData)['elements'];
   parsedData.forEach((element) => osmData.parseToObject(element));
   osmData.buildGraph();
+  osmData.buildLocationIndex();
   var path = osmData.graph.AStar(Node(300719693, 47.9906575, 8.1934962), Node(318655383, 47.9906117, 8.1726893));
   print(osmData.graph.getNodeCount());
 }
