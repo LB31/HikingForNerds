@@ -24,7 +24,7 @@ class MapState extends State<Map> {
 
     _currentUserLocation = null;
     _mapController = new MapController();
-    _autoCenter = true;
+    _autoCenter = false;
 
     updateCurrentLocation();
     updateCurrentLocationOnChange();
@@ -67,9 +67,6 @@ class MapState extends State<Map> {
 
       if (this._autoCenter) {
         centerOnPosition(currentLocation);
-        setState(() {
-          this._autoCenter = false;
-        });
       }
 
     });
@@ -163,14 +160,10 @@ class MapState extends State<Map> {
     TileLayerOptions tileLayerOptions =
         getTileLayerOptions(tl: TileLayerType.hike);
     PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
-
-
-    print("MapLocation --> " + mapLocation.toString());
-
+    
     return new FlutterMap(
       mapController: this._mapController,
-      //options: new MapOptions(center: mapLocation),
-      options: new MapOptions(),
+      options: new MapOptions(center: mapLocation),
       layers: [
         tileLayerOptions,
         polylineLayerOptions,
