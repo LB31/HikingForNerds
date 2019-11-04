@@ -17,7 +17,7 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
-  flutter_map:
+  flutter_map: any
   location:
   flutter:
     sdk: flutter
@@ -43,7 +43,58 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - assets/map/berlin/10/549/
+    - assets/map/berlin/10/550/
+    - assets/map/berlin/11/1098/
+    - assets/map/berlin/11/1099/
+    - assets/map/berlin/11/1100/
+    - assets/map/berlin/11/1101/
+    - assets/map/berlin/12/2196/
+    - assets/map/berlin/12/2197/
+    - assets/map/berlin/12/2198/
+    - assets/map/berlin/12/2199/
+    - assets/map/berlin/12/2200/
+    - assets/map/berlin/12/2201/
+    - assets/map/berlin/12/2202/
+    - assets/map/berlin/13/4393/
+    - assets/map/berlin/13/4394/
+    - assets/map/berlin/13/4395/
+    - assets/map/berlin/13/4396/
+    - assets/map/berlin/13/4397/
+    - assets/map/berlin/13/4398/
+    - assets/map/berlin/13/4399/
+    - assets/map/berlin/13/4400/
+    - assets/map/berlin/13/4401/
+    - assets/map/berlin/13/4402/
+    - assets/map/berlin/13/4403/
+    - assets/map/berlin/13/4404/
+    - assets/map/berlin/13/4405/
+    - assets/map/berlin/14/8786/
+    - assets/map/berlin/14/8787/
+    - assets/map/berlin/14/8788/
+    - assets/map/berlin/14/8789/
+    - assets/map/berlin/14/8790/
+    - assets/map/berlin/14/8791/
+    - assets/map/berlin/14/8792/
+    - assets/map/berlin/14/8793/
+    - assets/map/berlin/14/8794/
+    - assets/map/berlin/14/8795/
+    - assets/map/berlin/14/8796/
+    - assets/map/berlin/14/8797/
+    - assets/map/berlin/14/8798/
+    - assets/map/berlin/14/8799/
+    - assets/map/berlin/14/8800/
+    - assets/map/berlin/14/8801/
+    - assets/map/berlin/14/8802/
+    - assets/map/berlin/14/8803/
+    - assets/map/berlin/14/8804/
+    - assets/map/berlin/14/8805/
+    - assets/map/berlin/14/8806/
+    - assets/map/berlin/14/8807/
+    - assets/map/berlin/14/8808/
+    - assets/map/berlin/14/8809/
+    - assets/map/berlin/14/8810/
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
 

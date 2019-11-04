@@ -68,7 +68,7 @@ class MapState extends State<Map> {
 
     print("build --> " + mapLocation.toString());
 
-    return new FlutterMap(
+    /*return new FlutterMap(
       options: new MapOptions(center: mapLocation),
       layers: [
         new TileLayerOptions(
@@ -88,6 +88,25 @@ class MapState extends State<Map> {
                   ))
         ])
       ],
+    );*/
+
+    return new FlutterMap(
+      options: MapOptions(
+        center: LatLng(52.520008, 13.404954),
+        minZoom: 10.0,
+        maxZoom: 14.0,
+        zoom: 10.0,
+        swPanBoundary: LatLng(52.396149, 13.058540),
+        nePanBoundary: LatLng(52.680859, 13.583550),
+      ),
+      layers: [
+        TileLayerOptions(
+          tileProvider: AssetTileProvider(),
+          maxZoom: 14.0,
+          urlTemplate: 'assets/map/berlin/{z}/{x}/{y}.png',
+        ),
+      ],
     );
+
   }
 }
