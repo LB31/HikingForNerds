@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
+import 'types.dart';
 
 class Map extends StatefulWidget {
   @override
@@ -12,16 +14,23 @@ class Map extends StatefulWidget {
 }
 
 class MapState extends State<Map> {
-  LocationData currentUserLocation;
+  LocationData _currentUserLocation;
+  MapController _mapController;
+  bool _autoCenter;
 
   @override
   void initState() {
     super.initState();
-    print("initState");
-    getCurrentLocation();
+
+    _currentUserLocation = null;
+    _mapController = new MapController();
+    _autoCenter = false;
+
+    updateCurrentLocation();
+    updateCurrentLocationOnChange();
   }
 
-  Future<LocationData> getCurrentLocation() async {
+  Future<void> updateCurrentLocation() async {
     LocationData currentLocation;
 
     var location = new Location();
@@ -33,47 +42,131 @@ class MapState extends State<Map> {
       print("getCurrentLocation --> " + currentLocation.toString());
 
       setState(() {
-        this.currentUserLocation = currentLocation;
+        this._currentUserLocation = currentLocation;
       });
-
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
         String error = 'Permission denied';
         print(error);
       }
-      currentLocation = null;
     }
-    return currentLocation;
   }
 
-  void onLocationChanged() {
+  void updateCurrentLocationOnChange() {
     var location = new Location();
 
     location.onLocationChanged().listen((LocationData currentLocation) {
+      print("location has changed!");
+
       print(currentLocation.latitude);
       print(currentLocation.longitude);
+
+      setState(() {
+        this._currentUserLocation = currentLocation;
+      });
+
+      if (this._autoCenter) {
+        centerOnPosition(currentLocation);
+      }
+
     });
+  }
+
+  TileLayerOptions getTileLayerOptions(
+      {TileLayerType tl = TileLayerType.normal}) {
+    TileLayerOptions options;
+
+    switch (tl) {
+      case TileLayerType.hike:
+        options = TileLayerOptions(
+            urlTemplate: "https://tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      case TileLayerType.topography:
+        options = TileLayerOptions(
+            urlTemplate: "http://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      case TileLayerType.monochrome:
+        options = TileLayerOptions(
+            urlTemplate:
+                "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+        break;
+      default:
+        options = TileLayerOptions(
+            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            subdomains: ['a', 'b', 'c']);
+    }
+
+    return options;
+  }
+
+  PolylineLayerOptions getPolyLineLayerOptions(){
+    var points = <LatLng>[
+      LatLng(52.5, 13.455),
+      LatLng(52.5, 13.46),
+      LatLng(52.5, 13.47),
+      LatLng(52.52, 13.48),
+      LatLng(52.53, 13.49),
+      LatLng(52.53, 13.48),
+      LatLng(52.57, 13.5),
+      LatLng(52.58, 13.5),
+      LatLng(52.59, 13.51),
+      LatLng(52.5, 13.5),
+      LatLng(52.5, 13.455),
+    ];
+
+    var points2 = <LatLng>[
+      LatLng(52.5, 13.455),
+      LatLng(52.53, 13.458),
+      LatLng(52.54, 13.459),
+      LatLng(52.58, 13.459),
+      LatLng(52.58, 13.5),
+      LatLng(52.7, 13.55),
+    ];
+
+
+    PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions(
+      polylines: [
+        Polyline(points: points, strokeWidth: 4.0, color: Colors.purple),
+        Polyline(points: points2, strokeWidth: 4.0, color: Colors.green),
+      ],
+    );
+
+    return polylineLayerOptions;
+
+  }
+
+  LatLng getMapLatLong() {
+    LatLng mapLocation;
+    if (this._currentUserLocation != null) {
+      mapLocation = new LatLng(this._currentUserLocation.latitude,
+          this._currentUserLocation.longitude);
+    } else {
+      mapLocation = new LatLng(52.52, 13.4);
+    }
+    return mapLocation;
+  }
+
+  Future<void> centerOnPosition(LocationData locationData) async {
+    LatLng center = new LatLng(locationData.latitude, locationData.longitude);
+    this._mapController.move(center, this._mapController.zoom);
   }
 
   @override
   Widget build(BuildContext context) {
-
-    LatLng mapLocation;
-    if(currentUserLocation != null){
-      mapLocation = new LatLng(currentUserLocation.latitude, currentUserLocation.longitude);
-
-    } else {
-      mapLocation = new LatLng(52.52, 13.4);
-    }
-
-    print("build --> " + mapLocation.toString());
-
+    LatLng mapLocation = getMapLatLong();
+    TileLayerOptions tileLayerOptions =
+        getTileLayerOptions(tl: TileLayerType.hike);
+    PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
+    
     return new FlutterMap(
+      mapController: this._mapController,
       options: new MapOptions(center: mapLocation),
       layers: [
-        new TileLayerOptions(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: ['a', 'b', 'c']),
+        tileLayerOptions,
+        polylineLayerOptions,
         new MarkerLayerOptions(markers: [
           new Marker(
               width: 45.0,
@@ -86,7 +179,7 @@ class MapState extends State<Map> {
                           print('Marker tapped!');
                         }),
                   ))
-        ])
+        ]),
       ],
     );
   }
