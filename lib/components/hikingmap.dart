@@ -4,7 +4,7 @@ import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
-import 'types.dart';
+import 'package:hiking4nerds/components/types.dart';
 
 class HikingMap extends StatefulWidget {
   @override
@@ -24,7 +24,7 @@ class HikingMapState extends State<HikingMap> {
 
     currentUserLocation = null;
     mapController = MapController();
-    autoCenter = false;
+    autoCenter = true;
 
     updateCurrentLocation();
     updateCurrentLocationOnChange();
@@ -97,7 +97,6 @@ class HikingMapState extends State<HikingMap> {
             urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']);
     }
-
     return options;
   }
 
