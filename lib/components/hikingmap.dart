@@ -4,29 +4,49 @@ import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
-import 'types.dart';
+import 'package:hiking4nerds/components/types.dart';
 
-class MapService {
+class HikingMap extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return HikingMapState();
+  }
+}
+
+class HikingMapState extends State<HikingMap> {
   LocationData currentUserLocation;
   MapController mapController;
   bool autoCenter;
 
-  MapService({this.currentUserLocation, this.mapController, this.autoCenter});
+  @override
+  void initState() {
+    super.initState();
+
+    currentUserLocation = null;
+    mapController = MapController();
+    autoCenter = false;
+
+    updateCurrentLocation();
+    updateCurrentLocationOnChange();
+  }
 
   Future<void> updateCurrentLocation() async {
     LocationData currentLocation;
 
-    Location location = Location();
+    var location = new Location();
 
-    // Platform messages may fail, so we use a try/catch PlatformException.
+// Platform messages may fail, so we use a try/catch PlatformException.
     try {
       currentLocation = await location.getLocation();
 
       print("getCurrentLocation --> " + currentLocation.toString());
-      this.currentUserLocation = currentLocation;
+
+      setState(() {
+        this.currentUserLocation = currentLocation;
+      });
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
-        String error = 'Permission denied - Location not updated';
+        String error = 'Permission denied';
         print(error);
       }
     }
@@ -41,7 +61,9 @@ class MapService {
       print(currentLocation.latitude);
       print(currentLocation.longitude);
 
-      this.currentUserLocation = currentLocation;
+      setState(() {
+        this.currentUserLocation = currentLocation;
+      });
 
       if (this.autoCenter) {
         centerOnPosition(currentLocation);
@@ -67,7 +89,7 @@ class MapService {
       case TileLayerType.monochrome:
         options = TileLayerOptions(
             urlTemplate:
-            "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
+                "http://www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']);
         break;
       default:
@@ -75,7 +97,6 @@ class MapService {
             urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']);
     }
-
     return options;
   }
 
@@ -103,7 +124,6 @@ class MapService {
       LatLng(52.7, 13.55),
     ];
 
-
     PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions(
       polylines: [
         Polyline(points: points, strokeWidth: 4.0, color: Colors.purple),
@@ -117,16 +137,46 @@ class MapService {
   LatLng getMapLatLong() {
     LatLng mapLocation;
     if (this.currentUserLocation != null) {
-      mapLocation = new LatLng(this.currentUserLocation.latitude,
+      mapLocation = LatLng(this.currentUserLocation.latitude,
           this.currentUserLocation.longitude);
     } else {
-      mapLocation = new LatLng(52.52, 13.4);
+      mapLocation = LatLng(52.52, 13.4);
     }
     return mapLocation;
   }
 
   Future<void> centerOnPosition(LocationData locationData) async {
-    LatLng center = new LatLng(locationData.latitude, locationData.longitude);
+    LatLng center = LatLng(locationData.latitude, locationData.longitude);
     this.mapController.move(center, this.mapController.zoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    LatLng mapLocation = getMapLatLong();
+    TileLayerOptions tileLayerOptions =
+        getTileLayerOptions(tl: TileLayerType.hike);
+    PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
+
+    return FlutterMap(
+      mapController: this.mapController,
+      options: MapOptions(center: mapLocation),
+      layers: [
+        tileLayerOptions,
+        polylineLayerOptions,
+        MarkerLayerOptions(markers: [
+          Marker(
+              width: 45.0,
+              height: 45.0,
+              point: mapLocation,
+              builder: (context) => Container(
+                    child: IconButton(
+                        icon: Icon(Icons.accessibility),
+                        onPressed: () {
+                          print('Marker tapped!');
+                        }),
+                  ))
+        ]),
+      ],
+    );
   }
 }
