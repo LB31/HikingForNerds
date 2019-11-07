@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/map.dart';
+import 'package:hiking4nerds/components/hikingmap.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -17,7 +17,7 @@ class _HomeState extends State<Home> {
         title: Text('Hiking 4 Nerds'),
         backgroundColor: Color(0xff76B900),
       ),
-      body: new Map()
+      body: HikingMap()
     );
   }
 }
