@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
-import '../services/types.dart';
+import 'package:hiking4nerds/services/types.dart';
 import 'package:hiking4nerds/services/map_service.dart';
+import 'package:fab_circular_menu/fab_circular_menu.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,8 +12,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
-  MapController mc = MapController();
+  final Color htwGreen = Color(0xff76B900);
   MapService ms = MapService();
 
   @override
@@ -24,30 +24,41 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Hiking 4 Nerds'),
-        backgroundColor: Color(0xff76B900),
+        backgroundColor: htwGreen,
       ),
-      body: FlutterMap(
-        mapController: this.mc,
-        options: new MapOptions(center: mapLocation),
-        layers: [
-          tileLayerOptions,
-          polylineLayerOptions,
-          new MarkerLayerOptions(markers: [
-            new Marker(
+      body: FabCircularMenu(
+        child: FlutterMap(
+          mapController: ms.mapController,
+          options: MapOptions(center: mapLocation),
+          layers: [
+            tileLayerOptions,
+            polylineLayerOptions,
+            MarkerLayerOptions(markers: [
+              Marker(
                 width: 45.0,
                 height: 45.0,
                 point: mapLocation,
                 builder: (context) => Container(
                   child: IconButton(
-                      icon: Icon(
-                          Icons.accessibility,
-                        color: Colors.redAccent,
-                      ),
-                      onPressed: () {
-                        print('Marker tapped!');
-                      }),
+                  icon: Icon(
+                    Icons.accessibility,
+                    color: Colors.redAccent,
+                  ),
+                  onPressed: () {
+                    print('Marker tapped!');
+                  }),
                 ))
-          ]),
+              ]),
+            ],
+          ),
+        ringColor: Colors.white30,
+        fabColor: htwGreen,
+        options: <Widget>[
+          IconButton(icon: Icon(
+            Icons.help_outline), onPressed: () {}, iconSize: 48.0, color: htwGreen),
+          IconButton(icon: Icon(Icons.save_alt), onPressed: () {}, iconSize: 48.0, color: htwGreen),
+          IconButton(icon: Icon(Icons.map), onPressed: () {}, iconSize: 48.0, color: htwGreen),
+          IconButton(icon: Icon(Icons.info_outline), onPressed: () {}, iconSize: 48.0, color: htwGreen),
         ],
       ),
     );
