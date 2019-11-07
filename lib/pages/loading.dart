@@ -8,6 +8,7 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
+  final Color htwGreen = Color(0xff76B900);
 
   void loadMap() async {
     MapService ms = MapService();
@@ -26,8 +27,8 @@ class _LoadingState extends State<Loading> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        backgroundColor: Colors.blue[900],
-        title: Text('Hiking4Nerds'),
+        backgroundColor: htwGreen,
+        title: Text(' Loading Hiking 4 Nerds'),
         elevation: 0,
       ),
       body: Center(
