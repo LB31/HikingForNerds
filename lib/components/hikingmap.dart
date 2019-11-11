@@ -170,7 +170,7 @@ class HikingMapState extends State<HikingMap> {
               point: mapLocation,
               builder: (context) => Container(
                     child: IconButton(
-                        icon: Icon(Icons.accessibility),
+                        icon: Icon(Icons.accessibility, color: Colors.black),
                         onPressed: () {
                           print('Marker tapped!');
                         }),
