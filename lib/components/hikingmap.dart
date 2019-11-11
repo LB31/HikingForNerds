@@ -157,26 +157,37 @@ class HikingMapState extends State<HikingMap> {
         getTileLayerOptions(tl: TileLayerType.hike);
     PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
-    return FlutterMap(
-      mapController: this.mapController,
-      options: MapOptions(center: mapLocation),
-      layers: [
-        tileLayerOptions,
-        polylineLayerOptions,
-        MarkerLayerOptions(markers: [
-          Marker(
-              width: 45.0,
-              height: 45.0,
-              point: mapLocation,
-              builder: (context) => Container(
-                    child: IconButton(
-                        icon: Icon(Icons.accessibility, color: Colors.black),
-                        onPressed: () {
-                          print('Marker tapped!');
-                        }),
-                  ))
-        ]),
+    return Row(
+      children: <Widget>[
+        Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          alignment: Alignment.centerLeft,
+          child: FlutterMap(
+            mapController: this.mapController,
+            options: MapOptions(center: mapLocation),
+            layers: [
+              tileLayerOptions,
+              polylineLayerOptions,
+              MarkerLayerOptions(markers: [
+                Marker(
+                    width: 45.0,
+                    height: 45.0,
+                    point: mapLocation,
+                    builder: (context) => Container(
+                      child: IconButton(
+                          icon:
+                          Icon(Icons.accessibility, color: Colors.black),
+                          onPressed: () {
+                            print('Marker tapped!');
+                          }),
+                    ))
+              ]),
+            ],
+          ),
+        )
       ],
+      
     );
   }
 }
