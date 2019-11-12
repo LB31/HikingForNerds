@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/types.dart';
 import 'package:overlay_container/overlay_container.dart';
 
-
 class HikingMap extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -160,9 +159,8 @@ class HikingMapState extends State<HikingMap> {
     PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
     return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Column(
-        children: <Widget>[
+        scrollDirection: Axis.vertical,
+        child: Column(children: <Widget>[
           Container(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
@@ -179,13 +177,13 @@ class HikingMapState extends State<HikingMap> {
                       height: 45.0,
                       point: mapLocation,
                       builder: (context) => Container(
-                        child: IconButton(
-                            icon:
-                            Icon(Icons.accessibility, color: Colors.black),
-                            onPressed: () {
-                              print('Marker tapped!');
-                            }),
-                      ))
+                            child: IconButton(
+                                icon: Icon(Icons.accessibility,
+                                    color: Colors.black),
+                                onPressed: () {
+                                  print('Marker tapped!');
+                                }),
+                          ))
                 ]),
               ],
             ),
@@ -194,17 +192,28 @@ class HikingMapState extends State<HikingMap> {
             show: true,
             position: OverlayContainerPosition(
               // Left position.
-              MediaQuery.of(context).size.width - 125,
+              MediaQuery.of(context).size.width-45,
               // Bottom position.
-              MediaQuery.of(context).size.height*0.6,
+              MediaQuery.of(context).size.height*0.7,
             ),
             // The content inside the overlay.
-            child: Container(
-              child: Text("Add Buttons here")),
+            child: Column(
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.zoom_in),
+                ),
+                IconButton(
+                  icon: Icon(Icons.zoom_out),
+                ),
+                IconButton(
+                  icon: Icon(this.autoCenter ? Icons.gps_not_fixed : Icons.gps_fixed),
+                ),
+                IconButton(
+                  icon: Icon(Icons.terrain),
+                ),
+              ],
+            ),
           ),
-        ],
-
-      )
-    );
+        ]));
   }
 }
