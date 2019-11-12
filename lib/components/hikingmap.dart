@@ -160,7 +160,7 @@ class HikingMapState extends State<HikingMap> {
 
     return Column(children: <Widget>[
       Container(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height-80,
         width: MediaQuery.of(context).size.width,
         alignment: Alignment.centerLeft,
         child: FlutterMap(
