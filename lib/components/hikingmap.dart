@@ -158,62 +158,61 @@ class HikingMapState extends State<HikingMap> {
         getTileLayerOptions(tl: TileLayerType.hike);
     PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
-    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(children: <Widget>[
-          Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            alignment: Alignment.centerLeft,
-            child: FlutterMap(
-              mapController: this.mapController,
-              options: MapOptions(center: mapLocation),
-              layers: [
-                tileLayerOptions,
-                polylineLayerOptions,
-                MarkerLayerOptions(markers: [
-                  Marker(
-                      width: 45.0,
-                      height: 45.0,
-                      point: mapLocation,
-                      builder: (context) => Container(
-                            child: IconButton(
-                                icon: Icon(Icons.accessibility,
-                                    color: Colors.black),
-                                onPressed: () {
-                                  print('Marker tapped!');
-                                }),
-                          ))
-                ]),
-              ],
+    return Column(children: <Widget>[
+      Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        alignment: Alignment.centerLeft,
+        child: FlutterMap(
+          mapController: this.mapController,
+          options: MapOptions(center: mapLocation),
+          layers: [
+            tileLayerOptions,
+            polylineLayerOptions,
+            MarkerLayerOptions(markers: [
+              Marker(
+                  width: 45.0,
+                  height: 45.0,
+                  point: mapLocation,
+                  builder: (context) => Container(
+                        child: IconButton(
+                            icon:
+                                Icon(Icons.accessibility, color: Colors.black),
+                            onPressed: () {
+                              print('Marker tapped!');
+                            }),
+                      ))
+            ]),
+          ],
+        ),
+      ),
+      OverlayContainer(
+        show: true,
+        position: OverlayContainerPosition(
+          // Left position.
+          MediaQuery.of(context).size.width - 45,
+          // Bottom position.
+          MediaQuery.of(context).size.height * 0.7,
+        ),
+        // The content inside the overlay.
+        child: Column(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.zoom_in),
             ),
-          ),
-          OverlayContainer(
-            show: true,
-            position: OverlayContainerPosition(
-              // Left position.
-              MediaQuery.of(context).size.width-45,
-              // Bottom position.
-              MediaQuery.of(context).size.height*0.7,
+            IconButton(
+              icon: Icon(Icons.zoom_out),
             ),
-            // The content inside the overlay.
-            child: Column(
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.zoom_in),
-                ),
-                IconButton(
-                  icon: Icon(Icons.zoom_out),
-                ),
-                IconButton(
-                  icon: Icon(this.autoCenter ? Icons.gps_not_fixed : Icons.gps_fixed),
-                ),
-                IconButton(
-                  icon: Icon(Icons.terrain),
-                ),
-              ],
+            IconButton(
+              icon:
+                  Icon(this.autoCenter ? Icons.gps_not_fixed : Icons.gps_fixed),
             ),
-          ),
-        ]));
+            IconButton(
+              icon: Icon(Icons.terrain),
+            ),
+          ],
+        ),
+      ),
+    ]);
   }
 }
