@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/components/hikingmap.dart';
 
 class Home extends StatefulWidget {
@@ -19,18 +18,36 @@ class _HomeState extends State<Home> {
         title: Text('Hiking 4 Nerds'),
         backgroundColor: htwGreen,
       ),
-      body: FabCircularMenu(
-        child: HikingMap(),
-        ringColor: Colors.white30,
-        fabColor: htwGreen,
-        options: <Widget>[
-          IconButton(icon: Icon(
-            Icons.help_outline), onPressed: () {}, iconSize: 48.0, color: htwGreen),
-          IconButton(icon: Icon(Icons.save_alt), onPressed: () {}, iconSize: 48.0, color: htwGreen),
-          IconButton(icon: Icon(Icons.map), onPressed: () {}, iconSize: 48.0, color: htwGreen),
-          IconButton(icon: Icon(Icons.info_outline), onPressed: () {}, iconSize: 48.0, color: htwGreen),
-        ],
-      ),
+      drawer: Drawer(
+          // Add a ListView to the drawer. This ensures the user can scroll
+          // through the options in the drawer if there isn't enough vertical
+          // space to fit everything.
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                child: Text('Drawer Header'),
+                decoration: BoxDecoration(
+                  color: htwGreen,
+                ),
+              ),
+              ListTile(
+                title: Text('Find Hiking Route'),
+                onTap: () {},
+              ),
+              ListTile(
+                title: Text('How to'),
+                onTap: () {Navigator.pushNamed(context, '/howto');},
+              ),
+              ListTile(
+                title: Text('Imprint'),
+                onTap: () {Navigator.pushNamed(context, '/info');},
+              ),
+            ],
+          ),
+        ),
+      body: HikingMap(),
     );
   }
 }
