@@ -71,7 +71,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
-<<<<<<< HEAD
   dart2_constant:
     dependency: transitive
     description:
@@ -79,7 +78,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2+dart2"
-=======
   fab_circular_menu:
     dependency: "direct dev"
     description:
@@ -87,7 +85,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1"
->>>>>>> develop
   flutter:
     dependency: "direct main"
     description: flutter
