@@ -21,6 +21,7 @@ class _HomeState extends State<Home> {
         child: FabCircularMenu(
           child: HikingMap(),
           ringColor: Colors.white30,
+          ringDiameter: MediaQuery.of(context).size.width * 0.8,
           fabColor: Theme.of(context).primaryColor,
           options: <Widget>[
             IconButton(icon: Icon(
