@@ -77,11 +77,11 @@ class HikingMapState extends State<HikingMap> {
 
   Future<void> initTestRoute() async{
     var osmData = OsmData();
-    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
+    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 90);
     var routeLatLng = route.map((node) => LatLng(node.latitude, node.longitude)).toList();
     var polyLineLayerOptions = new PolylineLayerOptions(
     polylines: [
-    Polyline(points: routeLatLng, strokeWidth: 4.0, color: Colors.pink),
+    Polyline(points: routeLatLng, strokeWidth: 4.0, color: Colors.pink, isDotted: true),
     ],);
     setState(() {
       this.polylineLayerOptions = polyLineLayerOptions;

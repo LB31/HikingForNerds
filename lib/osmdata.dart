@@ -47,22 +47,42 @@ class Edge{
 
 class Graph {
   Map<Node, List<Edge>> adjacencies;
+  Map<Edge, double> penalties; //factor that penalizes edges, for example when they were used already in a roundtrip
 
   Graph() {
     adjacencies = Map();
+    penalties = Map();
   }
 
   void addEdge(Node nodeA, Node nodeB, double weight) {
     adjacencies.putIfAbsent(nodeA, () => List<Edge>());
     adjacencies.putIfAbsent(nodeB, () => List<Edge>());
-    adjacencies[nodeA].add(Edge(nodeB, weight));
-    adjacencies[nodeB].add(Edge(nodeA, weight));
+    var edgeAtoB = Edge(nodeB, weight);
+    var edgeBtoA = Edge(nodeA, weight);
+    adjacencies[nodeA].add(edgeAtoB);
+    adjacencies[nodeB].add(edgeBtoA);
+    penalties.putIfAbsent(edgeAtoB, () => 1);
+    penalties.putIfAbsent(edgeBtoA, () => 1);
   }
 
   int getNodeCount() {
     return adjacencies.length;
   }
 
+  void penalizeEdgesAlongRoute(List<Node> route, double penalty){
+    var nodeA = route.first;
+    for(var nodeB in route){
+      if(nodeA == nodeB || nodeA == route.last) continue;
+
+      else {
+        var edgeAtoB = adjacencies[nodeA].firstWhere((edge) => edge.neighbor == nodeB);
+        var edgeBtoA = adjacencies[nodeB].firstWhere((edge) => edge.neighbor == nodeA);
+        penalties[edgeAtoB] *= penalty;
+        penalties[edgeBtoA] *= penalty;
+        nodeA = nodeB;
+       }
+    }
+  }
 
   List<Node> AStar(Node start, Node end) {
     //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
@@ -109,7 +129,7 @@ class Graph {
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
         var tentativeGScore = (gScore[current] ?? double.infinity) +
-            neighborEdge.weight;
+            neighborEdge.weight * penalties[neighborEdge];
         var neighbor = neighborEdge.neighbor;
         if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
           // This path to neighbor is better than any previous one. Record it!
@@ -241,9 +261,17 @@ class OsmData{
     var nodeB = getClosestToPoint(pointB[0], pointB[1]);
     var nodeC = getClosestToPoint(pointC[0], pointC[1]);
 
-    List<Node> result = graph.AStar(nodeA, nodeB);
-    result.addAll(graph.AStar(nodeB, nodeC));
-    result.addAll(graph.AStar(nodeC, nodeA));
+    var aToB = graph.AStar(nodeA, nodeB);
+    graph.penalizeEdgesAlongRoute(aToB, 2);
+    var bToC = graph.AStar(nodeB, nodeC);
+    graph.penalizeEdgesAlongRoute(bToC, 2);
+    var cToA = graph.AStar(nodeC, nodeA);
+    graph.penalizeEdgesAlongRoute(cToA, 2);
+
+    var result = aToB;
+    result.addAll(bToC);
+    result.addAll(cToA);
+
     return result;
   }
 
