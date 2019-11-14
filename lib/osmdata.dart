@@ -27,8 +27,9 @@ class Node{
 class Way{
   int _id;
   int get id => _id;
+  double initialPenalty;
   List<Node> childNodes;
-  Way(this._id, List<int> nodeIds, OsmData dataWithNodes){
+  Way(this._id, List<int> nodeIds, OsmData dataWithNodes, this.initialPenalty){
     childNodes = List();
     for(int nodeId in nodeIds){
       //adds the actual node object to the way instead of only the node id. Lookup returns the object found in the set,
@@ -54,15 +55,15 @@ class Graph {
     penalties = Map();
   }
 
-  void addEdge(Node nodeA, Node nodeB, double weight) {
+  void addEdge(Node nodeA, Node nodeB, double weight, double penalty) {
     adjacencies.putIfAbsent(nodeA, () => List<Edge>());
     adjacencies.putIfAbsent(nodeB, () => List<Edge>());
     var edgeAtoB = Edge(nodeB, weight);
     var edgeBtoA = Edge(nodeA, weight);
     adjacencies[nodeA].add(edgeAtoB);
     adjacencies[nodeB].add(edgeBtoA);
-    penalties.putIfAbsent(edgeAtoB, () => 1);
-    penalties.putIfAbsent(edgeBtoA, () => 1);
+    penalties.putIfAbsent(edgeAtoB, () => penalty);
+    penalties.putIfAbsent(edgeBtoA, () => penalty);
   }
 
   int getNodeCount() {
@@ -161,7 +162,13 @@ class OsmData{
       nodes.add(Node(element['id'], element["lat"], element["lon"]));
     }
     if(element['type'] == 'way'){
-      ways.add(Way(element['id'], element['nodes'].cast<int>(), this));
+      double wayPenalty;
+      if(RegExp(r"footway|cyclepath|track|path|residential|unclassified|service").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 1;
+      } else{
+        wayPenalty = 2;
+      }
+      ways.add(Way(element['id'], element['nodes'].cast<int>(), this, wayPenalty));
     }
   }
 
@@ -190,12 +197,12 @@ class OsmData{
         currentLength += getDistance(lastNode, node);
         lastNode = node;
         if(nodeCount[node] > 1 && node != lastIntersection){
-          graph.addEdge(lastIntersection, node, currentLength);
+          graph.addEdge(lastIntersection, node, currentLength, way.initialPenalty);
           currentLength = 0;
           lastIntersection = node;
         }
         else if(node == way.childNodes.last){
-          graph.addEdge(lastIntersection, node, currentLength);
+          graph.addEdge(lastIntersection, node, currentLength, way.initialPenalty);
         }
       }
     }
@@ -295,7 +302,7 @@ class OsmData{
         '[out:json][timeout:300]'
         ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
 //        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
-        '(._;>;); out skel qt;';
+        '(._;>;); out body qt;';
 
     var response = await http.get(url);
 
