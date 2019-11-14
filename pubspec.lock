@@ -158,6 +158,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.11.3+2"
+  mapbox_gl:
+    dependency: "direct dev"
+    description:
+      name: mapbox_gl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
   matcher:
     dependency: transitive
     description:

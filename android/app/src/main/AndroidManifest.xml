@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
@@ -14,6 +15,12 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="hiking4nerds"
         android:icon="@mipmap/ic_launcher">
+
+
+        <meta-data android:name="com.mapbox.token"
+            android:value="pk.eyJ1IjoiamFrdWJwcm9ncmFtbWluZyIsImEiOiJjazJ5eTNrc2swM3JjM21wbnJ2ajJiOWtqIn0.AZgsgdhbCD1e_9mhCwWOAQ" />
+
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/components/hikingmap.dart';
+import 'package:hiking4nerds/components/hikingmapbox.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -18,7 +19,7 @@ class _HomeState extends State<Home> {
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: FabCircularMenu(
-        child: HikingMap(),
+        child: MapWidget(),
         ringColor: Colors.white30,
         fabColor: Theme.of(context).primaryColor,
         options: <Widget>[
