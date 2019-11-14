@@ -264,8 +264,9 @@ class OsmData{
     var easternBorder = bottomRightBoundingBox[1];
 
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
-        '[out:json][timeout:25]'
-        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
+        '[out:json][timeout:300]'
+        ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
+//        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out skel qt;';
 
     var response = await http.get(url);
