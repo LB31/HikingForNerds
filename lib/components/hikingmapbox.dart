@@ -92,6 +92,14 @@ class _MapWidgetState extends State<MapWidget> {
     );
   }
 
+  void cycleTrackingMode(){
+    final MyLocationTrackingMode nextType =
+    MyLocationTrackingMode.values[(_myLocationTrackingMode.index + 1) % MyLocationTrackingMode.values.length];
+    setState(() {
+      _myLocationTrackingMode = nextType;
+    });
+  }
+
 
   void _extractMapInfo() {
     _position = mapController.cameraPosition;
@@ -128,6 +136,7 @@ class _MapWidgetState extends State<MapWidget> {
               IconButton(
                 icon:
                 Icon(true ? Icons.gps_not_fixed : Icons.gps_fixed),
+                onPressed: () {cycleTrackingMode();},
               ),
               IconButton(
                 icon: Icon(Icons.terrain),
@@ -136,7 +145,7 @@ class _MapWidgetState extends State<MapWidget> {
           ),
         ),
       ]),
-      floatingActionButton: _myLocationTrackingModeCycler(),
+      //floatingActionButton: _myLocationTrackingModeCycler(),
     );
   }
 
