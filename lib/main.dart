@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/home.dart';
 import 'styles.dart';
-import 'package:hiking4nerds/components/hikingmapbox.dart';
 
 void main() => runApp(MaterialApp(
       title: "Hiking4Nerds",
       initialRoute: '/',
       routes: {
-        '/': (context) => MapWidget(),
+        '/': (context) => Home(),
       },
       theme: ThemeData(
           primaryColor: htwGreen,

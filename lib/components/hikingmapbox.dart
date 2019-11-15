@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:overlay_container/overlay_container.dart';
 
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
@@ -100,9 +101,41 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: Column(children: <Widget>[
+        Container(
+        height: MediaQuery.of(context).size.height-80,
+        width: MediaQuery.of(context).size.width,
+        alignment: Alignment.centerLeft,
         child: _buildMapBox(context),
       ),
+        OverlayContainer(
+          show: true,
+          position: OverlayContainerPosition(
+            // Left position.
+            MediaQuery.of(context).size.width - 45,
+            // Bottom position.
+            MediaQuery.of(context).size.height * 0.75,
+          ),
+          // The content inside the overlay.
+          child: Column(
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.zoom_in),
+              ),
+              IconButton(
+                icon: Icon(Icons.zoom_out),
+              ),
+              IconButton(
+                icon:
+                Icon(true ? Icons.gps_not_fixed : Icons.gps_fixed),
+              ),
+              IconButton(
+                icon: Icon(Icons.terrain),
+              ),
+            ],
+          ),
+        ),
+      ]),
       floatingActionButton: _myLocationTrackingModeCycler(),
     );
   }
