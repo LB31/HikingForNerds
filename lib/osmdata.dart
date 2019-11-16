@@ -40,10 +40,12 @@ class Way{
 }
 
 class Edge{
-  Node neighbor;
+  Node nodeFrom;
+  Node nodeTo;
   double weight;
+  Way parentWay;
 
-  Edge(this.neighbor, this.weight);
+  Edge(this.nodeTo, this.nodeFrom, this.weight, this.parentWay);
 }
 
 class Graph {
@@ -55,15 +57,15 @@ class Graph {
     penalties = Map();
   }
 
-  void addEdge(Node nodeA, Node nodeB, double weight, double penalty) {
+  void addEdge(Node nodeA, Node nodeB, double weight, Way parentWay) {
     adjacencies.putIfAbsent(nodeA, () => List<Edge>());
     adjacencies.putIfAbsent(nodeB, () => List<Edge>());
-    var edgeAtoB = Edge(nodeB, weight);
-    var edgeBtoA = Edge(nodeA, weight);
+    var edgeAtoB = Edge(nodeA, nodeB, weight, parentWay);
+    var edgeBtoA = Edge(nodeB, nodeA, weight, parentWay);
     adjacencies[nodeA].add(edgeAtoB);
     adjacencies[nodeB].add(edgeBtoA);
-    penalties.putIfAbsent(edgeAtoB, () => penalty);
-    penalties.putIfAbsent(edgeBtoA, () => penalty);
+    penalties.putIfAbsent(edgeAtoB, () => parentWay.initialPenalty);
+    penalties.putIfAbsent(edgeBtoA, () => parentWay.initialPenalty);
   }
 
   int getNodeCount() {
@@ -76,8 +78,8 @@ class Graph {
       if(nodeA == nodeB || nodeA == route.last) continue;
 
       else {
-        var edgeAtoB = adjacencies[nodeA].firstWhere((edge) => edge.neighbor == nodeB);
-        var edgeBtoA = adjacencies[nodeB].firstWhere((edge) => edge.neighbor == nodeA);
+        var edgeAtoB = adjacencies[nodeA].firstWhere((edge) => edge.nodeTo == nodeB);
+        var edgeBtoA = adjacencies[nodeB].firstWhere((edge) => edge.nodeTo == nodeA);
         penalties[edgeAtoB] *= penalty;
         penalties[edgeBtoA] *= penalty;
         nodeA = nodeB;
@@ -131,7 +133,7 @@ class Graph {
         // tentative_gScore is the distance from start to the neighbor through current
         var tentativeGScore = (gScore[current] ?? double.infinity) +
             neighborEdge.weight * penalties[neighborEdge];
-        var neighbor = neighborEdge.neighbor;
+        var neighbor = neighborEdge.nodeTo;
         if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
           // This path to neighbor is better than any previous one. Record it!
           cameFrom[neighbor] = current;
@@ -197,12 +199,12 @@ class OsmData{
         currentLength += getDistance(lastNode, node);
         lastNode = node;
         if(nodeCount[node] > 1 && node != lastIntersection){
-          graph.addEdge(lastIntersection, node, currentLength, way.initialPenalty);
+          graph.addEdge(lastIntersection, node, currentLength, way);
           currentLength = 0;
           lastIntersection = node;
         }
         else if(node == way.childNodes.last){
-          graph.addEdge(lastIntersection, node, currentLength, way.initialPenalty);
+          graph.addEdge(lastIntersection, node, currentLength, way);
         }
       }
     }
