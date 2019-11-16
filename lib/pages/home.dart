@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmap.dart';
+import 'package:fab_circular_menu/fab_circular_menu.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -18,36 +19,39 @@ class _HomeState extends State<Home> {
         title: Text('Hiking 4 Nerds'),
         backgroundColor: htwGreen,
       ),
-      drawer: Drawer(
-          // Add a ListView to the drawer. This ensures the user can scroll
-          // through the options in the drawer if there isn't enough vertical
-          // space to fit everything.
-          child: ListView(
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                child: Text('Drawer Header'),
-                decoration: BoxDecoration(
-                  color: htwGreen,
-                ),
-              ),
-              ListTile(
-                title: Text('Find Hiking Route'),
-                onTap: () {},
-              ),
-              ListTile(
-                title: Text('How to'),
-                onTap: () {Navigator.pushNamed(context, '/howto');},
-              ),
-              ListTile(
-                title: Text('Imprint'),
-                onTap: () {Navigator.pushNamed(context, '/info');},
-              ),
-            ],
+      body: Stack(
+        children: <Widget>[
+          HikingMap(),
+          FabCircularMenu(
+          child: Container(
           ),
-        ),
-      body: HikingMap(),
+          ringColor: Colors.white30,
+          ringDiameter: MediaQuery.of(context).size.width * 0.8,
+          fabColor: Theme.of(context).primaryColor,
+          options: <Widget>[
+            IconButton(icon: Icon(
+              Icons.help_outline), 
+              onPressed: () { Navigator.pushNamed(context, '/help');},
+              iconSize: 42.0
+            ),
+            IconButton(icon: Icon(
+              Icons.info_outline), 
+              onPressed: () { Navigator.pushNamed(context, '/info');},
+              iconSize: 42.0
+            ),
+            IconButton(icon: Icon(
+              Icons.find_replace), 
+              onPressed: () { Navigator.pushNamed(context, '/routesetup');},
+              iconSize: 42.0
+            ),
+            IconButton(icon: Icon(
+              Icons.settings), 
+              onPressed: () { Navigator.pushNamed(context, '/settings');},
+              iconSize: 42.0
+            ),
+          ],
+        ),],
+      ),
     );
   }
 }
