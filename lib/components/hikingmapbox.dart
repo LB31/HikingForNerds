@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 Future<String> _loadJson() async {
@@ -137,7 +138,7 @@ class _MapWidgetState extends State<MapWidget> {
                 ),
                 FloatingActionButton(
                   heroTag: "btn-navigation",
-                  child: Icon(Icons.navigation),
+                  child: Icon(_myLocationTrackingMode == MyLocationTrackingMode.TrackingCompass ? Icons.navigation : OMIcons.navigation),
                   onPressed: () {
                     setZoom(15.0);
                     setTrackingMode(MyLocationTrackingMode.TrackingCompass);
@@ -150,13 +151,13 @@ class _MapWidgetState extends State<MapWidget> {
                     setTrackingMode(MyLocationTrackingMode.Tracking);
                   },
                 ),
-                FloatingActionButton(
+/*                FloatingActionButton(
                   heroTag: "btn-maptype",
                   child: Icon(Icons.terrain),
                   onPressed: () {
                     setTrackingMode(MyLocationTrackingMode.Tracking);
                   },
-                ),
+                ),*/
               ],
             ))
       ],
