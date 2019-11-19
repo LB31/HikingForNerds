@@ -22,7 +22,7 @@ class _MapWidgetState extends State<MapWidget> {
   bool _isMoving = false;
   bool _compassEnabled = true;
   MinMaxZoomPreference _minMaxZoomPreference =
-  const MinMaxZoomPreference(6.0, 20.0);
+      const MinMaxZoomPreference(6.0, 20.0);
   String _styleString = "mapbox://styles/mapbox/outdoors-v11";
   bool _rotateGesturesEnabled = true;
   bool _scrollGesturesEnabled = true;
@@ -30,10 +30,11 @@ class _MapWidgetState extends State<MapWidget> {
   bool _zoomGesturesEnabled = true;
   bool _myLocationEnabled = true;
   String _customStyle = null;
-  MyLocationTrackingMode _myLocationTrackingMode = MyLocationTrackingMode.Tracking;
+  MyLocationTrackingMode _myLocationTrackingMode =
+      MyLocationTrackingMode.Tracking;
 
-  _MapWidgetState._(this._kInitialPosition, this._position, this._cameraTargetBounds);
-
+  _MapWidgetState._(
+      this._kInitialPosition, this._position, this._cameraTargetBounds);
 
   @override
   void initState() {
@@ -80,8 +81,9 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   Widget _myLocationTrackingModeCycler() {
-    final MyLocationTrackingMode nextType =
-    MyLocationTrackingMode.values[(_myLocationTrackingMode.index + 1) % MyLocationTrackingMode.values.length];
+    final MyLocationTrackingMode nextType = MyLocationTrackingMode.values[
+        (_myLocationTrackingMode.index + 1) %
+            MyLocationTrackingMode.values.length];
     return FlatButton(
       child: Text('change to $nextType'),
       onPressed: () {
@@ -92,14 +94,13 @@ class _MapWidgetState extends State<MapWidget> {
     );
   }
 
-  void cycleTrackingMode(){
-    final MyLocationTrackingMode nextType =
-    MyLocationTrackingMode.values[(_myLocationTrackingMode.index + 1) % MyLocationTrackingMode.values.length];
+  void setTrackingMode(MyLocationTrackingMode mode) {
+    print("Setting Mode From " + _myLocationTrackingMode.toString() + " to " + mode.toString());
+
     setState(() {
-      _myLocationTrackingMode = nextType;
+      _myLocationTrackingMode = mode;
     });
   }
-
 
   void _extractMapInfo() {
     _position = mapController.cameraPosition;
@@ -111,41 +112,55 @@ class _MapWidgetState extends State<MapWidget> {
     return Scaffold(
       body: Column(children: <Widget>[
         Container(
-        height: MediaQuery.of(context).size.height-80,
-        width: MediaQuery.of(context).size.width,
-        alignment: Alignment.centerLeft,
-        child: _buildMapBox(context),
-      ),
-        OverlayContainer(
-          show: true,
-          position: OverlayContainerPosition(
-            // Left position.
-            MediaQuery.of(context).size.width - 45,
-            // Bottom position.
-            MediaQuery.of(context).size.height * 0.75,
-          ),
-          // The content inside the overlay.
-          child: Column(
-            children: <Widget>[
-              IconButton(
-                icon: Icon(Icons.zoom_in),
-              ),
-              IconButton(
-                icon: Icon(Icons.zoom_out),
-              ),
-              IconButton(
-                icon:
-                Icon(true ? Icons.gps_not_fixed : Icons.gps_fixed),
-                onPressed: () {cycleTrackingMode();},
-              ),
-              IconButton(
-                icon: Icon(Icons.terrain),
-              ),
-            ],
-          ),
+          height: MediaQuery.of(context).size.height - 80,
+          width: MediaQuery.of(context).size.width,
+          alignment: Alignment.centerLeft,
+          child: _buildMapBox(context),
         ),
+//        OverlayContainer(
+//          show: true,
+//          position: OverlayContainerPosition(
+//            // Left position.
+//            MediaQuery.of(context).size.width - 45,
+//            // Bottom position.
+//            MediaQuery.of(context).size.height * 0.75,
+//          ),
+//          // The content inside the overlay.
+//          child: Column(
+//            children: <Widget>[
+////              IconButton(
+////                icon: Icon(Icons.zoom_in),
+////              ),
+////              IconButton(
+////                icon: Icon(Icons.zoom_out),
+////              ),
+//              IconButton(
+//                icon: Icon(Icons.gps_fixed),
+//                onPressed: () {
+//                  setTrackingMode(MyLocationTrackingMode.None);
+//                },
+//              ),
+//              IconButton(
+//                icon: Icon(Icons.navigation),
+//                onPressed: () {
+//                  setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+//                },
+//              ),
+////              IconButton(
+////                icon: Icon(Icons.terrain),
+////              ),
+//            ],
+//          ),
+//        ),
       ]),
       //floatingActionButton: _myLocationTrackingModeCycler(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+        },
+        child: Icon(Icons.navigation),
+      ),
     );
   }
 
@@ -157,7 +172,7 @@ class _MapWidgetState extends State<MapWidget> {
         compassEnabled: _compassEnabled,
         cameraTargetBounds: _cameraTargetBounds,
         minMaxZoomPreference: _minMaxZoomPreference,
-        styleString: _styleString,// _customStyle, for offline use
+        styleString: _styleString, // _customStyle, for offline use
         rotateGesturesEnabled: _rotateGesturesEnabled,
         scrollGesturesEnabled: _scrollGesturesEnabled,
         tiltGesturesEnabled: _tiltGesturesEnabled,
