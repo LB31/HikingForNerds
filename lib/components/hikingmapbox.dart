@@ -23,7 +23,7 @@ class _MapWidgetState extends State<MapWidget> {
   bool _compassEnabled = true;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(6.0, 20.0);
-  String _styleString = "mapbox://styles/mapbox/outdoors-v11";
+  String _style = "outdoors-v11";
   bool _rotateGesturesEnabled = true;
   bool _scrollGesturesEnabled = true;
   bool _tiltGesturesEnabled = true;
@@ -107,6 +107,12 @@ class _MapWidgetState extends State<MapWidget> {
     mapController.moveCamera(CameraUpdate.newLatLng(latLng));
   }
 
+  void setMapStyle(String style){
+    setState(() {
+      _style = style;
+    });
+  }
+
   void _extractMapInfo() {
     _position = mapController.cameraPosition;
     _isMoving = mapController.isCameraMoving;
@@ -151,13 +157,14 @@ class _MapWidgetState extends State<MapWidget> {
                     setTrackingMode(MyLocationTrackingMode.Tracking);
                   },
                 ),
-/*                FloatingActionButton(
+                FloatingActionButton(
                   heroTag: "btn-maptype",
-                  child: Icon(Icons.terrain),
+                  child: Icon(_style == "outdoors-v11" ? Icons.terrain : Icons.satellite),
                   onPressed: () {
-                    setTrackingMode(MyLocationTrackingMode.Tracking);
+                    if(_style == "satellite-v9") setMapStyle("outdoors-v11");
+                    else setMapStyle("satellite-v9");
                   },
-                ),*/
+                ),
               ],
             ))
       ],
@@ -172,7 +179,7 @@ class _MapWidgetState extends State<MapWidget> {
         compassEnabled: _compassEnabled,
         cameraTargetBounds: _cameraTargetBounds,
         minMaxZoomPreference: _minMaxZoomPreference,
-        styleString: _styleString,
+        styleString: "mapbox://styles/mapbox/" + _style,
         // _customStyle, for offline use
         rotateGesturesEnabled: _rotateGesturesEnabled,
         scrollGesturesEnabled: _scrollGesturesEnabled,
