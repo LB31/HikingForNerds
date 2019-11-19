@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_tree/r_tree.dart' as rtree;
 
@@ -45,9 +44,8 @@ class Edge{
   Node nodeTo;
   double weight;
   Way parentWay;
-  Edge back;
 
-  Edge(this.nodeFrom, this.nodeTo, this.weight, this.parentWay);
+  Edge(this.nodeTo, this.nodeFrom, this.weight, this.parentWay);
 }
 
 class Graph {
@@ -62,16 +60,10 @@ class Graph {
   void addEdge(Node nodeA, Node nodeB, double weight, Way parentWay) {
     adjacencies.putIfAbsent(nodeA, () => List<Edge>());
     adjacencies.putIfAbsent(nodeB, () => List<Edge>());
-
     var edgeAtoB = Edge(nodeA, nodeB, weight, parentWay);
     var edgeBtoA = Edge(nodeB, nodeA, weight, parentWay);
-
     adjacencies[nodeA].add(edgeAtoB);
     adjacencies[nodeB].add(edgeBtoA);
-
-    edgeAtoB.back = edgeBtoA;
-    edgeBtoA.back = edgeAtoB;
-
     penalties.putIfAbsent(edgeAtoB, () => parentWay.initialPenalty);
     penalties.putIfAbsent(edgeBtoA, () => parentWay.initialPenalty);
   }
@@ -80,32 +72,22 @@ class Graph {
     return adjacencies.length;
   }
 
-  void penalizeEdgesAlongRoute(List<Edge> route, double penalty){
-    for(var edge in route){
-      penalties[edge] *= penalty;
-      penalties[edge.back] *= penalty;
+  void penalizeEdgesAlongRoute(List<Node> route, double penalty){
+    var nodeA = route.first;
+    for(var nodeB in route){
+      if(nodeA == nodeB || nodeA == route.last) continue;
+
+      else {
+        var edgeAtoB = adjacencies[nodeA].firstWhere((edge) => edge.nodeTo == nodeB);
+        var edgeBtoA = adjacencies[nodeB].firstWhere((edge) => edge.nodeTo == nodeA);
+        penalties[edgeAtoB] *= penalty;
+        penalties[edgeBtoA] *= penalty;
+        nodeA = nodeB;
+       }
     }
   }
 
-  List<Node> edgeToNodes(Edge edge) {
-    List<Node> result = List<Node>();
-    bool startAdding = false;
-    bool reverseResult = false;
-    for (var node in edge.parentWay.childNodes) {
-      if (node == edge.nodeFrom && !startAdding) startAdding = true;
-      if (node == edge.nodeTo && !startAdding) {
-        startAdding = true;
-        reverseResult = true;
-      }
-      if (startAdding) result.add(node);
-      if (node == edge.nodeTo && startAdding && !reverseResult) break;
-      if (node == edge.nodeFrom && startAdding && reverseResult) break;
-    }
-    return result;
-  }
-
-
-  List<Edge> AStar(Node start, Node end) {
+  List<Node> AStar(Node start, Node end) {
     //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
     //https://en.wikipedia.org/wiki/A*_search_algorithm
 
@@ -117,14 +99,14 @@ class Graph {
     // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
     h(Node node) => OsmData.getDistance(node, end);
 
-    // For node n, cameFrom[n] is the edge immediately preceding it on the cheapest path from start to n currently known.
-    Map<Node, Edge> cameFrom = Map();
-    List<Edge> reconstructPath(Node current) {
-      var totalPath = List<Edge>();
-//      totalPath.add(current);
+    // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start to n currently known.
+    Map<Node, Node> cameFrom = Map();
+    List<Node> reconstructPath(current) {
+      var totalPath = List<Node>();
+      totalPath.add(current);
       while (cameFrom.containsKey(current)) {
-        totalPath.insert(0, cameFrom[current]);
-        current = cameFrom[current].nodeFrom;
+        current = cameFrom[current];
+        totalPath.insert(0, current);
       }
       return totalPath;
     }
@@ -154,7 +136,7 @@ class Graph {
         var neighbor = neighborEdge.nodeTo;
         if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
           // This path to neighbor is better than any previous one. Record it!
-          cameFrom[neighbor] = neighborEdge;
+          cameFrom[neighbor] = current;
           gScore[neighbor] = tentativeGScore;
           fScore[neighbor] = tentativeGScore + h(neighbor);
           openSet.add(neighbor);
@@ -299,10 +281,7 @@ class OsmData{
     result.addAll(bToC);
     result.addAll(cToA);
 
-    var resultNodes = List<Node>();
-    result.forEach((edge) => resultNodes.addAll(graph.edgeToNodes(edge)));
-
-    return resultNodes;
+    return result;
   }
 
   void _importJsonNodesAndWays(String jsonNodesAndWays){
