@@ -79,26 +79,31 @@ class _MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  Widget _myLocationTrackingModeCycler() {
-    final MyLocationTrackingMode nextType = MyLocationTrackingMode.values[
-        (_myLocationTrackingMode.index + 1) %
-            MyLocationTrackingMode.values.length];
-    return FlatButton(
-      child: Text('change to $nextType'),
-      onPressed: () {
-        setState(() {
-          _myLocationTrackingMode = nextType;
-        });
-      },
-    );
-  }
-
   void setTrackingMode(MyLocationTrackingMode mode) {
-    print("Setting Mode From " + _myLocationTrackingMode.toString() + " to " + mode.toString());
+    print("Setting Mode From " +
+        _myLocationTrackingMode.toString() +
+        " to " +
+        mode.toString());
 
     setState(() {
       _myLocationTrackingMode = mode;
     });
+  }
+
+  void setZoom(double zoom) {
+    mapController.moveCamera(CameraUpdate.zoomTo(zoom));
+  }
+
+  void zoomIn() {
+    mapController.moveCamera(CameraUpdate.zoomIn());
+  }
+
+  void zoomOut() {
+    mapController.moveCamera(CameraUpdate.zoomOut());
+  }
+
+  void setLatLng(LatLng latLng) {
+    mapController.moveCamera(CameraUpdate.newLatLng(latLng));
   }
 
   void _extractMapInfo() {
@@ -108,33 +113,54 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-      child: new Stack(children: <Widget>[
+    return Stack(
+      children: <Widget>[
         _buildMapBox(context),
-        Align(alignment: Alignment.centerRight,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-
-            children: <Widget>[
-              FloatingActionButton(
-                child: Icon(Icons.navigation),
-                onPressed: () {
-                  setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-                },
-              ),
-              FloatingActionButton(
-                child: Icon(Icons.gps_fixed),
-                onPressed: () {
-                  setTrackingMode(MyLocationTrackingMode.Tracking); 
-                },
-              ),
-            ],
-          )
-        )
+        Align(
+            alignment: Alignment.centerRight,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                FloatingActionButton(
+                  heroTag: "btn-zoom-in",
+                  child: Icon(Icons.zoom_in),
+                  onPressed: () {
+                    zoomIn();
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "btn-zoom-out",
+                  child: Icon(Icons.zoom_out),
+                  onPressed: () {
+                    zoomOut();
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "btn-navigation",
+                  child: Icon(Icons.navigation),
+                  onPressed: () {
+                    setZoom(15.0);
+                    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "btn-gps",
+                  child: Icon(Icons.gps_fixed),
+                  onPressed: () {
+                    setTrackingMode(MyLocationTrackingMode.Tracking);
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "btn-maptype",
+                  child: Icon(Icons.terrain),
+                  onPressed: () {
+                    setTrackingMode(MyLocationTrackingMode.Tracking);
+                  },
+                ),
+              ],
+            ))
       ],
-      ),
-    ));
+    );
   }
 
   MapboxMap _buildMapBox(BuildContext context) {
@@ -145,7 +171,8 @@ class _MapWidgetState extends State<MapWidget> {
         compassEnabled: _compassEnabled,
         cameraTargetBounds: _cameraTargetBounds,
         minMaxZoomPreference: _minMaxZoomPreference,
-        styleString: _styleString, // _customStyle, for offline use
+        styleString: _styleString,
+        // _customStyle, for offline use
         rotateGesturesEnabled: _rotateGesturesEnabled,
         scrollGesturesEnabled: _scrollGesturesEnabled,
         tiltGesturesEnabled: _tiltGesturesEnabled,
