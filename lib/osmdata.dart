@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_tree/r_tree.dart' as rtree;
 
@@ -101,7 +100,8 @@ class Graph {
       if (node == edge.nodeTo && startAdding && !reverseResult) break;
       if (node == edge.nodeFrom && startAdding && reverseResult) break;
     }
-    return result;
+    if(reverseResult) return result.reversed.toList();
+    else return result;
   }
 
 
