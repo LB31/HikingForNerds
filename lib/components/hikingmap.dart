@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/types.dart';
 import 'package:hiking4nerds/osmdata.dart';
 
+
 class HikingMap extends StatefulWidget {
+  
   @override
   State<StatefulWidget> createState() {
     return HikingMapState();
@@ -15,6 +17,7 @@ class HikingMap extends StatefulWidget {
 }
 
 class HikingMapState extends State<HikingMap> {
+  static var routePoints;
   LocationData currentUserLocation;
   PolylineLayerOptions polylineLayerOptions;
   MapController mapController;
@@ -77,7 +80,7 @@ class HikingMapState extends State<HikingMap> {
 
   Future<void> initTestRoute() async{
     var osmData = OsmData();
-    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
+    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 90);
     var routeLatLng = route.map((node) => LatLng(node.latitude, node.longitude)).toList();
     var polyLineLayerOptions = new PolylineLayerOptions(
     polylines: [
@@ -86,6 +89,9 @@ class HikingMapState extends State<HikingMap> {
     setState(() {
       this.polylineLayerOptions = polyLineLayerOptions;
     });
+
+    HikingMapState.routePoints = route;
+
   }
 
   TileLayerOptions getTileLayerOptions(

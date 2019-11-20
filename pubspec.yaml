@@ -33,6 +33,7 @@ dev_dependencies:
     sdk: flutter
   flutter_spinkit: ^4.0.0
   fab_circular_menu: ^0.1.1
+  flutter_sparkline: ^0.1.0
 
 
 # For information on the generic Dart part of this file, see the
@@ -47,8 +48,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/
+  # assets:
+  #   - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
