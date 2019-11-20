@@ -19,7 +19,6 @@ environment:
 dependencies:
   flutter_map:
   location:
-  overlay_container: ^0.0.4+1
   flutter:
     sdk: flutter
 

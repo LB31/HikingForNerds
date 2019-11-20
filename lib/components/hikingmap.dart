@@ -5,7 +5,6 @@ import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/types.dart';
-import 'package:overlay_container/overlay_container.dart';
 
 class HikingMap extends StatefulWidget {
   @override
@@ -158,7 +157,7 @@ class HikingMapState extends State<HikingMap> {
         getTileLayerOptions(tl: TileLayerType.hike);
     PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
-    return Column(children: <Widget>[
+    return
       Container(
         height: MediaQuery.of(context).size.height-80,
         width: MediaQuery.of(context).size.width,
@@ -185,34 +184,5 @@ class HikingMapState extends State<HikingMap> {
             ]),
           ],
         ),
-      ),
-      OverlayContainer(
-        show: true,
-        position: OverlayContainerPosition(
-          // Left position.
-          MediaQuery.of(context).size.width - 45,
-          // Bottom position.
-          MediaQuery.of(context).size.height * 0.7,
-        ),
-        // The content inside the overlay.
-        child: Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.zoom_in),
-            ),
-            IconButton(
-              icon: Icon(Icons.zoom_out),
-            ),
-            IconButton(
-              icon:
-                  Icon(this.autoCenter ? Icons.gps_not_fixed : Icons.gps_fixed),
-            ),
-            IconButton(
-              icon: Icon(Icons.terrain),
-            ),
-          ],
-        ),
-      ),
-    ]);
-  }
-}
+      );
+}}
