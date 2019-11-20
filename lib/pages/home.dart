@@ -20,7 +20,7 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          HikingMap(),
+          MapWidget(),
           FabCircularMenu(
           child: Container(
           ),

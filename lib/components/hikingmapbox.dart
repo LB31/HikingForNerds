@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:hiking4nerds/services/osmdata.dart';
 
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
@@ -39,11 +40,23 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   void initState() {
     super.initState();
+
+    initTestRoute();
+
+
 //    _loadJson().then((result) {
 //      setState(() {
 //        _customStyle = result;
 //      });
 //    });
+  }
+
+  Future<void> initTestRoute() async{
+    var osmData = OsmData();
+    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
+    var routeLatLng = route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+    LineOptions options = LineOptions(geometry: routeLatLng);
+    mapController.addLine(options); 
   }
 
   static CameraPosition _getCameraPosition() {
