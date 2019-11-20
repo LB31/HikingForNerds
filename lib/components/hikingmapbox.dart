@@ -18,6 +18,8 @@ class _MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
 
+  bool _isLoadingRoute = false;
+
   CameraPosition _position;
   MapboxMapController mapController;
   bool _isMoving = false;
@@ -43,7 +45,6 @@ class _MapWidgetState extends State<MapWidget> {
 
     initTestRoute();
 
-
 //    _loadJson().then((result) {
 //      setState(() {
 //        _customStyle = result;
@@ -51,12 +52,30 @@ class _MapWidgetState extends State<MapWidget> {
 //    });
   }
 
-  Future<void> initTestRoute() async{
+  Future<void> initTestRoute() async {
+    print("_isLoadingRoute " + _isLoadingRoute.toString());
+
+    setState(() {
+      _isLoadingRoute = true;
+    });
+
+    print("_isLoadingRoute " + _isLoadingRoute.toString());
+
     var osmData = OsmData();
-    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
-    var routeLatLng = route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+    var route =
+        await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
+    var routeLatLng =
+        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
     LineOptions options = LineOptions(geometry: routeLatLng);
-    mapController.addLine(options); 
+    await mapController.addLine(options);
+
+    print("settingitnow FALSE");
+
+    setState(() {
+      _isLoadingRoute = false;
+    });
+
+    print("_isLoadingRoute " + _isLoadingRoute.toString());
   }
 
   static CameraPosition _getCameraPosition() {
@@ -120,7 +139,7 @@ class _MapWidgetState extends State<MapWidget> {
     mapController.moveCamera(CameraUpdate.newLatLng(latLng));
   }
 
-  void setMapStyle(String style){
+  void setMapStyle(String style) {
     setState(() {
       _style = style;
     });
@@ -157,7 +176,10 @@ class _MapWidgetState extends State<MapWidget> {
                 ),
                 FloatingActionButton(
                   heroTag: "btn-navigation",
-                  child: Icon(_myLocationTrackingMode == MyLocationTrackingMode.TrackingCompass ? Icons.navigation : OMIcons.navigation),
+                  child: Icon(_myLocationTrackingMode ==
+                          MyLocationTrackingMode.TrackingCompass
+                      ? Icons.navigation
+                      : OMIcons.navigation),
                   onPressed: () {
                     setZoom(15.0);
                     setTrackingMode(MyLocationTrackingMode.TrackingCompass);
@@ -172,14 +194,22 @@ class _MapWidgetState extends State<MapWidget> {
                 ),
                 FloatingActionButton(
                   heroTag: "btn-maptype",
-                  child: Icon(_style == "outdoors-v11" ? Icons.terrain : Icons.satellite),
+                  child: Icon(_style == "outdoors-v11"
+                      ? Icons.terrain
+                      : Icons.satellite),
                   onPressed: () {
-                    if(_style == "satellite-v9") setMapStyle("outdoors-v11");
-                    else setMapStyle("satellite-v9");
+                    if (_style == "satellite-v9")
+                      setMapStyle("outdoors-v11");
+                    else
+                      setMapStyle("satellite-v9");
                   },
                 ),
               ],
-            ))
+            )),
+        if (_isLoadingRoute)
+          Center(
+            child: CircularProgressIndicator(),
+          ),
       ],
     );
   }
