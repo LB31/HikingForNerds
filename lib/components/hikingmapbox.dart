@@ -110,7 +110,7 @@ class _MapWidgetState extends State<MapWidget> {
     PermissionStatus permission =
         await LocationPermissions().checkPermissionStatus();
     if (permission != PermissionStatus.granted) {
-      LocationPermissions().requestPermissions();
+      await LocationPermissions().requestPermissions(); 
     }
   }
 
