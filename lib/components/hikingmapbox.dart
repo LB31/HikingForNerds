@@ -3,6 +3,8 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:location_permissions/location_permissions.dart';
+
 
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
@@ -42,6 +44,8 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   void initState() {
     super.initState();
+
+    requestLocationPermissionIfNotAlreadyGranted();
 
     initTestRoute();
 
@@ -110,7 +114,17 @@ class _MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  void setTrackingMode(MyLocationTrackingMode mode) {
+  void requestLocationPermissionIfNotAlreadyGranted() async {
+    PermissionStatus permission = await LocationPermissions().checkPermissionStatus();
+    if(permission != PermissionStatus.granted){
+      LocationPermissions().requestPermissions();
+    } 
+  }
+
+  void setTrackingMode(MyLocationTrackingMode mode) async {
+
+    await requestLocationPermissionIfNotAlreadyGranted();
+
     print("Setting Mode From " +
         _myLocationTrackingMode.toString() +
         " to " +
