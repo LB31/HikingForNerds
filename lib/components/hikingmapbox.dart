@@ -5,7 +5,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 
-
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
 }
@@ -57,14 +56,9 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> initTestRoute() async {
-    print("_isLoadingRoute " + _isLoadingRoute.toString());
-
     setState(() {
       _isLoadingRoute = true;
     });
-
-    print("_isLoadingRoute " + _isLoadingRoute.toString());
-
     var osmData = OsmData();
     var route =
         await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
@@ -76,8 +70,6 @@ class _MapWidgetState extends State<MapWidget> {
     setState(() {
       _isLoadingRoute = false;
     });
-
-    print("_isLoadingRoute " + _isLoadingRoute.toString());
   }
 
   static CameraPosition _getCameraPosition() {
@@ -115,24 +107,15 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
-    PermissionStatus permission = await LocationPermissions().checkPermissionStatus();
-
-    print("PERMISSIONNN " + permission.toString());
-
-    if(permission != PermissionStatus.granted){
+    PermissionStatus permission =
+        await LocationPermissions().checkPermissionStatus();
+    if (permission != PermissionStatus.granted) {
       LocationPermissions().requestPermissions();
     }
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
-
     await requestLocationPermissionIfNotAlreadyGranted();
-
-    print("Setting Mode From " +
-        _myLocationTrackingMode.toString() +
-        " to " +
-        mode.toString());
-
     setState(() {
       _myLocationTrackingMode = mode;
     });
