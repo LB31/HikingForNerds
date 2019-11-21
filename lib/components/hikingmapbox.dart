@@ -114,11 +114,14 @@ class _MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  void requestLocationPermissionIfNotAlreadyGranted() async {
+  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     PermissionStatus permission = await LocationPermissions().checkPermissionStatus();
+
+    print("PERMISSIONNN " + permission.toString());
+
     if(permission != PermissionStatus.granted){
       LocationPermissions().requestPermissions();
-    } 
+    }
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
