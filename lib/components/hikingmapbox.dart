@@ -69,8 +69,6 @@ class _MapWidgetState extends State<MapWidget> {
     LineOptions options = LineOptions(geometry: routeLatLng);
     await mapController.addLine(options);
 
-    print("settingitnow FALSE");
-
     setState(() {
       _isLoadingRoute = false;
     });
@@ -207,9 +205,11 @@ class _MapWidgetState extends State<MapWidget> {
               ],
             )),
         if (_isLoadingRoute)
-          Center(
-            child: CircularProgressIndicator(),
-          ),
+          Dialog(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          )
       ],
     );
   }
