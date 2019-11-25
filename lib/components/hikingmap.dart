@@ -5,6 +5,7 @@ import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/types.dart';
+import 'package:hiking4nerds/services/osmdata.dart';
 
 class HikingMap extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class HikingMap extends StatefulWidget {
 
 class HikingMapState extends State<HikingMap> {
   LocationData currentUserLocation;
+  PolylineLayerOptions polylineLayerOptions;
   MapController mapController;
   bool autoCenter;
 
@@ -25,9 +27,11 @@ class HikingMapState extends State<HikingMap> {
     currentUserLocation = null;
     mapController = MapController();
     autoCenter = false;
+    this.polylineLayerOptions = getPolyLineLayerOptions();
 
     updateCurrentLocation();
     updateCurrentLocationOnChange();
+    initTestRoute();
   }
 
   Future<void> updateCurrentLocation() async {
@@ -71,6 +75,19 @@ class HikingMapState extends State<HikingMap> {
     });
   }
 
+  Future<void> initTestRoute() async{
+    var osmData = OsmData();
+    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
+    var routeLatLng = route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+    var polyLineLayerOptions = new PolylineLayerOptions(
+    polylines: [
+    Polyline(points: routeLatLng, strokeWidth: 4.0, color: Colors.pink, isDotted: true),
+    ],);
+    setState(() {
+      this.polylineLayerOptions = polyLineLayerOptions;
+    });
+  }
+
   TileLayerOptions getTileLayerOptions(
       {TileLayerType tl = TileLayerType.normal}) {
     TileLayerOptions options;
@@ -101,33 +118,9 @@ class HikingMapState extends State<HikingMap> {
   }
 
   PolylineLayerOptions getPolyLineLayerOptions() {
-    var points = <LatLng>[
-      LatLng(52.5, 13.455),
-      LatLng(52.5, 13.46),
-      LatLng(52.5, 13.47),
-      LatLng(52.52, 13.48),
-      LatLng(52.53, 13.49),
-      LatLng(52.53, 13.48),
-      LatLng(52.57, 13.5),
-      LatLng(52.58, 13.5),
-      LatLng(52.59, 13.51),
-      LatLng(52.5, 13.5),
-      LatLng(52.5, 13.455),
-    ];
 
-    var points2 = <LatLng>[
-      LatLng(52.5, 13.455),
-      LatLng(52.53, 13.458),
-      LatLng(52.54, 13.459),
-      LatLng(52.58, 13.459),
-      LatLng(52.58, 13.5),
-      LatLng(52.7, 13.55),
-    ];
-
-    PolylineLayerOptions polylineLayerOptions = new PolylineLayerOptions(
+    var polylineLayerOptions = new PolylineLayerOptions(
       polylines: [
-        Polyline(points: points, strokeWidth: 4.0, color: Colors.purple),
-        Polyline(points: points2, strokeWidth: 4.0, color: Colors.green),
       ],
     );
 
@@ -155,14 +148,14 @@ class HikingMapState extends State<HikingMap> {
     LatLng mapLocation = getMapLatLong();
     TileLayerOptions tileLayerOptions =
         getTileLayerOptions(tl: TileLayerType.hike);
-    PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
+//    PolylineLayerOptions polylineLayerOptions = getPolyLineLayerOptions();
 
     return FlutterMap(
       mapController: this.mapController,
       options: MapOptions(center: mapLocation),
       layers: [
         tileLayerOptions,
-        polylineLayerOptions,
+        this.polylineLayerOptions,
         MarkerLayerOptions(markers: [
           Marker(
               width: 45.0,
