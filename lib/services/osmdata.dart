@@ -183,7 +183,10 @@ class OsmData{
     }
     if(element['type'] == 'way'){
       double wayPenalty;
-      if(RegExp(r"footway|cyclepath|track|path|residential|unclassified|service").hasMatch(element['tags']['highway'])) {
+      if(RegExp(r"motorway|trunk|primary|motorway_link|trunk_link|primary_link").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 20;
+      }
+      else if(RegExp(r"footway|cyclepath|track|path|residential|unclassified|service").hasMatch(element['tags']['highway'])) {
         wayPenalty = 1;
       } else{
         wayPenalty = 2;
@@ -328,7 +331,7 @@ class OsmData{
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
-
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
     return response.body;
 }
 
