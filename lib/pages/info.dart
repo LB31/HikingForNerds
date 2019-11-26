@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/styles.dart';
 
 class Info extends StatelessWidget {
   @override
@@ -7,7 +6,7 @@ class Info extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Info'),
-        backgroundColor: htwGreen,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
