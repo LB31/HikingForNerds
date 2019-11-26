@@ -201,12 +201,12 @@ class OsmData{
     }
   }
 
-  //Todo: improve this distance function. Right now it assumes the earth is flat (which might be true).
   //http://edwilliams.org/avform.htm#Dist
   static double getDistance(Node nodeA, Node nodeB){
-    var a = (nodeA.latitude - nodeB.latitude).abs();
-    var b = (nodeA.longitude - nodeB.longitude).abs();
-    return sqrt(a*a + b*b);
+    //optimized haversine formular from https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+    var p = 0.017453292519943295;    // Math.PI / 180
+    var a = 0.5 - cos((nodeB.latitude - nodeA.latitude) * p)/2 + cos(nodeA.latitude* p) * cos(nodeB.latitude* p) * (1 - cos((nodeB.longitude - nodeA.longitude) * p))/2;
+    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
   void buildGraph(){
@@ -237,11 +237,15 @@ class OsmData{
       }
     }
   }
+  
+  double _toRadians(double angleInDeg){
+    return (angleInDeg*pi)/180.0;
+  }
 
   List<double> projectCoordinate(double latInDeg, double longInDeg, double distanceInM, double headingFromNorth){
-    var latInRadians = (latInDeg*pi)/180.0;
-    var longInRadians = (longInDeg*pi)/180.0;
-    var headingInRadians = (headingFromNorth*pi)/180.0;
+    var latInRadians = _toRadians(latInDeg);
+    var longInRadians = _toRadians(longInDeg);
+    var headingInRadians = _toRadians(headingFromNorth);
 
     double angularDistance = distanceInM / 6371000.0;
 
