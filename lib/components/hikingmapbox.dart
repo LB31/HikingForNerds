@@ -20,6 +20,7 @@ class _MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
+  PermissionStatus permission;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -44,9 +45,9 @@ class _MapWidgetState extends State<MapWidget> {
   void initState() {
     super.initState();
 
-    requestLocationPermissionIfNotAlreadyGranted();
-
-    initTestRoute();
+    requestLocationPermissionIfNotAlreadyGranted().then((result){
+      initTestRoute();
+    });
 
 //    _loadJson().then((result) {
 //      setState(() {
@@ -64,6 +65,7 @@ class _MapWidgetState extends State<MapWidget> {
         await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
     var routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+
     LineOptions options = LineOptions(geometry: routeLatLng);
     await mapController.addLine(options);
 
@@ -107,10 +109,17 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
+
+
+    //TODO FIND OUT HOW TO ACTUALLY SHOW LOCATION AFTER GRANTING WITHOUT RESTARTING THE ENTIRE APP
+
     PermissionStatus permission =
         await LocationPermissions().checkPermissionStatus();
     if (permission != PermissionStatus.granted) {
-      await LocationPermissions().requestPermissions(); 
+      await LocationPermissions().requestPermissions();
+      setState(() {
+        this.permission = permission; //TODO THIS IS NOT HOW ITS DONE
+      });
     }
   }
 
