@@ -20,7 +20,7 @@ class _MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
-
+  var _route;
   CameraPosition _position;
   MapboxMapController mapController;
   bool _isMoving = false;
@@ -45,7 +45,7 @@ class _MapWidgetState extends State<MapWidget> {
     super.initState();
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      //initTestRoute();
+      initTestRoute();
     });
 
 //    _loadJson().then((result) {
@@ -59,10 +59,11 @@ class _MapWidgetState extends State<MapWidget> {
     setState(() {
       _isLoadingRoute = true;
     });
-    var osmData = OsmData();
-    var route =
+    OsmData osmData = OsmData();
+    List<Node> route =
         await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
-    var routeLatLng =
+
+    List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
     LineOptions options = LineOptions(geometry: routeLatLng);
@@ -70,7 +71,14 @@ class _MapWidgetState extends State<MapWidget> {
 
     setState(() {
       _isLoadingRoute = false;
+      _route = routeLatLng;
     });
+  }
+
+  void updateRoute() async{
+    mapController.clearLines();
+    LineOptions options = LineOptions(geometry: _route);
+    await mapController.addLine(options);
   }
 
   static CameraPosition _getCameraPosition() {
