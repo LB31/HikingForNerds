@@ -20,7 +20,6 @@ class _MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
-  PermissionStatus permission;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -45,8 +44,8 @@ class _MapWidgetState extends State<MapWidget> {
   void initState() {
     super.initState();
 
-    requestLocationPermissionIfNotAlreadyGranted().then((result){
-      initTestRoute();
+    requestLocationPermissionIfNotAlreadyGranted().then((result) {
+      //initTestRoute();
     });
 
 //    _loadJson().then((result) {
@@ -108,26 +107,34 @@ class _MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
-
-
-    //TODO FIND OUT HOW TO ACTUALLY SHOW LOCATION AFTER GRANTING WITHOUT RESTARTING THE ENTIRE APP
-
+  Future<bool> isLocationPermissionGranted() async {
     PermissionStatus permission =
         await LocationPermissions().checkPermissionStatus();
-    if (permission != PermissionStatus.granted) {
+    return permission == PermissionStatus.granted;
+  }
+
+  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
+    bool granted = await isLocationPermissionGranted();
+    if (!granted) {
       await LocationPermissions().requestPermissions();
-      setState(() {
-        this.permission = permission; //TODO THIS IS NOT HOW ITS DONE
-      });
     }
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
     await requestLocationPermissionIfNotAlreadyGranted();
-    setState(() {
-      _myLocationTrackingMode = mode;
-    });
+    bool granted = await isLocationPermissionGranted();
+
+    if(granted){
+      setState(() {
+        _myLocationTrackingMode = mode;
+      });
+      forceRebuildMap();
+    }
+  }
+
+  //TODO find way to rebuild map?!
+  forceRebuildMap(){
+    
   }
 
   void setZoom(double zoom) {
