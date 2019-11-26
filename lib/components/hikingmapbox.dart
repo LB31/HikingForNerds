@@ -23,6 +23,10 @@ class _MapWidgetState extends State<MapWidget> {
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
 
+  Line _lineRoute;
+  Line _linePassedRoute;
+
+
   CameraPosition _position;
   MapboxMapController mapController;
   bool _isMoving = false;
@@ -68,12 +72,19 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-    LineOptions options = LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
-    await mapController.addLine(options);
+
+    LineOptions optionsPassedRoute = LineOptions(geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+    Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
+
+    LineOptions optionsRoute = LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+    Line lineRoute = await mapController.addLine(optionsRoute);
+
 
     setState(() {
       _isLoadingRoute = false;
       _route = routeLatLng;
+      _lineRoute = lineRoute;
+      _linePassedRoute = linePassedRoute;
     });
   }
 
@@ -83,15 +94,12 @@ class _MapWidgetState extends State<MapWidget> {
 
     List<LatLng> passedRoute = [..._passedRoute, ..._route.sublist(0, numberOfNodesToUpdate)];
     List<LatLng> remainingRoute = _route.sublist(numberOfNodesToUpdate-1);
-    mapController.clearLines();
 
+    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
 
-    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute, lineColor: "Grey", lineWidth: 2.5);
-    await mapController.addLine(optionsPassedRoute);
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute, lineColor: "Blue", lineWidth: 4.0);
-    await mapController.addLine(optionsRemainingRoute);
-
+    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
+    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
 
     setState(() {
       _route = remainingRoute;
