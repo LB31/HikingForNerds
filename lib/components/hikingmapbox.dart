@@ -117,6 +117,8 @@ class _MapWidgetState extends State<MapWidget> {
     bool granted = await isLocationPermissionGranted();
     if (!granted) {
       await LocationPermissions().requestPermissions();
+      granted = await isLocationPermissionGranted();
+      if(granted) forceRebuildMap();
     }
   }
 
@@ -128,13 +130,12 @@ class _MapWidgetState extends State<MapWidget> {
       setState(() {
         _myLocationTrackingMode = mode;
       });
-      forceRebuildMap();
     }
   }
 
   //TODO find way to rebuild map?!
   forceRebuildMap(){
-    
+
   }
 
   void setZoom(double zoom) {
