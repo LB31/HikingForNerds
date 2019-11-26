@@ -26,7 +26,6 @@ class _MapWidgetState extends State<MapWidget> {
   Line _lineRoute;
   Line _linePassedRoute;
 
-
   CameraPosition _position;
   MapboxMapController mapController;
   bool _isMoving = false;
@@ -72,13 +71,13 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-
-    LineOptions optionsPassedRoute = LineOptions(geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+    LineOptions optionsPassedRoute = LineOptions(
+        geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute = LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+    LineOptions optionsRoute =
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
     Line lineRoute = await mapController.addLine(optionsRoute);
-
 
     setState(() {
       _isLoadingRoute = false;
@@ -88,12 +87,14 @@ class _MapWidgetState extends State<MapWidget> {
     });
   }
 
-  void updateRoute() async{
-
+  void updateRoute() async {
     int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
 
-    List<LatLng> passedRoute = [..._passedRoute, ..._route.sublist(0, numberOfNodesToUpdate)];
-    List<LatLng> remainingRoute = _route.sublist(numberOfNodesToUpdate-1);
+    List<LatLng> passedRoute = [
+      ..._passedRoute,
+      ..._route.sublist(0, numberOfNodesToUpdate)
+    ];
+    List<LatLng> remainingRoute = _route.sublist(numberOfNodesToUpdate - 1);
 
     LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
     await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
@@ -105,7 +106,6 @@ class _MapWidgetState extends State<MapWidget> {
       _route = remainingRoute;
       _passedRoute = passedRoute;
     });
-
   }
 
   static CameraPosition _getCameraPosition() {
@@ -153,7 +153,7 @@ class _MapWidgetState extends State<MapWidget> {
     if (!granted) {
       await LocationPermissions().requestPermissions();
       granted = await isLocationPermissionGranted();
-      if(granted) forceRebuildMap();
+      if (granted) forceRebuildMap();
     }
   }
 
@@ -161,7 +161,7 @@ class _MapWidgetState extends State<MapWidget> {
     await requestLocationPermissionIfNotAlreadyGranted();
     bool granted = await isLocationPermissionGranted();
 
-    if(granted){
+    if (granted) {
       setState(() {
         _myLocationTrackingMode = mode;
       });
@@ -169,9 +169,7 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   //TODO find way to rebuild map?!
-  forceRebuildMap(){
-
-  }
+  forceRebuildMap() {}
 
   void setZoom(double zoom) {
     mapController.moveCamera(CameraUpdate.zoomTo(zoom));
@@ -265,10 +263,22 @@ class _MapWidgetState extends State<MapWidget> {
             )),
         if (_isLoadingRoute)
           Dialog(
-            child: Center(
-              child: CircularProgressIndicator(),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height*0.2, 
+                child: Center(
+            child: ListView(
+                shrinkWrap: true,
+                children: <Widget>[
+                  Center(child: CircularProgressIndicator()),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(child: Text("Calculating Route...")),
+                  ),
+                ],
             ),
-          )
+          ),
+              ))
       ],
     );
   }
