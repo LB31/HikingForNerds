@@ -51,5 +51,8 @@
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Example: You should fill this in</string>
 
+    <key>MGLMapboxAccessToken</key>
+    <string>pk.eyJ1IjoiamFrdWJwcm9ncmFtbWluZyIsImEiOiJjazJ5eTNrc2swM3JjM21wbnJ2ajJiOWtqIn0.AZgsgdhbCD1e_9mhCwWOAQ</string>
+
 </dict>
 </plist>

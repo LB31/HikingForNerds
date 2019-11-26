@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/hikingmap.dart';
+import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 
 class Home extends StatefulWidget {
@@ -19,9 +19,10 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          HikingMap(),
+          MapWidget(),
           FabCircularMenu(
           child: Container(
+            // leave empty
           ),
           ringColor: Colors.white30,
           ringDiameter: MediaQuery.of(context).size.width * 0.8,
