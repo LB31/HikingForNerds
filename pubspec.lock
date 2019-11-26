@@ -130,6 +130,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.0"
+  json_to_form:
+    dependency: "direct main"
+    description:
+      name: json_to_form
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   latlong:
     dependency: transitive
     description:
@@ -207,6 +214,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  share:
+    dependency: "direct main"
+    description:
+      name: share
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.3+3"
   sky_engine:
     dependency: transitive
     description: flutter

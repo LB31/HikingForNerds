@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmap.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
+import 'package:hiking4nerds/pages/share.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -45,6 +46,18 @@ class _HomeState extends State<Home> {
             IconButton(icon: Icon(
               Icons.settings), 
               onPressed: () { Navigator.pushNamed(context, '/settings');},
+              iconSize: 42.0
+            ),
+            IconButton(icon: Icon(
+              Icons.share),
+              onPressed: (){ Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Share(
+                      polylineLayerOptions: HikingMapState().getPolyLineLayerOptions(),
+                    )
+                  )
+              );},
               iconSize: 42.0
             ),
           ],
