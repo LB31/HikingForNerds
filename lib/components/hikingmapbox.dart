@@ -20,7 +20,9 @@ class _MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
-  var _route;
+  List<LatLng> _passedRoute = [];
+  List<LatLng> _route = [];
+
   CameraPosition _position;
   MapboxMapController mapController;
   bool _isMoving = false;
@@ -66,7 +68,7 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-    LineOptions options = LineOptions(geometry: routeLatLng);
+    LineOptions options = LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
     await mapController.addLine(options);
 
     setState(() {
@@ -76,9 +78,26 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async{
+
+    int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
+
+    List<LatLng> passedRoute = [..._passedRoute, ..._route.sublist(0, numberOfNodesToUpdate)];
+    List<LatLng> remainingRoute = _route.sublist(numberOfNodesToUpdate-1);
     mapController.clearLines();
-    LineOptions options = LineOptions(geometry: _route);
-    await mapController.addLine(options);
+
+
+    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute, lineColor: "Grey", lineWidth: 2.5);
+    await mapController.addLine(optionsPassedRoute);
+
+    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute, lineColor: "Blue", lineWidth: 4.0);
+    await mapController.addLine(optionsRemainingRoute);
+
+
+    setState(() {
+      _route = remainingRoute;
+      _passedRoute = passedRoute;
+    });
+
   }
 
   static CameraPosition _getCameraPosition() {
@@ -225,6 +244,13 @@ class _MapWidgetState extends State<MapWidget> {
                       setMapStyle("outdoors-v11");
                     else
                       setMapStyle("satellite-v9");
+                  },
+                ),
+                FloatingActionButton(
+                  heroTag: "btn-update",
+                  child: Icon(Icons.update),
+                  onPressed: () {
+                    updateRoute();
                   },
                 ),
               ],
