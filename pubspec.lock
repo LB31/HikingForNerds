@@ -180,12 +180,12 @@ packages:
     source: hosted
     version: "1.6.4"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.5"
   pedantic:
     dependency: transitive
     description:
@@ -217,10 +217,12 @@ packages:
   share:
     dependency: "direct main"
     description:
-      name: share
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.3+3"
+      path: "packages/share"
+      ref: "feature/shareFile"
+      resolved-ref: "32d70052e89ccb4ea8c528f174dd29023c037a16"
+      url: "https://github.com/pboos/plugins.git"
+    source: git
+    version: "0.5.3"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -326,4 +328,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.5.0 <3.0.0"
-  flutter: ">=1.9.1 <1.10.15-pre.144"
+  flutter: ">=1.9.1+hotfix.5 <1.10.15-pre.144"

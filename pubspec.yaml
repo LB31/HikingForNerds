@@ -28,13 +28,15 @@ dependencies:
   cupertino_icons: ^0.1.2
 
   # library for share-functionality
-  share: ^0.6.3+1
-#    git:
-#      url: https://github.com/pboos/plugins.git
-#      path: packages/share
-#      ref: feature/shareFile
+  share:
+    git:
+      url: https://github.com/pboos/plugins.git
+      path: packages/share
+      ref: feature/shareFile
 
-  json_to_form: "^0.0.1"
+  json_to_form: ^0.0.1
+
+  path_provider: ^1.4.5
 
 dev_dependencies:
   flutter_test:
