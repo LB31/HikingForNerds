@@ -4,6 +4,8 @@ import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'package:location/location.dart';
+
 
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
@@ -24,9 +26,10 @@ class _MapWidgetState extends State<MapWidget> {
   int _currentRouteIndex = 0;
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
-
   Line _lineRoute;
   Line _linePassedRoute;
+
+  LocationData _currentDeviceLocation;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -53,6 +56,7 @@ class _MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       initTestRoute();
+      updateCurrentLocationOnChange();
     });
 
 //    _loadJson().then((result) {
@@ -60,6 +64,15 @@ class _MapWidgetState extends State<MapWidget> {
 //        _customStyle = result;
 //      });
 //    });
+  }
+
+  void updateCurrentLocationOnChange() {
+    Location location = Location();
+    location.onLocationChanged().listen((LocationData currentLocation) {
+      setState(() {
+        _currentDeviceLocation = currentLocation;
+      });
+    });
   }
 
   Future<void> initTestRoute() async {
@@ -110,6 +123,7 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
+
     int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
 
     List<LatLng> passedRoute = [
