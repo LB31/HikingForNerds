@@ -6,7 +6,6 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
 
-
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
 }
@@ -55,7 +54,9 @@ class _MapWidgetState extends State<MapWidget> {
     super.initState();
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      initTestRoute();
+      getCurrentLocation().then((location){
+        initRoutes();
+      });
       updateCurrentLocationOnChange();
     });
 
@@ -64,6 +65,16 @@ class _MapWidgetState extends State<MapWidget> {
 //        _customStyle = result;
 //      });
 //    });
+  }
+
+  Future<LocationData> getCurrentLocation() async {
+    LocationData currentLocation;
+    var location = new Location();
+    currentLocation = await location.getLocation();
+    setState(() {
+      this._currentDeviceLocation = currentLocation;
+    });
+    return currentLocation;
   }
 
   void updateCurrentLocationOnChange() {
@@ -75,14 +86,14 @@ class _MapWidgetState extends State<MapWidget> {
     });
   }
 
-  Future<void> initTestRoute() async {
+  Future<void> initRoutes() async {
     setState(() {
       _isLoadingRoute = true;
     });
 
     var osmData = OsmData();
     var routes =
-        await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 10);
+        await osmData.calculateRoundTrip(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude, 10000, 10);
 
     drawRoute(routes[0]);
 
@@ -123,7 +134,6 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
-
     int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
 
     List<LatLng> passedRoute = [
