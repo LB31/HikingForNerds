@@ -20,6 +20,8 @@ class _MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
+  List _routes = [];
+  int _currentRouteIndex = 0;
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
 
@@ -60,40 +62,51 @@ class _MapWidgetState extends State<MapWidget> {
 //    });
   }
 
-
   Future<void> initTestRoute() async {
     setState(() {
       _isLoadingRoute = true;
     });
 
     var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 3);
-    List<LatLng> route1LatLng = routes[0].map((node) => LatLng(node.latitude, node.longitude)).toList();
-    List<LatLng> route2LatLng = routes[1].map((node) => LatLng(node.latitude, node.longitude)).toList();
-    List<LatLng> route3LatLng = routes[2].map((node) => LatLng(node.latitude, node.longitude)).toList();
+    var routes =
+        await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 10);
 
-    drawRoute(route1LatLng);
+    drawRoute(routes[0]);
 
     setState(() {
       _isLoadingRoute = false;
+      _routes = routes;
+      _currentRouteIndex = 0;
     });
   }
 
-  drawRoute(List<LatLng> route) async {
+  drawRoute(List<Node> route) async {
+    mapController.clearLines();
+
+    List<LatLng> routeLatLng =
+        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+
     LineOptions optionsPassedRoute = LineOptions(
-        geometry: route.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+        geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-    LineOptions(geometry: route, lineColor: "Blue", lineWidth: 4.0);
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
       _isLoadingRoute = false;
-      _route = route;
+      _route = routeLatLng;
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });
+  }
+
+  drawNextRoute() {
+    setState(() {
+      _currentRouteIndex = (_currentRouteIndex + 1) % _routes.length;
+    });
+    drawRoute(_routes[_currentRouteIndex]);
   }
 
   void updateRoute() async {
@@ -265,7 +278,8 @@ class _MapWidgetState extends State<MapWidget> {
                   heroTag: "btn-update",
                   child: Icon(Icons.update),
                   onPressed: () {
-                    updateRoute();
+                    //updateRoute();
+                    drawNextRoute();
                   },
                 ),
               ],
@@ -273,10 +287,10 @@ class _MapWidgetState extends State<MapWidget> {
         if (_isLoadingRoute)
           Dialog(
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: MediaQuery.of(context).size.height*0.2, 
-                child: Center(
-            child: ListView(
+            width: MediaQuery.of(context).size.width * 0.7,
+            height: MediaQuery.of(context).size.height * 0.2,
+            child: Center(
+              child: ListView(
                 shrinkWrap: true,
                 children: <Widget>[
                   Center(child: CircularProgressIndicator()),
@@ -285,9 +299,9 @@ class _MapWidgetState extends State<MapWidget> {
                     child: Center(child: Text("Calculating Route...")),
                   ),
                 ],
+              ),
             ),
-          ),
-              ))
+          ))
       ],
     );
   }
