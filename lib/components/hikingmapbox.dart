@@ -60,28 +60,29 @@ class _MapWidgetState extends State<MapWidget> {
 //    });
   }
 
+
   Future<void> initTestRoute() async {
     setState(() {
       _isLoadingRoute = true;
     });
-    OsmData osmData = OsmData();
-    List<Node> route =
-        await osmData.calculateRoundTrip(52.510143, 13.408564, 30000, 90);
 
-    List<LatLng> routeLatLng =
-        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+    var osmData = OsmData();
+    var routes = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 3);
+    List<LatLng> route1LatLng = routes[0].map((node) => LatLng(node.latitude, node.longitude)).toList();
+    List<LatLng> route2LatLng = routes[1].map((node) => LatLng(node.latitude, node.longitude)).toList();
+    List<LatLng> route3LatLng = routes[2].map((node) => LatLng(node.latitude, node.longitude)).toList();
 
     LineOptions optionsPassedRoute = LineOptions(
-        geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+        geometry: route1LatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+        LineOptions(geometry: route1LatLng, lineColor: "Blue", lineWidth: 4.0);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
       _isLoadingRoute = false;
-      _route = routeLatLng;
+      _route = route1LatLng;
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });

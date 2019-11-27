@@ -183,10 +183,19 @@ class OsmData{
     }
     if(element['type'] == 'way'){
       double wayPenalty;
-      if(RegExp(r"footway|cyclepath|track|path|residential|unclassified|service").hasMatch(element['tags']['highway'])) {
+      if(RegExp(r"motorway|trunk|primary|motorway_link|trunk_link|primary_link").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 20;
+      }
+      else if(RegExp(r"secondary|tertiary|secondary_link|tertiary_link").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 8;
+      }
+      else if(RegExp(r"cyclepath|track|path|bridleway|sidewalk|residential|service").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 2;
+      }
+      else if(RegExp(r"footway|pedestrian|unclassified").hasMatch(element['tags']['highway'])) {
         wayPenalty = 1;
       } else{
-        wayPenalty = 2;
+        wayPenalty = 5;
       }
       ways.add(Way(element['id'], element['nodes'].cast<int>(), this, wayPenalty));
     }
@@ -217,6 +226,7 @@ class OsmData{
         currentLength += getDistance(lastNode, node);
         lastNode = node;
         if(nodeCount[node] > 1 && node != lastIntersection){
+          //Todo: Maybe add the List of nodes to each edge right here, so those don't have to be reconstructed after the routing algorithm finished
           graph.addEdge(lastIntersection, node, currentLength, way);
           currentLength = 0;
           lastIntersection = node;
@@ -277,32 +287,37 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
-  Future<List<Node>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, double initialHeading) async{
+  Future<List<List<Node>>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, int alternativeRouteCount) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
+    var randomGenerator = Random(1);
+    List<List<Node>> result = List();
+    for(var i =0; i<alternativeRouteCount; i++){
+      var initialHeading = randomGenerator.nextInt(360).floorToDouble();
+      var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
+      var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
-    var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
-    var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
+      var nodeA = getClosestToPoint(startLat, startLong);
+      var nodeB = getClosestToPoint(pointB[0], pointB[1]);
+      var nodeC = getClosestToPoint(pointC[0], pointC[1]);
 
-    var nodeA = getClosestToPoint(startLat, startLong);
-    var nodeB = getClosestToPoint(pointB[0], pointB[1]);
-    var nodeC = getClosestToPoint(pointC[0], pointC[1]);
+      var aToB = graph.AStar(nodeA, nodeB);
+      graph.penalizeEdgesAlongRoute(aToB, 2);
+      var bToC = graph.AStar(nodeB, nodeC);
+      graph.penalizeEdgesAlongRoute(bToC, 2);
+      var cToA = graph.AStar(nodeC, nodeA);
+      graph.penalizeEdgesAlongRoute(cToA, 2);
 
-    var aToB = graph.AStar(nodeA, nodeB);
-    graph.penalizeEdgesAlongRoute(aToB, 2);
-    var bToC = graph.AStar(nodeB, nodeC);
-    graph.penalizeEdgesAlongRoute(bToC, 2);
-    var cToA = graph.AStar(nodeC, nodeA);
-    graph.penalizeEdgesAlongRoute(cToA, 2);
+      var routeAlternative = aToB;
+      routeAlternative.addAll(bToC);
+      routeAlternative.addAll(cToA);
 
-    var result = aToB;
-    result.addAll(bToC);
-    result.addAll(cToA);
+      var routeAlternativeNodes = List<Node>();
+      routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
+      result.add(routeAlternativeNodes);
+    }
 
-    var resultNodes = List<Node>();
-    result.forEach((edge) => resultNodes.addAll(graph.edgeToNodes(edge)));
-
-    return resultNodes;
+    return result;
   }
 
   void _importJsonNodesAndWays(String jsonNodesAndWays){
@@ -328,7 +343,7 @@ class OsmData{
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
-
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
     return response.body;
 }
 
