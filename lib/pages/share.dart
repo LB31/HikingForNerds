@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:esys_flutter_share/esys_flutter_share.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:json_to_form/json_to_form.dart';
 import 'package:share/share.dart' as prefix0;
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 
 class Share extends StatefulWidget{
   final PolylineLayerOptions polylineLayerOptions;
@@ -20,14 +22,6 @@ class Share extends StatefulWidget{
 class _ShareState extends State<Share> {
   @override
   void initState() {
-    // This is the proper place to make the async calls
-    // This way they only get called once
-
-    // During development, if you change this code,
-    // you will need to do a full restart instead of just a hot reload
-
-    // You can't use async/await here,
-    // We can't mark this method as async because of the @override
     super.initState();
 
     var jsonString = json.encode(
@@ -70,7 +64,8 @@ class _ShareState extends State<Share> {
                       path: this.widget.exportedFile.path,
                       title: "route.json")
                   .share();*/
-                  prefix0.Share.shareFile(this.widget.exportedFile, mimeType: 'application/json');
+                  //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
+                  prefix1.Share.file('route', 'route.json', this.widget.exportedFile.readAsBytesSync(), 'application/json');
                 },
                 icon: Icon(Icons.add_a_photo),
                 label: _buildButtonLabel('Social Media')
