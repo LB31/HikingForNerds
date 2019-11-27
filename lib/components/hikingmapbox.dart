@@ -72,17 +72,25 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> route2LatLng = routes[1].map((node) => LatLng(node.latitude, node.longitude)).toList();
     List<LatLng> route3LatLng = routes[2].map((node) => LatLng(node.latitude, node.longitude)).toList();
 
+    drawRoute(route1LatLng);
+
+    setState(() {
+      _isLoadingRoute = false;
+    });
+  }
+
+  drawRoute(List<LatLng> route) async {
     LineOptions optionsPassedRoute = LineOptions(
-        geometry: route1LatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+        geometry: route.sublist(1), lineColor: "Grey", lineWidth: 3.0);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: route1LatLng, lineColor: "Blue", lineWidth: 4.0);
+    LineOptions(geometry: route, lineColor: "Blue", lineWidth: 4.0);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
       _isLoadingRoute = false;
-      _route = route1LatLng;
+      _route = route;
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });
