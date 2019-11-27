@@ -203,7 +203,7 @@ class OsmData{
 
   //Todo: improve this distance function. Right now it assumes the earth is flat (which might be true).
   //http://edwilliams.org/avform.htm#Dist
-  static double getDistance(Node nodeA, Node nodeB){
+  static double getDistance(nodeA, nodeB){
     var a = (nodeA.latitude - nodeB.latitude).abs();
     var b = (nodeA.longitude - nodeB.longitude).abs();
     return sqrt(a*a + b*b);

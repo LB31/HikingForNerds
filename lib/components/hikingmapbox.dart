@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
+import 'dart:async';
 
 Future<String> _loadJson() async {
   return await rootBundle.loadString('assets/style.json');
@@ -28,7 +29,9 @@ class _MapWidgetState extends State<MapWidget> {
   Line _lineRoute;
   Line _linePassedRoute;
 
+
   LocationData _currentDeviceLocation;
+  Timer _timer;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -59,7 +62,6 @@ class _MapWidgetState extends State<MapWidget> {
       });
       updateCurrentLocationOnChange();
     });
-
 //    _loadJson().then((result) {
 //      setState(() {
 //        _customStyle = result;
@@ -111,7 +113,7 @@ class _MapWidgetState extends State<MapWidget> {
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
     LineOptions optionsPassedRoute = LineOptions(
-        geometry: routeLatLng.sublist(1), lineColor: "Grey", lineWidth: 3.0);
+        geometry: [], lineColor: "Grey", lineWidth: 3.0);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
@@ -124,6 +126,9 @@ class _MapWidgetState extends State<MapWidget> {
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });
+
+
+    initUpdateRouteTimer();
   }
 
   drawNextRoute() {
@@ -133,7 +138,44 @@ class _MapWidgetState extends State<MapWidget> {
     drawRoute(_routes[_currentRouteIndex]);
   }
 
+  void initUpdateRouteTimer(){
+    _timer = Timer.periodic(Duration(seconds: 15), (Timer t) => updateRoute());
+  }
+
   void updateRoute() async {
+
+    List<LatLng> remainingRoute = [];
+    List<LatLng> passedRoute = _passedRoute;
+
+
+    for(int i = 0; i < _route.length; i++){
+      LatLng latLng = _route[i];
+      double distanceToCurrentLocation = OsmData.getDistance(latLng, _currentDeviceLocation);
+      //print("DISTANCE $distanceToCurrentLocation");
+      if(distanceToCurrentLocation > 0.001){
+        remainingRoute.add(latLng);
+      }
+      else if(i < _route.length - 5 && i > 5) {
+        passedRoute.add(latLng);
+        print("i=" + i.toString() + " latlng = " + latLng.toString() + " length = " + passedRoute.length.toString());
+      }
+    }
+
+    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
+    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
+
+    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
+
+    setState(() {
+      _route = remainingRoute;
+      _passedRoute = passedRoute;
+    });
+
+  }
+
+  void updateRouteManually() async {
+
     int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
 
     List<LatLng> passedRoute = [
