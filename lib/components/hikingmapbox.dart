@@ -3,47 +3,72 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-Future<String> _loadJson() async {
-  return await rootBundle.loadString('assets/style.json');
-}
-
 class MapWidget extends StatefulWidget {
   @override
   _MapWidgetState createState() => _MapWidgetState();
 }
 
 class _MapWidgetState extends State<MapWidget> {
-  final CameraPosition _kInitialPosition;
+  final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
 
   CameraPosition _position;
   MapboxMapController mapController;
-  bool _isMoving = false;
   bool _compassEnabled = true;
+  bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
-      const MinMaxZoomPreference(6.0, 20.0);
-  String _style = "outdoors-v11";
+      const MinMaxZoomPreference(0.0, 22.0);
   bool _rotateGesturesEnabled = true;
   bool _scrollGesturesEnabled = true;
   bool _tiltGesturesEnabled = true;
   bool _zoomGesturesEnabled = true;
   bool _myLocationEnabled = true;
-  String _customStyle = null;
+  bool _tilesLoaded = false;
+  String _currentStyle;
+  Map<String, String> _styles = new Map();
   MyLocationTrackingMode _myLocationTrackingMode =
       MyLocationTrackingMode.Tracking;
 
   _MapWidgetState._(
-      this._kInitialPosition, this._position, this._cameraTargetBounds);
+      this._cameraInitialPos, this._position, this._cameraTargetBounds);
+
+  factory _MapWidgetState() {
+    CameraPosition cameraPosition = _getCameraPosition();
+
+    // get bounds for areas at https://boundingbox.klokantech.com/
+    // bounds germany
+    final countryBounds = LatLngBounds(
+      southwest: LatLng(47.27, 5.87),
+      northeast: LatLng(55.1, 15.04),
+    );
+
+    return _MapWidgetState._(
+        cameraPosition, cameraPosition, CameraTargetBounds(countryBounds));
+  }
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-//    _loadJson().then((result) {
-//      setState(() {
-//        _customStyle = result;
-//      });
-//    });
+    _loadOfflineTiles();
+  }
+
+  _loadOfflineTiles() async {
+    try {
+      _styles["klokan-tech"] = await _loadJson('assets/styles/klokan-tech.json');
+      _styles["bright-osm"] = await _loadJson('assets/styles/bright-osm.json');
+      _currentStyle = _styles.keys.first;
+      await installOfflineMapTiles("assets/offline-data/berlin_klokan-tech.db");
+    } catch (err) {
+      print(err);
+    }
+    setState(() {
+      this._tilesLoaded = true;
+    });
+  }
+
+  Future<String> _loadJson(String path) async {
+    return await rootBundle.loadString(path);
   }
 
   static CameraPosition _getCameraPosition() {
@@ -52,18 +77,6 @@ class _MapWidgetState extends State<MapWidget> {
       target: latLng,
       zoom: defaultZoom,
     );
-  }
-
-  factory _MapWidgetState() {
-    CameraPosition cameraPosition = _getCameraPosition();
-
-    final cityBounds = LatLngBounds(
-      southwest: LatLng(52.33826, 13.08835),
-      northeast: LatLng(52.67551, 13.76116),
-    );
-
-    return _MapWidgetState._(
-        cameraPosition, cameraPosition, CameraTargetBounds(cityBounds));
   }
 
   void _onMapChanged() {
@@ -107,9 +120,9 @@ class _MapWidgetState extends State<MapWidget> {
     mapController.moveCamera(CameraUpdate.newLatLng(latLng));
   }
 
-  void setMapStyle(String style){
+  void setMapStyle(String style) {
     setState(() {
-      _style = style;
+      _currentStyle = style;
     });
   }
 
@@ -120,67 +133,80 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        _buildMapBox(context),
-        Align(
-            alignment: Alignment.centerRight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                FloatingActionButton(
-                  heroTag: "btn-zoom-in",
-                  child: Icon(Icons.zoom_in),
-                  onPressed: () {
-                    zoomIn();
-                  },
-                ),
-                FloatingActionButton(
-                  heroTag: "btn-zoom-out",
-                  child: Icon(Icons.zoom_out),
-                  onPressed: () {
-                    zoomOut();
-                  },
-                ),
-                FloatingActionButton(
-                  heroTag: "btn-navigation",
-                  child: Icon(_myLocationTrackingMode == MyLocationTrackingMode.TrackingCompass ? Icons.navigation : OMIcons.navigation),
-                  onPressed: () {
-                    setZoom(15.0);
-                    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-                  },
-                ),
-                FloatingActionButton(
-                  heroTag: "btn-gps",
-                  child: Icon(Icons.gps_fixed),
-                  onPressed: () {
-                    setTrackingMode(MyLocationTrackingMode.Tracking);
-                  },
-                ),
-                FloatingActionButton(
-                  heroTag: "btn-maptype",
-                  child: Icon(_style == "outdoors-v11" ? Icons.terrain : Icons.satellite),
-                  onPressed: () {
-                    if(_style == "satellite-v9") setMapStyle("outdoors-v11");
-                    else setMapStyle("satellite-v9");
-                  },
-                ),
-              ],
-            ))
-      ],
-    );
+    if (this._tilesLoaded) {
+      return Stack(
+        children: <Widget>[
+          _buildMapBox(context),
+          Align(
+              alignment: Alignment.centerRight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  FloatingActionButton(
+                    heroTag: "btn-zoom-in",
+                    child: Icon(Icons.zoom_in),
+                    onPressed: () {
+                      zoomIn();
+                    },
+                  ),
+                  FloatingActionButton(
+                    heroTag: "btn-zoom-out",
+                    child: Icon(Icons.zoom_out),
+                    onPressed: () {
+                      zoomOut();
+                    },
+                  ),
+                  FloatingActionButton(
+                    heroTag: "btn-navigation",
+                    child: Icon(_myLocationTrackingMode ==
+                        MyLocationTrackingMode.TrackingCompass
+                        ? Icons.navigation
+                        : OMIcons.navigation),
+                    onPressed: () {
+                      setZoom(15.0);
+                      setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+                    },
+                  ),
+                  FloatingActionButton(
+                    heroTag: "btn-gps",
+                    child: Icon(Icons.gps_fixed),
+                    onPressed: () {
+                      setTrackingMode(MyLocationTrackingMode.Tracking);
+                    },
+                  ),
+                  FloatingActionButton(
+                    heroTag: "btn-maptype",
+                    child: Icon(_currentStyle == _styles.keys.first
+                        ? Icons.terrain
+                        : Icons.satellite),
+                    onPressed: () {
+                      // TODO for now only switching between klokan and bright
+                      setMapStyle(_currentStyle == _styles.keys.first
+                      ? _styles.keys.elementAt(1)
+                      : _styles.keys.elementAt(0));
+                    },
+                  ),
+                ],
+              ))
+        ],
+      );
+    } else {
+      return Center(
+        child: new CircularProgressIndicator(),
+      );
+    }
+
   }
 
   MapboxMap _buildMapBox(BuildContext context) {
     return MapboxMap(
         onMapCreated: onMapCreated,
-        initialCameraPosition: this._kInitialPosition,
+        initialCameraPosition: this._cameraInitialPos,
         trackCameraPosition: true,
         compassEnabled: _compassEnabled,
         cameraTargetBounds: _cameraTargetBounds,
         minMaxZoomPreference: _minMaxZoomPreference,
-        styleString: "mapbox://styles/mapbox/" + _style,
-        // _customStyle, for offline use
+        styleString: _styles[_currentStyle],
         rotateGesturesEnabled: _rotateGesturesEnabled,
         scrollGesturesEnabled: _scrollGesturesEnabled,
         tiltGesturesEnabled: _tiltGesturesEnabled,
