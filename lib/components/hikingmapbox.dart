@@ -112,7 +112,7 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-    routeLatLng = routeLatLng.sublist(5, routeLatLng.length -5);
+    routeLatLng = routeLatLng.sublist(3, routeLatLng.length -3);
 
     LineOptions optionsPassedRoute = LineOptions(
         geometry: [], lineColor: "Grey", lineWidth: 3.0);
@@ -141,7 +141,7 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void initUpdateRouteTimer(){
-    _timer = Timer.periodic(Duration(seconds: 15), (Timer t) => updateRoute());
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
   void updateRoute() async {
@@ -154,7 +154,7 @@ class _MapWidgetState extends State<MapWidget> {
       LatLng latLng = _route[i];
       double distanceToCurrentLocation = OsmData.getDistance(latLng, _currentDeviceLocation);
       //print("DISTANCE $distanceToCurrentLocation");
-      if(distanceToCurrentLocation > 0.0008){
+      if(distanceToCurrentLocation > 0.0002){
         remainingRoute.add(latLng);
       }
       else {
