@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:esys_flutter_share/esys_flutter_share.dart' as prefix1;
+import 'package:esys_flutter_share/esys_flutter_share.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:esys_flutter_share/esys_flutter_share.dart';
 
 
 class Share extends StatefulWidget{
@@ -68,7 +67,7 @@ class _ShareState extends State<Share> {
                   .share();*/
                   //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
 
-                  prefix1.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
+                  prefix0.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
                 },
                 icon: Icon(Icons.add_a_photo),
                 label: _buildButtonLabel('Social Media')
@@ -116,19 +115,6 @@ class _ShareState extends State<Share> {
   }
 
   static GeoJsonFeatureCollection getPolyLinesAsGeoJson(List<Polyline> polylines){
-    /*var object = {
-      'type': 'FeatureCollection',
-      'features': [
-        {
-          'type': 'Feature',
-          'properties': {},
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': getCoordinatesString(polylines)
-          }
-        }
-      ]
-    };*/
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
     for(Polyline polyline in polylines){
@@ -164,11 +150,18 @@ class _ShareState extends State<Share> {
     return geoJsonLine;
   }
 
+  /// trim wrong syntax from geopoint package
+  /// could leed to problems with polygons in geojson string
   static String trimWrongPluginSyntax(String jsonString) {
-    RegExp regExp = new RegExp("\"([Tt]ype)\"(\s*):(\s*)\"([Ll]ine)\"");
-    if (regExp.hasMatch(jsonString)){
-      print("hallo");
+    RegExp regExp = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
+    if (regExp.hasMatch(jsonString))
       jsonString = jsonString.replaceAll(regExp, "\"type\":\"LineString\"");
+
+    RegExp regExp1 = new RegExp("\\\"([Ff]eatures)\\\"(\\s*):(\\s*)\\[(\s*)\\[(\\s*)\\{(\\s*)\\\"([Tt]ype)\\\"");
+    if (regExp1.hasMatch(jsonString)) {
+      jsonString = jsonString.replaceAll(regExp1, "\"features\":[{\"type\"");
+      jsonString = jsonString.replaceAll(new RegExp("\\],\\[\\{\\\"[Tt]ype\\\""), ",{\"type\"");
+      jsonString = jsonString.replaceAll(new RegExp("(\\]\\]\\})\$"), "]}");
     }
 
     return jsonString;
