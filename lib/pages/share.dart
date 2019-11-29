@@ -4,10 +4,11 @@ import 'dart:io';
 import 'package:esys_flutter_share/esys_flutter_share.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geojson/geojson.dart';
+import 'package:geopoint/geopoint.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:json_to_form/json_to_form.dart';
-import 'package:share/share.dart' as prefix0;
 import 'package:esys_flutter_share/esys_flutter_share.dart';
+
 
 class Share extends StatefulWidget{
   final PolylineLayerOptions polylineLayerOptions;
@@ -24,11 +25,12 @@ class _ShareState extends State<Share> {
   void initState() {
     super.initState();
 
-    var jsonString = json.encode(
+    var jsonString =
         getPolyLinesAsGeoJson(
             this.widget.polylineLayerOptions.polylines
-        )
-    );
+        ).serialize();
+
+    jsonString = trimWrongPluginSyntax(jsonString);
 
     exportAsJson(jsonString).then((File result) {
       setState(() {
@@ -65,7 +67,8 @@ class _ShareState extends State<Share> {
                       title: "route.json")
                   .share();*/
                   //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
-                  prefix1.Share.file('route', 'route.json', this.widget.exportedFile.readAsBytesSync(), 'application/json');
+
+                  prefix1.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
                 },
                 icon: Icon(Icons.add_a_photo),
                 label: _buildButtonLabel('Social Media')
@@ -112,8 +115,8 @@ class _ShareState extends State<Share> {
     return file;
   }
 
-  static Object getPolyLinesAsGeoJson(List<Polyline> polylines){
-    var object = {
+  static GeoJsonFeatureCollection getPolyLinesAsGeoJson(List<Polyline> polylines){
+    /*var object = {
       'type': 'FeatureCollection',
       'features': [
         {
@@ -125,25 +128,50 @@ class _ShareState extends State<Share> {
           }
         }
       ]
-    };
+    };*/
+    List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
-    return object;
-  }
-
-  static List getCoordinatesString(List<Polyline> polylines){
-    /*for (Polyline polyline in polylines){
-
-    }*/
-
-    List<List<double>> coordinatesString = new List<List<double>>();
-    Polyline polyline = polylines[0];
-    for(int i = 0; i < polyline.points.length; i++){
-      coordinatesString.add([
-        polyline.points[i].latitude,
-        polyline.points[i].longitude
-      ]);
+    for(Polyline polyline in polylines){
+      GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
+      feature.type = GeoJsonFeatureType.line;
+      feature.properties = {};
+      feature.geometry = getCoordinatesString(polyline);
+      geojsonFeatures.add(feature);
     }
 
-    return coordinatesString;
+    GeoJsonFeatureCollection geoJsonFeatureCollection = new GeoJsonFeatureCollection(geojsonFeatures);
+
+    return geoJsonFeatureCollection;
   }
+
+  static GeoJsonLine getCoordinatesString(Polyline polyline){
+    GeoJsonLine geoJsonLine = new GeoJsonLine();
+    GeoSerie geoSerie = new GeoSerie();
+    geoSerie.type = GeoSerieType.line;
+    List<GeoPoint> geoPointList = new List<GeoPoint>();
+    geoSerie.name = 'random';
+
+    for(int i = 0; i < polyline.points.length; i++){
+      geoPointList.add(GeoPoint(
+          latitude: polyline.points[i].latitude,
+          longitude: polyline.points[i].longitude)
+      );
+    }
+
+    geoSerie.geoPoints = geoPointList;
+    geoJsonLine.geoSerie = geoSerie;
+
+    return geoJsonLine;
+  }
+
+  static String trimWrongPluginSyntax(String jsonString) {
+    RegExp regExp = new RegExp("\"([Tt]ype)\"(\s*):(\s*)\"([Ll]ine)\"");
+    if (regExp.hasMatch(jsonString)){
+      print("hallo");
+      jsonString = jsonString.replaceAll(regExp, "\"type\":\"LineString\"");
+    }
+
+    return jsonString;
+  }
+
 }

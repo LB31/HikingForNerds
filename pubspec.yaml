@@ -34,11 +34,11 @@ dependencies:
 #      path: packages/share
 #      ref: feature/shareFile
 
-  json_to_form: ^0.0.1
-
   path_provider: ^1.4.5
 
   esys_flutter_share: ^1.0.2
+
+  geojson: ^0.7.3
 
 dev_dependencies:
   flutter_test:
