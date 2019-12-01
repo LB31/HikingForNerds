@@ -306,9 +306,20 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
-  Future<List<List<Node>>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, int alternativeRouteCount) async{
+  Future<List<List<Node>>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
+    List<List<Node>> result;
+    if(poiCategory.isEmpty){
+      result = _calculateRoundTripsWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+    }
+    else{
+      result = await _calculateRoundTripsWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
+    }
+    return result;
+  }
+
+  List<List<Node>> _calculateRoundTripsWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
     var randomGenerator = Random(1);
     List<List<Node>> result = List();
     for(var i =0; i<alternativeRouteCount; i++){
@@ -316,8 +327,8 @@ class OsmData{
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
-//      print("Initial Heading: " + initialHeading.toString());
-//      print("Bearing between points: " + getBearing(Node(0, startLat, startLong), Node(1, pointB[0], pointB[1])).toString());
+    //      print("Initial Heading: " + initialHeading.toString());
+    //      print("Bearing between points: " + getBearing(Node(0, startLat, startLong), Node(1, pointB[0], pointB[1])).toString());
 
       var nodeA = getClosestToPoint(startLat, startLong);
       var nodeB = getClosestToPoint(pointB[0], pointB[1]);
@@ -338,7 +349,36 @@ class OsmData{
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
       result.add(routeAlternativeNodes);
     }
+    return result;
+  }
 
+  Future<List<List<Node>>> _calculateRoundTripsWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
+    List<List<Node>> result = List();
+    var jsonDecoder = JsonDecoder();
+    var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
+    dynamic elements = jsonDecoder.convert(poisJson)['elements'];
+    List<Node> pois = elements.map<Node>((element) => getClosestToPoint(element['lat'], element['lon'])).toList();
+    var startNode = getClosestToPoint(startLat, startLong);
+    for(int i = 0; i<alternativeRouteCount; i++){
+      var lastVisited = startNode;
+      var totalRouteLength = 0.0;
+      List<Edge> route = List();
+      while(pois.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
+        var closestPoi = pois.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
+        var routeToClosestPoi = graph.AStar(lastVisited, closestPoi);
+        totalRouteLength += routeToClosestPoi.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+        route.addAll(routeToClosestPoi);
+        graph.penalizeEdgesAlongRoute(routeToClosestPoi, 5);
+        pois.remove(closestPoi);
+        lastVisited = closestPoi;
+      }
+      var routeBack = graph.AStar(lastVisited, startNode);
+      totalRouteLength += routeBack.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+      route.addAll(routeBack);
+      List<Node> routeNodes = List();
+      route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
+      result.add(routeNodes);
+    }
     return result;
   }
 
@@ -348,6 +388,24 @@ class OsmData{
     parsedData.forEach((element) => parseToObject(element));
     buildGraph();
     buildLocationIndex();
+  }
+
+  Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 315);
+    var northernBorder = topLeftBoundingBox[0];
+    var westernBorder = topLeftBoundingBox[1];
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 135);
+    var southernBorder = bottomRightBoundingBox[0];
+    var easternBorder = bottomRightBoundingBox[1];
+
+    var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
+        '[out:json][timeout:300]'
+        ';node["tourism"="$category"](around:$radius,$aroundLat, $aroundLong);'
+        'out body qt;';
+
+    var response = await http.get(url);
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
+    return response.body;
   }
 
    Future<String> getWaysJson(double aroundLat, double aroundLong, radius) async {
@@ -368,6 +426,8 @@ class OsmData{
     if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
     return response.body;
 }
+
+
 
 }
 
