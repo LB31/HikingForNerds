@@ -124,7 +124,8 @@ class _MapWidgetState extends State<MapWidget> {
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10);
+        10,
+        "artwork");
 
     drawRoute(routes[0]);
 
