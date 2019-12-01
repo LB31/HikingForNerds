@@ -204,9 +204,21 @@ class OsmData{
   //http://edwilliams.org/avform.htm#Dist
   static double getDistance(Node nodeA, Node nodeB){
     //optimized haversine formular from https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
-    var p = 0.017453292519943295;    // Math.PI / 180
+    var p = 0.017453292519943295;    // PI / 180
     var a = 0.5 - cos((nodeB.latitude - nodeA.latitude) * p)/2 + cos(nodeA.latitude* p) * cos(nodeB.latitude* p) * (1 - cos((nodeB.longitude - nodeA.longitude) * p))/2;
     return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
+  }
+
+  // http://www.movable-type.co.uk/scripts/latlong.html
+  static double getBearing(Node nodeA, Node nodeB){
+    var lat1 = _toRadians(nodeA.latitude);
+    var lat2 = _toRadians(nodeB.latitude);
+    var lon1 = _toRadians(nodeA.longitude);
+    var lon2 = _toRadians(nodeB.longitude);
+    var y = sin(lon2 - lon1) * cos(lat2);
+    var x = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon2-lon1);
+    var rad = atan2(y, x);
+    return (_toDegrees(rad) + 360) % 360;
   }
 
   void buildGraph(){
@@ -238,8 +250,11 @@ class OsmData{
     }
   }
   
-  double _toRadians(double angleInDeg){
+  static double _toRadians(double angleInDeg){
     return (angleInDeg*pi)/180.0;
+  }
+  static double _toDegrees(double angleInRad){
+    return (angleInRad*180.0)/pi;
   }
 
   List<double> projectCoordinate(double latInDeg, double longInDeg, double distanceInM, double headingFromNorth){
@@ -300,6 +315,9 @@ class OsmData{
       var initialHeading = randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
+
+//      print("Initial Heading: " + initialHeading.toString());
+//      print("Bearing between points: " + getBearing(Node(0, startLat, startLong), Node(1, pointB[0], pointB[1])).toString());
 
       var nodeA = getClosestToPoint(startLat, startLong);
       var nodeB = getClosestToPoint(pointB[0], pointB[1]);
