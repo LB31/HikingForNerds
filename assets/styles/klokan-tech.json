@@ -4,11 +4,7 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "tiles": ["https://h4nsolo.f4.htw-berlin.de/data/v3/{z}/{x}/{y}.pbf"],
-      "name": "OpenMapTiles",
-      "format": "pbf",
-      "basename": "germany_berlin.mbtiles",
-      "id": "openmaptiles"
+      "url": "https://h4nsolo.f4.htw-berlin.de/data/v3.json"
     }
   },
   "glyphs": "https://h4nsolo.f4.htw-berlin.de/fonts/{fontstack}/{range}.pbf",
