@@ -40,6 +40,8 @@ dependencies:
 
   geojson: ^0.7.3
 
+  gpx: ^0.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
+import 'package:gpx/gpx.dart';
 import 'package:path_provider/path_provider.dart';
 
 
 class Share extends StatefulWidget{
   final PolylineLayerOptions polylineLayerOptions;
   File exportedFile;
+  File exportedGpxFile;
 
   Share({Key key, @required this.polylineLayerOptions}) : super(key: key);
 
@@ -24,16 +26,25 @@ class _ShareState extends State<Share> {
   void initState() {
     super.initState();
 
-    var jsonString =
-        getPolyLinesAsGeoJson(
+    var jsonString = getPolyLinesAsGeoJson(
             this.widget.polylineLayerOptions.polylines
         ).serialize();
 
     jsonString = trimWrongPluginSyntax(jsonString);
 
+    var gpxString = getPolyLinesAsGPX(this.widget.polylineLayerOptions.polylines);
+
     exportAsJson(jsonString).then((File result) {
       setState(() {
         this.widget.exportedFile = result;
+      });
+    });
+
+    _localPath.then((String path){
+      File gpxFile = createFile(path, "route.gpx");
+      gpxFile.writeAsString(gpxString);
+      setState(() {
+        this.widget.exportedGpxFile = gpxFile;
       });
     });
   }
@@ -52,7 +63,7 @@ class _ShareState extends State<Share> {
           if (i == 0) {
             return FlatButton.icon(
                 onPressed: (){
-
+                  prefix0.Share.file('route', 'route.gpx', this.widget.exportedGpxFile.readAsBytesSync(), 'text/xml');
                 },
                 icon: Icon(Icons.add_a_photo),
                 label: _buildButtonLabel('As File')
@@ -102,7 +113,7 @@ class _ShareState extends State<Share> {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    String filename = 'route.json';
+    String filename = 'route.geojson';
 
     File file = File('$path/$filename');
     return file.existsSync() ? file : createFile(path, filename);
@@ -128,6 +139,24 @@ class _ShareState extends State<Share> {
     GeoJsonFeatureCollection geoJsonFeatureCollection = new GeoJsonFeatureCollection(geojsonFeatures);
 
     return geoJsonFeatureCollection;
+  }
+
+  static getPolyLinesAsGPX(List<Polyline> polylines) {
+    final gpx = Gpx();
+    gpx.version = '1.1';
+    gpx.creator = 'Hiking4Nerds';
+    gpx.metadata = Metadata(
+      name: 'Personal Route',
+      desc: 'exported GPX Route',
+      time: DateTime.now()
+    );
+
+    gpx.trks = List<Trk>();
+    for(Polyline polyline in polylines){
+      gpx.trks.add(getTrkList(polyline));
+    }
+
+    return GpxWriter().asString(gpx, pretty: true);
   }
 
   static GeoJsonLine getCoordinatesString(Polyline polyline){
@@ -165,6 +194,27 @@ class _ShareState extends State<Share> {
     }
 
     return jsonString;
+  }
+
+  static Trk getTrkList(Polyline polyline) {
+    Trkseg trksegs = new Trkseg();
+    List<Wpt> wpts = new List<Wpt>();
+    for (int i = 0; i < polyline.points.length; i++){
+      wpts.add(new Wpt(
+        lat: polyline.points[i].latitude,
+        lon: polyline.points[i].longitude
+      ));
+    }
+
+    trksegs.trkpts = wpts;
+    
+    Trk trk = new Trk(
+      name: "route",
+      desc: "route",
+      trksegs: [trksegs],
+    );
+
+    return trk;
   }
 
 }
