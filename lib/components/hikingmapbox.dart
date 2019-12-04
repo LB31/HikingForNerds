@@ -124,8 +124,7 @@ class _MapWidgetState extends State<MapWidget> {
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10,
-        "artwork");
+        10);
 
     drawRoute(routes[0]);
 
@@ -142,7 +141,7 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-    routeLatLng = routeLatLng.sublist(3, routeLatLng.length - 3);
+    routeLatLng = routeLatLng.sublist(0, routeLatLng.length); 
 
     LineOptions optionsPassedRoute =
         LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0);
