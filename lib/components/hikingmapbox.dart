@@ -259,6 +259,59 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
+  void cycleTrackingMode(){
+    switch (_myLocationTrackingMode) {
+      case MyLocationTrackingMode.None:
+        {
+          setZoom(14);
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+        break;
+      case MyLocationTrackingMode.Tracking:
+        {
+          setZoom(16);
+          setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+        }
+        break;
+      case MyLocationTrackingMode.TrackingCompass:
+        {
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+        break;
+      default:
+        {
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+    }
+  }
+
+  Icon getTrackingModeIcon(){
+
+    switch (_myLocationTrackingMode) {
+      case MyLocationTrackingMode.None:
+        {
+          return Icon(OMIcons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.Tracking:
+        {
+          return Icon(Icons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.TrackingCompass:
+        {
+          return Icon(Icons.rotate_90_degrees_ccw);
+        }
+        break;
+      default:
+        {
+          return Icon(OMIcons.navigation);
+        }
+    }
+
+
+  }
+
   void setTrackingMode(MyLocationTrackingMode mode) async {
     await requestLocationPermissionIfNotAlreadyGranted();
     bool granted = await isLocationPermissionGranted();
@@ -312,21 +365,10 @@ class _MapWidgetState extends State<MapWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   FloatingActionButton(
-                    heroTag: "btn-navigation",
-                    child: Icon(_myLocationTrackingMode ==
-                            MyLocationTrackingMode.TrackingCompass
-                        ? Icons.navigation
-                        : OMIcons.navigation),
-                    onPressed: () {
-                      setZoom(15.0);
-                      setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-                    },
-                  ),
-                  FloatingActionButton(
                     heroTag: "btn-gps",
-                    child: Icon(Icons.gps_fixed),
+                    child: getTrackingModeIcon(),
                     onPressed: () {
-                      setTrackingMode(MyLocationTrackingMode.Tracking);
+                      cycleTrackingMode();
                     },
                   ),
                   FloatingActionButton(
