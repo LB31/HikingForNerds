@@ -312,20 +312,6 @@ class _MapWidgetState extends State<MapWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   FloatingActionButton(
-                    heroTag: "btn-zoom-in",
-                    child: Icon(Icons.zoom_in),
-                    onPressed: () {
-                      zoomIn();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-zoom-out",
-                    child: Icon(Icons.zoom_out),
-                    onPressed: () {
-                      zoomOut();
-                    },
-                  ),
-                  FloatingActionButton(
                     heroTag: "btn-navigation",
                     child: Icon(_myLocationTrackingMode ==
                             MyLocationTrackingMode.TrackingCompass
