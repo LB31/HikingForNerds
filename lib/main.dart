@@ -14,11 +14,8 @@ void main() => runApp(MaterialApp(
       initialRoute: '/',
       routes: {
         '/': (context) => Home(),
-        '/info': (context) => Info(),
-        '/help': (context) => Help(),
-        '/routesetup': (context) => Routesetup(),
-        '/settings': (context) => Settings(),
-        '/height': (context) => SelectionLineHighlight.withSampleData(),
+        '/height': (context) => HeightChart(),
+        '/chart': (context) => SelectionLineHighlight.withSampleData(),
       },
       theme: ThemeData(
           primaryColor: htwGreen,

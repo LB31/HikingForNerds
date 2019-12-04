@@ -32,18 +32,18 @@ class HeightChart extends StatelessWidget {
         if(snapshot.connectionState == ConnectionState.done) print("data");
         else print("no data");
         return Container(
-          width: 300.0,
+          width: MediaQuery.of(context).size.width,
           height: 100.0,
           child: new Sparkline(
             data: snapshot.connectionState == ConnectionState.done ?
-            this.foundHeights : [0],
+            this.foundHeights : [100,50,100,10],
             pointsMode: PointsMode.all,
-            pointSize: 8.0,
+            pointSize: 5.0,
             pointColor: Colors.amber,
             fillMode: FillMode.below,
             fillColor: Colors.red[200],
           ),
-        );
+        );   
       },
     );
   }
@@ -51,56 +51,27 @@ class HeightChart extends StatelessWidget {
 
   Future<dynamic> getRouteElevations(List<Node> points) async {
     
-    print("BAM");
+    var amount = 20;
     var url =
         "https://h4nsolo.f4.htw-berlin.de/elevation/api/v1/lookup?locations=";
 
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < amount; i++) {
       url +=
           points[i].latitude.toString() + "," + points[i].longitude.toString();
-      if (i != 50 - 1) url += "|";
+      if (i != amount - 1) url += "|";
     }
     print("gsegfsdfsdfddf");
     var response = await http.get(url);
     var parsedData = JSON.jsonDecode(response.body);
     List<double> allHeights = new List();
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < amount; i++) {
       allHeights.add(parsedData["results"][i]["elevation"].toDouble());
       print(parsedData["results"][i]["elevation"].toDouble());
     }
-
-
-    print("GFDSG");
-
     print("reads");
     this.foundHeights = allHeights;
-
+    print(this.foundHeights);
     return null;
   }
 
-  Widget draw() {
-    if (foundHeights.length == 0) return new Container();
-    var data = this.foundHeights;
-    print(data);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Height Chart'),
-        backgroundColor: htwGreen,
-      ),
-      body: new Center(
-        child: new Container(
-          width: 300.0,
-          height: 100.0,
-          child: new Sparkline(
-            data: data,
-            pointsMode: PointsMode.all,
-            pointSize: 8.0,
-            pointColor: Colors.amber,
-            fillMode: FillMode.below,
-            fillColor: Colors.red[200],
-          ),
-        ),
-      ),
-    );
-  }
 }

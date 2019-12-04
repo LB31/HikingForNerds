@@ -55,6 +55,12 @@ class _HomeState extends State<Home> {
                     Navigator.pushNamed(context, '/height');
                   },
                   iconSize: 42.0),
+              IconButton(
+                  icon: Icon(Icons.aspect_ratio),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/chart');
+                  },
+                  iconSize: 42.0),
             ],
           ),
         ],
