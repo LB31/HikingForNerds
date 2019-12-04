@@ -77,7 +77,7 @@ class HikingMapState extends State<HikingMap> {
 
   Future<void> initTestRoute() async{
     var osmData = OsmData();
-    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 1, "artwork");
+    var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 1, "aquarium");
     var route1LatLng = route[0].map((node) => LatLng(node.latitude, node.longitude)).toList();
 //    var route2LatLng = route[1].map((node) => LatLng(node.latitude, node.longitude)).toList();
 //    var route3LatLng = route[2].map((node) => LatLng(node.latitude, node.longitude)).toList();
