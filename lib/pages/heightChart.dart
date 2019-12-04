@@ -10,34 +10,72 @@ class HeightChart extends StatelessWidget {
   List<double> foundHeights = new List();
 
   Widget build(BuildContext context) {
-    var points = HikingMapState.routePoints;
-    if (foundHeights.length == 0) getRouteElevations(points, context);
-    return draw();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Lots of Items'),
+        backgroundColor: htwGreen,
+      ),
+      body: buildList(),
+    );
+    // print("bah");
+    // var points = HikingMapState.routePoints;
+    // if (foundHeights.length == 0) getRouteElevations(points, context);
+    // return draw();
   }
 
-  void getRouteElevations(List<Node> points, BuildContext context) async {
-    print("BAM");
-    var url = "https://api.jawg.io/elevations?locations=";
-    var token =
-        "JrPmIVDZsukCObjipvzDgr5MWEAygaF6k5dWrIRVCYXl6mKttFjsSkgWSulMdSYs";
+  Widget buildList() {
+    return FutureBuilder(
+      future:
+          getRouteElevations(HikingMapState.routePoints), // <--- get a future
+      builder: (BuildContext context, snapshot) {
+        // <--- build the things.
+        if(snapshot.connectionState == ConnectionState.done) print("data");
+        else print("no data");
+        return Container(
+          width: 300.0,
+          height: 100.0,
+          child: new Sparkline(
+            data: snapshot.connectionState == ConnectionState.done ?
+            this.foundHeights : [0],
+            pointsMode: PointsMode.all,
+            pointSize: 8.0,
+            pointColor: Colors.amber,
+            fillMode: FillMode.below,
+            fillColor: Colors.red[200],
+          ),
+        );
+      },
+    );
+  }
 
-    for (var i = 0; i < 150; i++) {
+
+  Future<dynamic> getRouteElevations(List<Node> points) async {
+    
+    print("BAM");
+    var url =
+        "https://h4nsolo.f4.htw-berlin.de/elevation/api/v1/lookup?locations=";
+
+    for (var i = 0; i < 50; i++) {
       url +=
           points[i].latitude.toString() + "," + points[i].longitude.toString();
-      if (i != 150 - 1) url += "%7C";
+      if (i != 50 - 1) url += "|";
     }
-    url += "&access-token=" + token;
-
+    print("gsegfsdfsdfddf");
     var response = await http.get(url);
     var parsedData = JSON.jsonDecode(response.body);
     List<double> allHeights = new List();
-    for (var i = 0; i < parsedData.length; i++) {
-      allHeights.add(parsedData[i]["elevation"]);
+    for (var i = 0; i < 50; i++) {
+      allHeights.add(parsedData["results"][i]["elevation"].toDouble());
+      print(parsedData["results"][i]["elevation"].toDouble());
     }
+
+
+    print("GFDSG");
 
     print("reads");
     this.foundHeights = allHeights;
-    build(context);
+
+    return null;
   }
 
   Widget draw() {
