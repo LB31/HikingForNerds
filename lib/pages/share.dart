@@ -3,19 +3,18 @@ import 'dart:io';
 
 import 'package:esys_flutter_share/esys_flutter_share.dart' as prefix0;
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:gpx/gpx.dart';
 import 'package:hiking4nerds/services/geojson_export_handler.dart';
 import 'package:hiking4nerds/services/gpx_export_handler.dart';
+import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:path_provider/path_provider.dart';
 
 
 class Share extends StatefulWidget{
-  final PolylineLayerOptions polylineLayerOptions;
+  List<Node> nodeList;
   File exportedFile;
   File exportedGpxFile;
 
-  Share({Key key, @required this.polylineLayerOptions}) : super(key: key);
+  Share({Key key, @required this.nodeList}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ShareState();
@@ -26,20 +25,26 @@ class _ShareState extends State<Share> {
   void initState() {
     super.initState();
 
-    List<Polyline> polylines = this.widget.polylineLayerOptions.polylines;
-
-    String jsonString = GeojsonExportHandler.parseFromPolylines(polylines);
-    var gpxString = GpxExportHandler.parseFromPolylines(polylines);
-
-    exportAsJson(jsonString).then((File jsonFile) {
+    OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90).then((List<Node> route){
       setState(() {
-        this.widget.exportedFile = jsonFile;
+        this.widget.nodeList = route;
       });
-    });
 
-    exportAsGpx(gpxString).then((File gpxFile){
-      setState(() {
-        this.widget.exportedGpxFile = gpxFile;
+      List<List<Node>> mockedMulipleRoutes = [this.widget.nodeList];
+
+      String jsonString = GeojsonExportHandler.parseFromPolylines(mockedMulipleRoutes);
+      var gpxString = GpxExportHandler.parseFromPolylines(mockedMulipleRoutes);
+
+      exportAsJson(jsonString).then((File jsonFile) {
+        setState(() {
+          this.widget.exportedFile = jsonFile;
+        });
+      });
+
+      exportAsGpx(gpxString).then((File gpxFile){
+        setState(() {
+          this.widget.exportedGpxFile = gpxFile;
+        });
       });
     });
   }

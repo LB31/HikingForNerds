@@ -1,10 +1,11 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:gpx/gpx.dart';
+import 'package:hiking4nerds/services/osmdata.dart';
 
 class GpxExportHandler{
 
   /// parse List of Polyline objects to Gpx as String
-  static String parseFromPolylines(List<Polyline> polylines){
+  static String parseFromPolylines(List<List<Node>> routes){
     final gpx = Gpx();
     gpx.version = '1.1';
     gpx.creator = 'Hiking4Nerds';
@@ -15,8 +16,8 @@ class GpxExportHandler{
     );
 
     gpx.trks = new List<Trk>();
-    for(Polyline polyline in polylines){
-      gpx.trks.add(_getTrkList(polyline));
+    for(List<Node> nodes in routes){
+      gpx.trks.add(_getTrkList(nodes));
     }
 
     return GpxWriter().asString(gpx, pretty: true);
@@ -24,12 +25,12 @@ class GpxExportHandler{
 
   ///returns a Trk (Track) Object containing multiple trksegs (Tracksegments)
   ///one tracksegment containing multiple Waypoint objects
-  static Trk _getTrkList(Polyline polyline) {
+  static Trk _getTrkList(List<Node> nodes) {
     List<Wpt> wpts = new List<Wpt>();
-    for (int i = 0; i < polyline.points.length; i++){
+    for (int i = 0; i < nodes.length; i++){
       wpts.add(new Wpt(
-          lat: polyline.points[i].latitude,
-          lon: polyline.points[i].longitude
+          lat: nodes[i].latitude,
+          lon: nodes[i].longitude
       ));
     }
 

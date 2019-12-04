@@ -284,6 +284,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  r_tree:
+    dependency: "direct main"
+    description:
+      name: r_tree
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
   rxdart:
     dependency: transitive
     description:
@@ -298,13 +305,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.3+3"
-  r_tree:
-    dependency: "direct main"
-    description:
-      name: r_tree
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.6"
   sky_engine:
     dependency: transitive
     description: flutter

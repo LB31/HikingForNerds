@@ -1,27 +1,27 @@
-import 'package:flutter_map/flutter_map.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
+import 'package:hiking4nerds/services/osmdata.dart';
 
 class GeojsonExportHandler{
 
   /// parse List of Polyline objects to Geojson as String
-  static String parseFromPolylines(List<Polyline> polylines){
+  static String parseFromPolylines(List<List<Node>> routes){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     return _trimWrongPluginSyntax(
-        _getGeojsonFeatureCollection(polylines)
+        _getGeojsonFeatureCollection(routes)
             .serialize()
     );
   }
 
   /// creates new GeoJsonFeatureCollection object containing data of route
-  static GeoJsonFeatureCollection _getGeojsonFeatureCollection(List<Polyline> polylines){
+  static GeoJsonFeatureCollection _getGeojsonFeatureCollection(List<List<Node>> routes){
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
-    for(Polyline polyline in polylines){
+    for(List<Node> nodes in routes){
       GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
       feature.type = GeoJsonFeatureType.line;
       feature.properties = {};
-      feature.geometry = _toGeojsonLine(polyline);
+      feature.geometry = _toGeojsonLine(nodes);
       geojsonFeatures.add(feature);
     }
 
@@ -31,7 +31,7 @@ class GeojsonExportHandler{
   }
 
   /// returns GeoJsonLine object representing a Route
-  static GeoJsonLine _toGeojsonLine(Polyline polyline){
+  static GeoJsonLine _toGeojsonLine(List<Node> nodes){
     GeoJsonLine geoJsonLine = new GeoJsonLine();
     GeoSerie geoSerie = new GeoSerie(
         type: GeoSerieType.line,
@@ -39,10 +39,10 @@ class GeojsonExportHandler{
     );
 
     List<GeoPoint> geoPointList = new List<GeoPoint>();
-    for(int i = 0; i < polyline.points.length; i++){
+    for(int i = 0; i < nodes.length; i++){
       geoPointList.add(GeoPoint(
-          latitude: polyline.points[i].latitude,
-          longitude: polyline.points[i].longitude)
+          latitude: nodes[i].latitude,
+          longitude: nodes[i].longitude)
       );
     }
 
