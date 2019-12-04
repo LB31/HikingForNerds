@@ -141,7 +141,7 @@ class _MapWidgetState extends State<MapWidget> {
     List<LatLng> routeLatLng =
         route.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
-    routeLatLng = routeLatLng.sublist(0, routeLatLng.length); 
+    routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute =
         LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0);
@@ -158,7 +158,7 @@ class _MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    initUpdateRouteTimer();
+    //initUpdateRouteTimer();
   }
 
   drawNextRoute() {
