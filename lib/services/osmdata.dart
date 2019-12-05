@@ -327,9 +327,6 @@ class OsmData{
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
-    //      print("Initial Heading: " + initialHeading.toString());
-    //      print("Bearing between points: " + getBearing(Node(0, startLat, startLong), Node(1, pointB[0], pointB[1])).toString());
-
       var nodeA = getClosestToPoint(startLat, startLong);
       var nodeB = getClosestToPoint(pointB[0], pointB[1]);
       var nodeC = getClosestToPoint(pointC[0], pointC[1]);
@@ -439,7 +436,6 @@ class OsmData{
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
         ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
-//        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
