@@ -49,12 +49,25 @@ class Share extends StatelessWidget{
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-                Text(
-                  ShareConsts.widgetTitle,
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        ShareConsts.widgetTitle,
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.0,),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(Icons.share),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 16.0,),
                 Text(
@@ -72,8 +85,8 @@ class Share extends StatelessWidget{
                       alignment: Alignment.bottomRight,
                       child: FlatButton(
                         onPressed: () async {
-                          this.nodeList = [await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90)];
-                          String jsonString = GeojsonExportHandler.parseFromPolylines(this.nodeList);
+                          if (this.nodeList == null) this.nodeList = await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000);
+                          String jsonString = GeojsonExportHandler.parseFromPolylines(nodeList);
                           this.exportedFile = await exportAsJson(jsonString);
                           prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
                         },
@@ -83,8 +96,11 @@ class Share extends StatelessWidget{
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: FlatButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                        onPressed: () async {
+                          if (this.nodeList == null) this.nodeList = await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000);
+                          String gpxString = GpxExportHandler.parseFromPolylines(nodeList);
+                          this.exportedGpxFile = await exportAsGpx(gpxString);
+                          prefix0.Share.file('route', 'route.gpx', this.exportedGpxFile.readAsBytesSync(), 'text/xml');
                         },
                         child: Text(ShareConsts.exportButtonGpx),
                       ),
@@ -141,77 +157,3 @@ class ShareConsts {
   static const String exportButtonGeojson = "GeoJson";
   static const String exportButtonGpx = "GPX";
 }
-
-
-/*
-class ShareRoute {
-  @override
-  void initState() {
-    super.initState();
-
-    OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90).then((List<Node> route){
-      setState(() {
-        this.widget.nodeList = route;
-      });
-
-      List<List<Node>> mockedMulipleRoutes = [this.widget.nodeList];
-
-      String jsonString = GeojsonExportHandler.parseFromPolylines(mockedMulipleRoutes);
-      var gpxString = GpxExportHandler.parseFromPolylines(mockedMulipleRoutes);
-
-      exportAsJson(jsonString).then((File jsonFile) {
-        setState(() {
-          this.widget.exportedFile = jsonFile;
-        });
-      });
-
-      exportAsGpx(gpxString).then((File gpxFile){
-        setState(() {
-          this.widget.exportedGpxFile = gpxFile;
-        });
-      });
-    });
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Share'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: 2,
-        itemBuilder: (context, i) {
-          if (i == 0) {
-            return FlatButton.icon(
-                onPressed: (){
-                  //application/xml, um das Problem mit Slack zu loesen
-                  prefix0.Share.file('route', 'route.gpx', this.widget.exportedGpxFile.readAsBytesSync(), 'text/xml');
-                },
-                icon: Icon(Icons.add_a_photo),
-                label: _buildButtonLabel('As File')
-            );
-          }else {
-            return FlatButton.icon(
-                onPressed: (){
-                  *//*prefix0.Share.file(
-                      mimeType: prefix0.ShareType.TYPE_FILE,
-                      path: this.widget.exportedFile.path,
-                      title: "route.json")
-                  .share();*//*
-                  //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
-
-                  prefix0.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
-                },
-                icon: Icon(Icons.add_a_photo),
-                label: _buildButtonLabel('Social Media')
-            );
-          }
-        },
-      ),
-    );
-  }
-  */

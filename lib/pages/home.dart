@@ -52,7 +52,7 @@ class _HomeState extends State<Home> {
             ),
             IconButton(icon: Icon(
               Icons.share),
-              onPressed: (){
+              onPressed: () {
                 showDialog(
                     context: context,
                     builder: (BuildContext context) => Share()
