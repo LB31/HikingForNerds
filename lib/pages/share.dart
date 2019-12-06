@@ -9,93 +9,92 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:path_provider/path_provider.dart';
 
 
-class Share extends StatefulWidget{
-  List<Node> nodeList;
+class Share extends StatelessWidget{
+  List<List<Node>> nodeList;
   File exportedFile;
   File exportedGpxFile;
 
-  Share({Key key, @required this.nodeList}) : super(key: key);
+  //nodeList will be required in the future to pass route directly to widget
+  Share({Key key, this.nodeList}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _ShareState();
-}
-
-class _ShareState extends State<Share> {
-  @override
-  void initState() {
-    super.initState();
-
-    OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90).then((List<Node> route){
-      setState(() {
-        this.widget.nodeList = route;
-      });
-
-      List<List<Node>> mockedMulipleRoutes = [this.widget.nodeList];
-
-      String jsonString = GeojsonExportHandler.parseFromPolylines(mockedMulipleRoutes);
-      var gpxString = GpxExportHandler.parseFromPolylines(mockedMulipleRoutes);
-
-      exportAsJson(jsonString).then((File jsonFile) {
-        setState(() {
-          this.widget.exportedFile = jsonFile;
-        });
-      });
-
-      exportAsGpx(gpxString).then((File gpxFile){
-        setState(() {
-          this.widget.exportedGpxFile = gpxFile;
-        });
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Share'),
-        backgroundColor: Theme.of(context).primaryColor,
+  Widget build(BuildContext context){
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ShareConsts.padding),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: 2,
-        itemBuilder: (context, i) {
-          if (i == 0) {
-            return FlatButton.icon(
-                onPressed: (){
-                  //application/xml, um das Problem mit Slack zu loesen
-                  prefix0.Share.file('route', 'route.gpx', this.widget.exportedGpxFile.readAsBytesSync(), 'text/xml');
-                },
-                icon: Icon(Icons.add_a_photo),
-                label: _buildButtonLabel('As File')
-            );
-          }else {
-            return FlatButton.icon(
-                onPressed: (){
-                  /*prefix0.Share.file(
-                      mimeType: prefix0.ShareType.TYPE_FILE,
-                      path: this.widget.exportedFile.path,
-                      title: "route.json")
-                  .share();*/
-                  //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
-
-                  prefix0.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
-                },
-                icon: Icon(Icons.add_a_photo),
-                label: _buildButtonLabel('Social Media')
-            );
-          }
-        },
-      ),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: shareDialogContent(context),
     );
   }
 
-  Widget _buildButtonLabel(String buttonText){
-    return Text(
-      buttonText,
-      style: TextStyle(
-        fontSize: 18.0
-      ),
+  shareDialogContent(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.all(ShareConsts.padding),
+          decoration: new BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(ShareConsts.padding),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10.0,
+                offset: const Offset(0.0, 10.0),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+                Text(
+                  ShareConsts.widgetTitle,
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 16.0,),
+                Text(
+                  ShareConsts.widgetDescription,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18.0,
+                  ),
+                ),
+                SizedBox(height: 16.0,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: FlatButton(
+                        onPressed: () async {
+                          this.nodeList = [await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90)];
+                          String jsonString = GeojsonExportHandler.parseFromPolylines(this.nodeList);
+                          this.exportedFile = await exportAsJson(jsonString);
+                          prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
+                        },
+                        child: Text(ShareConsts.exportButtonGeojson),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: FlatButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(ShareConsts.exportButtonGpx),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+          ),
+        )
+      ],
     );
   }
 
@@ -131,3 +130,88 @@ class _ShareState extends State<Share> {
     return file;
   }
 }
+
+class ShareConsts {
+  ShareConsts._();
+
+  static const double padding = 16.0;
+  static const double blurRadius = 10.0;
+  static const String widgetTitle = "Share";
+  static const String widgetDescription = "your personal route as...";
+  static const String exportButtonGeojson = "GeoJson";
+  static const String exportButtonGpx = "GPX";
+}
+
+
+/*
+class ShareRoute {
+  @override
+  void initState() {
+    super.initState();
+
+    OsmData().calculateRoundTrip(52.510143, 13.408564, 10000, 90).then((List<Node> route){
+      setState(() {
+        this.widget.nodeList = route;
+      });
+
+      List<List<Node>> mockedMulipleRoutes = [this.widget.nodeList];
+
+      String jsonString = GeojsonExportHandler.parseFromPolylines(mockedMulipleRoutes);
+      var gpxString = GpxExportHandler.parseFromPolylines(mockedMulipleRoutes);
+
+      exportAsJson(jsonString).then((File jsonFile) {
+        setState(() {
+          this.widget.exportedFile = jsonFile;
+        });
+      });
+
+      exportAsGpx(gpxString).then((File gpxFile){
+        setState(() {
+          this.widget.exportedGpxFile = gpxFile;
+        });
+      });
+    });
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Share'),
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: 2,
+        itemBuilder: (context, i) {
+          if (i == 0) {
+            return FlatButton.icon(
+                onPressed: (){
+                  //application/xml, um das Problem mit Slack zu loesen
+                  prefix0.Share.file('route', 'route.gpx', this.widget.exportedGpxFile.readAsBytesSync(), 'text/xml');
+                },
+                icon: Icon(Icons.add_a_photo),
+                label: _buildButtonLabel('As File')
+            );
+          }else {
+            return FlatButton.icon(
+                onPressed: (){
+                  *//*prefix0.Share.file(
+                      mimeType: prefix0.ShareType.TYPE_FILE,
+                      path: this.widget.exportedFile.path,
+                      title: "route.json")
+                  .share();*//*
+                  //SimpleShare.share(uri: this.widget.exportedFile.path, subject: "route");
+
+                  prefix0.Share.file('route', 'route.geojson', this.widget.exportedFile.readAsBytesSync(), 'application/json');
+                },
+                icon: Icon(Icons.add_a_photo),
+                label: _buildButtonLabel('Social Media')
+            );
+          }
+        },
+      ),
+    );
+  }
+  */

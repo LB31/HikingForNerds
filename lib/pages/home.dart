@@ -52,12 +52,12 @@ class _HomeState extends State<Home> {
             ),
             IconButton(icon: Icon(
               Icons.share),
-              onPressed: (){ Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Share()
-                  )
-              );},
+              onPressed: (){
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) => Share()
+                );
+              },
               iconSize: 42.0
             ),
           ],
