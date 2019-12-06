@@ -183,21 +183,42 @@ class OsmData{
     }
     if(element['type'] == 'way'){
       double wayPenalty;
-      if(RegExp(r"footway|cyclepath|track|path|residential|unclassified|service").hasMatch(element['tags']['highway'])) {
+      if(RegExp(r"motorway|trunk|primary|motorway_link|trunk_link|primary_link").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 20;
+      }
+      else if(RegExp(r"secondary|tertiary|secondary_link|tertiary_link").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 8;
+      }
+      else if(RegExp(r"cyclepath|track|path|bridleway|sidewalk|residential|service").hasMatch(element['tags']['highway'])) {
+        wayPenalty = 2;
+      }
+      else if(RegExp(r"footway|pedestrian|unclassified").hasMatch(element['tags']['highway'])) {
         wayPenalty = 1;
       } else{
-        wayPenalty = 2;
+        wayPenalty = 5;
       }
       ways.add(Way(element['id'], element['nodes'].cast<int>(), this, wayPenalty));
     }
   }
 
-  //Todo: improve this distance function. Right now it assumes the earth is flat (which might be true).
   //http://edwilliams.org/avform.htm#Dist
   static double getDistance(Node nodeA, Node nodeB){
-    var a = (nodeA.latitude - nodeB.latitude).abs();
-    var b = (nodeA.longitude - nodeB.longitude).abs();
-    return sqrt(a*a + b*b);
+    //optimized haversine formular from https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+    var p = 0.017453292519943295;    // PI / 180
+    var a = 0.5 - cos((nodeB.latitude - nodeA.latitude) * p)/2 + cos(nodeA.latitude* p) * cos(nodeB.latitude* p) * (1 - cos((nodeB.longitude - nodeA.longitude) * p))/2;
+    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
+  }
+
+  // http://www.movable-type.co.uk/scripts/latlong.html
+  static double getBearing(Node nodeA, Node nodeB){
+    var lat1 = _toRadians(nodeA.latitude);
+    var lat2 = _toRadians(nodeB.latitude);
+    var lon1 = _toRadians(nodeA.longitude);
+    var lon2 = _toRadians(nodeB.longitude);
+    var y = sin(lon2 - lon1) * cos(lat2);
+    var x = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon2-lon1);
+    var rad = atan2(y, x);
+    return (_toDegrees(rad) + 360) % 360;
   }
 
   void buildGraph(){
@@ -217,6 +238,7 @@ class OsmData{
         currentLength += getDistance(lastNode, node);
         lastNode = node;
         if(nodeCount[node] > 1 && node != lastIntersection){
+          //Todo: Maybe add the List of nodes to each edge right here, so those don't have to be reconstructed after the routing algorithm finished
           graph.addEdge(lastIntersection, node, currentLength, way);
           currentLength = 0;
           lastIntersection = node;
@@ -227,11 +249,18 @@ class OsmData{
       }
     }
   }
+  
+  static double _toRadians(double angleInDeg){
+    return (angleInDeg*pi)/180.0;
+  }
+  static double _toDegrees(double angleInRad){
+    return (angleInRad*180.0)/pi;
+  }
 
   List<double> projectCoordinate(double latInDeg, double longInDeg, double distanceInM, double headingFromNorth){
-    var latInRadians = (latInDeg*pi)/180.0;
-    var longInRadians = (longInDeg*pi)/180.0;
-    var headingInRadians = (headingFromNorth*pi)/180.0;
+    var latInRadians = _toRadians(latInDeg);
+    var longInRadians = _toRadians(longInDeg);
+    var headingInRadians = _toRadians(headingFromNorth);
 
     double angularDistance = distanceInM / 6371000.0;
 
@@ -277,32 +306,97 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
-  Future<List<Node>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, double initialHeading) async{
+  Future<List<List<Node>>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
+    List<List<Node>> result;
+    if(poiCategory.isEmpty){
+      result = _calculateRoundTripsWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+    }
+    else{
+      result = await _calculateRoundTripsWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
+    }
+    return result;
+  }
 
-    var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
-    var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
+  List<List<Node>> _calculateRoundTripsWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
+    var randomGenerator = Random(1);
+    List<List<Node>> result = List();
+    for(var i =0; i<alternativeRouteCount; i++){
+      var initialHeading = randomGenerator.nextInt(360).floorToDouble();
+      var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
+      var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
-    var nodeA = getClosestToPoint(startLat, startLong);
-    var nodeB = getClosestToPoint(pointB[0], pointB[1]);
-    var nodeC = getClosestToPoint(pointC[0], pointC[1]);
+      var nodeA = getClosestToPoint(startLat, startLong);
+      var nodeB = getClosestToPoint(pointB[0], pointB[1]);
+      var nodeC = getClosestToPoint(pointC[0], pointC[1]);
 
-    var aToB = graph.AStar(nodeA, nodeB);
-    graph.penalizeEdgesAlongRoute(aToB, 2);
-    var bToC = graph.AStar(nodeB, nodeC);
-    graph.penalizeEdgesAlongRoute(bToC, 2);
-    var cToA = graph.AStar(nodeC, nodeA);
-    graph.penalizeEdgesAlongRoute(cToA, 2);
+      var aToB = graph.AStar(nodeA, nodeB);
+      graph.penalizeEdgesAlongRoute(aToB, 2);
+      var bToC = graph.AStar(nodeB, nodeC);
+      graph.penalizeEdgesAlongRoute(bToC, 2);
+      var cToA = graph.AStar(nodeC, nodeA);
+      graph.penalizeEdgesAlongRoute(cToA, 2);
 
-    var result = aToB;
-    result.addAll(bToC);
-    result.addAll(cToA);
+      var routeAlternative = aToB;
+      routeAlternative.addAll(bToC);
+      routeAlternative.addAll(cToA);
 
-    var resultNodes = List<Node>();
-    result.forEach((edge) => resultNodes.addAll(graph.edgeToNodes(edge)));
+      var routeAlternativeNodes = List<Node>();
+      routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
+      result.add(routeAlternativeNodes);
+    }
+    return result;
+  }
 
-    return resultNodes;
+  Future<List<List<Node>>> _calculateRoundTripsWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
+    List<List<Node>> result = List();
+    var jsonDecoder = JsonDecoder();
+    var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
+    dynamic elements = jsonDecoder.convert(poisJson)['elements'];
+    List<Node> pois = elements.map<Node>((element) => getClosestToPoint(element['lat'], element['lon'])).toList();
+    var startNode = getClosestToPoint(startLat, startLong);
+      //todo make this parameter do something
+    alternativeRouteCount = 1; //sorry
+    for(int i = 0; i<alternativeRouteCount; i++){
+      var lastVisited = startNode;
+      var totalRouteLength = 0.0;
+      List<Edge> route = List();
+      while(pois.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
+        var closestPoi = pois.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
+        var routeToClosestPoi = graph.AStar(lastVisited, closestPoi);
+        totalRouteLength += routeToClosestPoi.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+        route.addAll(routeToClosestPoi);
+        graph.penalizeEdgesAlongRoute(routeToClosestPoi, 5);
+        pois.remove(closestPoi);
+        lastVisited = closestPoi;
+      }
+
+      List<Edge> routeBack = List();
+      if(pois.isEmpty){ //route is probably not long enough yet
+        var a = ((distanceInMeter/1000) - totalRouteLength) /2;
+        var b = ((distanceInMeter/1000) - totalRouteLength) /2;
+        var c = getDistance(startNode, lastVisited);
+        var cosGamma = (a*a+b*b-c*c)/(2*a*b);
+        var relativeGamma = _toDegrees(acos(cosGamma));
+        var relativeAlpha = (180-relativeGamma)/2;
+        var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
+        var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b * 1000, absoluteAlpha);
+        var makeRouteLongEnoughNode = getClosestToPoint(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
+        routeBack.addAll(graph.AStar(lastVisited, makeRouteLongEnoughNode));
+        graph.penalizeEdgesAlongRoute(routeBack, 5);
+        routeBack.addAll(graph.AStar(makeRouteLongEnoughNode, startNode));
+      }else{ //route is already long enough, just go back
+        routeBack.addAll(graph.AStar(lastVisited, startNode));
+      }
+      totalRouteLength += routeBack.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+      route.addAll(routeBack);
+      List<Node> routeNodes = List();
+      route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
+      result.add(routeNodes);
+      print("TOTALE STRECKENLÄNGE: " + totalRouteLength.toString());
+    }
+    return result;
   }
 
   void _importJsonNodesAndWays(String jsonNodesAndWays){
@@ -313,24 +407,43 @@ class OsmData{
     buildLocationIndex();
   }
 
-   Future<String> getWaysJson(double aroundLat, double aroundLong, radius) async {
-    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 315);
+  Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
     var northernBorder = topLeftBoundingBox[0];
     var westernBorder = topLeftBoundingBox[1];
-    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 135);
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
+    var southernBorder = bottomRightBoundingBox[0];
+    var easternBorder = bottomRightBoundingBox[1];
+
+    var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
+        '[out:json][timeout:300]'
+        ';node["tourism"="$category"](around:$radius,$aroundLat, $aroundLong);'
+        'out body qt;';
+
+    var response = await http.get(url);
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
+    return response.body;
+  }
+
+   Future<String> getWaysJson(double aroundLat, double aroundLong, radius) async {
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
+    var northernBorder = topLeftBoundingBox[0];
+    var westernBorder = topLeftBoundingBox[1];
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
 
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
         ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
-//        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
-
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
     return response.body;
 }
+
+
 
 }
 
