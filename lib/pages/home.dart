@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
-import 'package:fab_circular_menu/fab_circular_menu.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -8,6 +7,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+    static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+
+    void _onItemTapped(int index) {
+      List<String> options = ['/help', '/routesetup', '/settings'];
+      Navigator.pushNamed(context, options[index]);
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -20,36 +26,25 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: <Widget>[
           MapWidget(),
-          FabCircularMenu(
-          child: Container(
-            // leave empty
+      
+        ]),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem> [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.help_outline),
+            title: Text('Help'),
           ),
-          ringColor: Colors.white30,
-          ringDiameter: MediaQuery.of(context).size.width * 0.8,
-          fabColor: Theme.of(context).primaryColor,
-          options: <Widget>[
-            IconButton(icon: Icon(
-              Icons.help_outline), 
-              onPressed: () { Navigator.pushNamed(context, '/help');},
-              iconSize: 42.0
-            ),
-            IconButton(icon: Icon(
-              Icons.info_outline), 
-              onPressed: () { Navigator.pushNamed(context, '/info');},
-              iconSize: 42.0
-            ),
-            IconButton(icon: Icon(
-              Icons.find_replace), 
-              onPressed: () { Navigator.pushNamed(context, '/routesetup');},
-              iconSize: 42.0
-            ),
-            IconButton(icon: Icon(
-              Icons.settings), 
-              onPressed: () { Navigator.pushNamed(context, '/settings');},
-              iconSize: 42.0
-            ),
-          ],
-        ),],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.find_replace),
+            title: Text('Route'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            title: Text('Settings'),
+          ),
+        ],
+        onTap: _onItemTapped,
+        currentIndex: 1,
       ),
     );
   }
