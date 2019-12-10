@@ -17,7 +17,6 @@ environment:
   sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
-  flutter_map:
   http:
   r_tree:
   location:
@@ -25,7 +24,8 @@ dependencies:
     sdk: flutter
   fab_circular_menu: ^0.1.1
   location_permissions: ^2.0.3
-  mapbox_gl: ^0.0.4
+  mapbox_gl:
+    path: ./dependencies/flutter-mapbox-gl
   outline_material_icons: ^0.1.1
 
   # The following adds the Cupertino Icons font to your application.
