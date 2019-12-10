@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:location_permissions/location_permissions.dart';
+import 'package:location/location.dart';
+import 'dart:async';
 
 class MapWidget extends StatefulWidget {
   @override
@@ -12,6 +16,17 @@ class _MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
+
+  bool _isLoadingRoute = false;
+  List _routes = [];
+  int _currentRouteIndex = 0;
+  List<LatLng> _passedRoute = [];
+  List<LatLng> _route = [];
+  Line _lineRoute;
+  Line _linePassedRoute;
+
+  LocationData _currentDeviceLocation;
+  Timer _timer;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -53,9 +68,10 @@ class _MapWidgetState extends State<MapWidget> {
     _loadOfflineTiles();
   }
 
-  _loadOfflineTiles() async {
+  Future<void> _loadOfflineTiles() async {
     try {
-      _styles["klokan-tech"] = await _loadJson('assets/styles/klokan-tech.json');
+      _styles["klokan-tech"] =
+          await _loadJson('assets/styles/klokan-tech.json');
       _styles["bright-osm"] = await _loadJson('assets/styles/bright-osm.json');
       _currentStyle = _styles.keys.first;
       await installOfflineMapTiles("assets/offline-data/berlin_klokan-tech.db");
@@ -69,6 +85,110 @@ class _MapWidgetState extends State<MapWidget> {
 
   Future<String> _loadJson(String path) async {
     return await rootBundle.loadString(path);
+  }
+
+  Future<LocationData> getCurrentLocation() async {
+    LocationData currentLocation;
+    var location = new Location();
+    currentLocation = await location.getLocation();
+    setState(() {
+      this._currentDeviceLocation = currentLocation;
+    });
+    return currentLocation;
+  }
+
+  void updateCurrentLocationOnChange() {
+    Location location = Location();
+    location.onLocationChanged().listen((LocationData currentLocation) {
+      setState(() {
+        _currentDeviceLocation = currentLocation;
+      });
+    });
+  }
+
+  Future<void> initRoutes() async {
+    setState(() {
+      _isLoadingRoute = true;
+    });
+
+    var osmData = OsmData();
+    var routes = await osmData.calculateRoundTrip(
+        _currentDeviceLocation.latitude,
+        _currentDeviceLocation.longitude,
+        10000,
+        10);
+
+    drawRoute(routes[0]);
+
+    setState(() {
+      _isLoadingRoute = false;
+      _routes = routes;
+      _currentRouteIndex = 0;
+    });
+  }
+
+  drawRoute(List<Node> route) async {
+    mapController.clearLines();
+
+    List<LatLng> routeLatLng =
+        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+
+    routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
+
+    LineOptions optionsPassedRoute =
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0);
+    Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
+
+    LineOptions optionsRoute =
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+    Line lineRoute = await mapController.addLine(optionsRoute);
+
+    setState(() {
+      _isLoadingRoute = false;
+      _route = routeLatLng;
+      _lineRoute = lineRoute;
+      _linePassedRoute = linePassedRoute;
+    });
+
+    //initUpdateRouteTimer();
+  }
+
+  drawNextRoute() {
+    setState(() {
+      _currentRouteIndex = (_currentRouteIndex + 1) % _routes.length;
+    });
+    drawRoute(_routes[_currentRouteIndex]);
+  }
+
+  void initUpdateRouteTimer() {
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
+  }
+
+  void updateRoute() async {
+    List<LatLng> remainingRoute = [];
+    List<LatLng> passedRoute = _passedRoute;
+
+    for (int i = 0; i < _route.length; i++) {
+      LatLng latLng = _route[i];
+      double distanceToCurrentLocation =
+          OsmData.getDistance(latLng, _currentDeviceLocation);
+      if (distanceToCurrentLocation > 0.0002) {
+        remainingRoute.add(latLng);
+      } else {
+        passedRoute.add(latLng);
+      }
+    }
+
+    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
+    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
+
+    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
+
+    setState(() {
+      _route = remainingRoute;
+      _passedRoute = passedRoute;
+    });
   }
 
   static CameraPosition _getCameraPosition() {
@@ -93,16 +213,84 @@ class _MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  void setTrackingMode(MyLocationTrackingMode mode) {
-    print("Setting Mode From " +
-        _myLocationTrackingMode.toString() +
-        " to " +
-        mode.toString());
-
-    setState(() {
-      _myLocationTrackingMode = mode;
-    });
+  Future<bool> isLocationPermissionGranted() async {
+    PermissionStatus permission =
+        await LocationPermissions().checkPermissionStatus();
+    return permission == PermissionStatus.granted;
   }
+
+  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
+    bool granted = await isLocationPermissionGranted();
+    if (!granted) {
+      await LocationPermissions().requestPermissions();
+      granted = await isLocationPermissionGranted();
+      if (granted) forceRebuildMap();
+    }
+  }
+
+  void cycleTrackingMode() {
+    switch (_myLocationTrackingMode) {
+      case MyLocationTrackingMode.None:
+        {
+          setZoom(14);
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+        break;
+      case MyLocationTrackingMode.Tracking:
+        {
+          setZoom(16);
+          setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+        }
+        break;
+      case MyLocationTrackingMode.TrackingCompass:
+        {
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+        break;
+      default:
+        {
+          setTrackingMode(MyLocationTrackingMode.Tracking);
+        }
+    }
+  }
+
+  Icon getTrackingModeIcon() {
+    switch (_myLocationTrackingMode) {
+      case MyLocationTrackingMode.None:
+        {
+          return Icon(OMIcons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.Tracking:
+        {
+          return Icon(Icons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.TrackingCompass:
+        {
+          return Icon(Icons.rotate_90_degrees_ccw);
+        }
+        break;
+      default:
+        {
+          return Icon(OMIcons.navigation);
+        }
+    }
+  }
+
+  void setTrackingMode(MyLocationTrackingMode mode) async {
+    await requestLocationPermissionIfNotAlreadyGranted();
+    bool granted = await isLocationPermissionGranted();
+
+    if (granted) {
+      setState(() {
+        _myLocationTrackingMode = mode;
+      });
+    }
+  }
+
+  //TODO find way to rebuild map?!
+  forceRebuildMap() {}
 
   void setZoom(double zoom) {
     mapController.moveCamera(CameraUpdate.zoomTo(zoom));
@@ -143,35 +331,10 @@ class _MapWidgetState extends State<MapWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   FloatingActionButton(
-                    heroTag: "btn-zoom-in",
-                    child: Icon(Icons.zoom_in),
-                    onPressed: () {
-                      zoomIn();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-zoom-out",
-                    child: Icon(Icons.zoom_out),
-                    onPressed: () {
-                      zoomOut();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-navigation",
-                    child: Icon(_myLocationTrackingMode ==
-                        MyLocationTrackingMode.TrackingCompass
-                        ? Icons.navigation
-                        : OMIcons.navigation),
-                    onPressed: () {
-                      setZoom(15.0);
-                      setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-                    },
-                  ),
-                  FloatingActionButton(
                     heroTag: "btn-gps",
-                    child: Icon(Icons.gps_fixed),
+                    child: getTrackingModeIcon(),
                     onPressed: () {
-                      setTrackingMode(MyLocationTrackingMode.Tracking);
+                      cycleTrackingMode();
                     },
                   ),
                   FloatingActionButton(
@@ -182,12 +345,38 @@ class _MapWidgetState extends State<MapWidget> {
                     onPressed: () {
                       // TODO for now only switching between klokan and bright
                       setMapStyle(_currentStyle == _styles.keys.first
-                      ? _styles.keys.elementAt(1)
-                      : _styles.keys.elementAt(0));
+                          ? _styles.keys.elementAt(1)
+                          : _styles.keys.elementAt(0));
+                    },
+                  ),
+                  FloatingActionButton(
+                    heroTag: "btn-update",
+                    child: Icon(Icons.update),
+                    onPressed: () {
+                      //updateRoute();
+                      drawNextRoute();
                     },
                   ),
                 ],
-              ))
+              )),
+          if (_isLoadingRoute)
+            Dialog(
+                child: Container(
+              width: MediaQuery.of(context).size.width * 0.7,
+              height: MediaQuery.of(context).size.height * 0.2,
+              child: Center(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    Center(child: CircularProgressIndicator()),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(child: Text("Calculating Route...")),
+                    ),
+                  ],
+                ),
+              ),
+            ))
         ],
       );
     } else {
@@ -195,7 +384,6 @@ class _MapWidgetState extends State<MapWidget> {
         child: new CircularProgressIndicator(),
       );
     }
-
   }
 
   MapboxMap _buildMapBox(BuildContext context) {
@@ -224,6 +412,14 @@ class _MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
+
+    requestLocationPermissionIfNotAlreadyGranted().then((result) {
+      getCurrentLocation().then((location) {
+        initRoutes();
+      });
+      updateCurrentLocationOnChange();
+    });
+
     setState(() {});
   }
 }
