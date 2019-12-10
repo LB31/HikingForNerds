@@ -47,9 +47,7 @@ class MapButtons extends StatelessWidget {
             FloatingActionButton(
               heroTag: "btn-gps",
               child: getTrackingModeIcon(),
-              onPressed: () {
-                cycleTrackingMode();
-              },
+              onPressed: cycleTrackingMode
             ),
             FloatingActionButton(
               heroTag: "btn-maptype",
@@ -66,9 +64,7 @@ class MapButtons extends StatelessWidget {
             FloatingActionButton(
               heroTag: "btn-update",
               child: Icon(Icons.update),
-              onPressed: () {
-                nextRoute();
-              },
+              onPressed: nextRoute
             ),
           ],
         ));
