@@ -3,6 +3,7 @@ import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/pages/share.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -50,18 +51,24 @@ class _HomeState extends State<Home> {
               onPressed: () { Navigator.pushNamed(context, '/settings');},
               iconSize: 42.0
             ),
-            IconButton(icon: Icon(
-              Icons.share),
+          ],
+        ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: RawMaterialButton(
               onPressed: () {
                 showDialog(
                     context: context,
-                    builder: (BuildContext context) => Share()
+                    builder: (BuildContext context) => Share(nodeList: [],)
                 );
               },
-              iconSize: 42.0
+              child: Icon(Icons.share, color: Colors.black, size: 36.0,),
+              shape: new CircleBorder(),
+              elevation: 2.0,
+              fillColor: htwGreen,
+              padding: const EdgeInsets.all(5.0),
             ),
-          ],
-        ),],
+          ),],
       ),
     );
   }

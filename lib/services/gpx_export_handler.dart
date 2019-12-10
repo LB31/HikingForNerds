@@ -5,7 +5,7 @@ import 'package:hiking4nerds/services/osmdata.dart';
 class GpxExportHandler{
 
   /// parse List of Polyline objects to Gpx as String
-  static String parseFromPolylines(List<List<Node>> routes){
+  static String parseFromPolylines(List<Node> nodes){
     final gpx = Gpx();
     gpx.version = '1.1';
     gpx.creator = 'Hiking4Nerds';
@@ -16,9 +16,7 @@ class GpxExportHandler{
     );
 
     gpx.trks = new List<Trk>();
-    for(List<Node> nodes in routes){
-      gpx.trks.add(_getTrkList(nodes));
-    }
+    gpx.trks.add(_getTrkList(nodes));
 
     return GpxWriter().asString(gpx, pretty: true);
   }

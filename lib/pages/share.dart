@@ -8,14 +8,16 @@ import 'package:hiking4nerds/services/gpx_export_handler.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:path_provider/path_provider.dart';
 
-
+///Stateless Share Widget
+///requires Routes in form of multiple node Lists
 class Share extends StatelessWidget{
-  List<List<Node>> nodeList;
+  //TODO: change this to Route Object issue #60
+  List<Node> nodeList;
   File exportedFile;
   File exportedGpxFile;
 
   //nodeList will be required in the future to pass route directly to widget
-  Share({Key key, this.nodeList}) : super(key: key);
+  Share({Key key, @required this.nodeList}) : super(key: key);
 
   @override
   Widget build(BuildContext context){
@@ -85,7 +87,7 @@ class Share extends StatelessWidget{
                       alignment: Alignment.bottomRight,
                       child: FlatButton(
                         onPressed: () async {
-                          if (this.nodeList == null) this.nodeList = await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000);
+                          if (this.nodeList == null) return;
                           String jsonString = GeojsonExportHandler.parseFromPolylines(nodeList);
                           this.exportedFile = await exportAsJson(jsonString);
                           prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
@@ -97,7 +99,7 @@ class Share extends StatelessWidget{
                       alignment: Alignment.bottomCenter,
                       child: FlatButton(
                         onPressed: () async {
-                          if (this.nodeList == null) this.nodeList = await OsmData().calculateRoundTrip(52.510143, 13.408564, 10000);
+                          if (this.nodeList == null) return;
                           String gpxString = GpxExportHandler.parseFromPolylines(nodeList);
                           this.exportedGpxFile = await exportAsGpx(gpxString);
                           prefix0.Share.file('route', 'route.gpx', this.exportedGpxFile.readAsBytesSync(), 'text/xml');
@@ -126,8 +128,9 @@ class Share extends StatelessWidget{
     return file.writeAsString(gpxString);
   }
 
+  /// returns path to local directory
   Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await getTemporaryDirectory();
 
     return directory.path;
   }
@@ -152,6 +155,7 @@ class ShareConsts {
 
   static const double padding = 16.0;
   static const double blurRadius = 10.0;
+
   static const String widgetTitle = "Share";
   static const String widgetDescription = "your personal route as...";
   static const String exportButtonGeojson = "GeoJson";

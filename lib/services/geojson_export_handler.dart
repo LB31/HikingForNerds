@@ -5,25 +5,23 @@ import 'package:hiking4nerds/services/osmdata.dart';
 class GeojsonExportHandler{
 
   /// parse List of Polyline objects to Geojson as String
-  static String parseFromPolylines(List<List<Node>> routes){
+  static String parseFromPolylines(List<Node> nodes){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     return _trimWrongPluginSyntax(
-        _getGeojsonFeatureCollection(routes)
+        _getGeojsonFeatureCollection(nodes)
             .serialize()
     );
   }
 
   /// creates new GeoJsonFeatureCollection object containing data of route
-  static GeoJsonFeatureCollection _getGeojsonFeatureCollection(List<List<Node>> routes){
+  static GeoJsonFeatureCollection _getGeojsonFeatureCollection(List<Node> nodes){
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
-    for(List<Node> nodes in routes){
-      GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
-      feature.type = GeoJsonFeatureType.line;
-      feature.properties = {};
-      feature.geometry = _toGeojsonLine(nodes);
-      geojsonFeatures.add(feature);
-    }
+    GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
+    feature.type = GeoJsonFeatureType.line;
+    feature.properties = {};
+    feature.geometry = _toGeojsonLine(nodes);
+    geojsonFeatures.add(feature);
 
     GeoJsonFeatureCollection geoJsonFeatureCollection = new GeoJsonFeatureCollection(geojsonFeatures);
 
