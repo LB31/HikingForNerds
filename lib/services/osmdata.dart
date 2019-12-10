@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
+import 'package:hiking4nerds/services/pointofinterest.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_tree/r_tree.dart' as rtree;
 
@@ -305,10 +307,10 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
-  Future<List<List<Node>>> calculateRoundTrip(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
+  Future<List<HikingRoute>> calculateRoundTrips(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
-    List<List<Node>> result;
+    List<HikingRoute> result;
     if(poiCategory.isEmpty){
       result = _calculateRoundTripsWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
     }
@@ -318,9 +320,9 @@ class OsmData{
     return result;
   }
 
-  List<List<Node>> _calculateRoundTripsWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
+  List<HikingRoute> _calculateRoundTripsWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
     var randomGenerator = Random(1);
-    List<List<Node>> result = List();
+    List<HikingRoute> result = List();
     for(var i =0; i<alternativeRouteCount; i++){
       var initialHeading = randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
@@ -343,17 +345,20 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-      result.add(routeAlternativeNodes);
+      result.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative), List()));
     }
     return result;
   }
 
-  Future<List<List<Node>>> _calculateRoundTripsWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
-    List<List<Node>> result = List();
+  Future<List<HikingRoute>> _calculateRoundTripsWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
+    List<HikingRoute> results = List();
     var jsonDecoder = JsonDecoder();
     var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
     dynamic elements = jsonDecoder.convert(poisJson)['elements'];
-    List<Node> pois = elements.map<Node>((element) => getClosestToPoint(element['lat'], element['lon'])).toList();
+    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(elements,
+        value: (element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags']),
+        key: (element) => getClosestToPoint(element['lat'], element['lon']));
+    List<PointOfInterest> includedPois = List();
     var startNode = getClosestToPoint(startLat, startLong);
       //todo make this parameter do something
     alternativeRouteCount = 1; //sorry
@@ -361,18 +366,19 @@ class OsmData{
       var lastVisited = startNode;
       var totalRouteLength = 0.0;
       List<Edge> route = List();
-      while(pois.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
-        var closestPoi = pois.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
-        var routeToClosestPoi = graph.AStar(lastVisited, closestPoi);
+      while(wayNodeAndPOI.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
+        var closestPoiWayNode = wayNodeAndPOI.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
+        var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
         totalRouteLength += routeToClosestPoi.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
         route.addAll(routeToClosestPoi);
         graph.penalizeEdgesAlongRoute(routeToClosestPoi, 5);
-        pois.remove(closestPoi);
-        lastVisited = closestPoi;
+        includedPois.add(wayNodeAndPOI[closestPoiWayNode]);
+        wayNodeAndPOI.remove(closestPoiWayNode);
+        lastVisited = closestPoiWayNode;
       }
 
       List<Edge> routeBack = List();
-      if(pois.isEmpty){ //route is probably not long enough yet
+      if(wayNodeAndPOI.isEmpty){ //route is probably not long enough yet
         var a = ((distanceInMeter/1000) - totalRouteLength) /2;
         var b = ((distanceInMeter/1000) - totalRouteLength) /2;
         var c = getDistance(startNode, lastVisited);
@@ -388,14 +394,17 @@ class OsmData{
       }else{ //route is already long enough, just go back
         routeBack.addAll(graph.AStar(lastVisited, startNode));
       }
-      totalRouteLength += routeBack.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+      totalRouteLength += lengthOfEdgesKM(routeBack) ;
       route.addAll(routeBack);
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-      result.add(routeNodes);
-      print("TOTALE STRECKENLÄNGE: " + totalRouteLength.toString());
+      results.add(HikingRoute(routeNodes, totalRouteLength, includedPois));
     }
-    return result;
+    return results;
+  }
+
+  double lengthOfEdgesKM(List<Edge> edges){
+    return edges.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
   }
 
   void _importJsonNodesAndWays(String jsonNodesAndWays){
@@ -444,11 +453,4 @@ class OsmData{
 
 
 
-}
-
-void main() async{
-
-  var osmData = OsmData();
-  var route = await osmData.calculateRoundTrip(52.510143, 13.408564, 10000, 90);
-  print(route.length);
 }
