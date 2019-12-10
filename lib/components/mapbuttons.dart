@@ -1,7 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 class MapButtons extends StatelessWidget {
+
+  Icon getTrackingModeIcon(_myLocationTrackingMode) {
+    switch (_myLocationTrackingMode) {
+      case MyLocationTrackingMode.None:
+        {
+          return Icon(OMIcons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.Tracking:
+        {
+          return Icon(Icons.navigation);
+        }
+        break;
+      case MyLocationTrackingMode.TrackingCompass:
+        {
+          return Icon(Icons.rotate_90_degrees_ccw);
+        }
+        break;
+      default:
+        {
+          return Icon(OMIcons.navigation);
+        }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -9,20 +35,7 @@ class MapButtons extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            FloatingActionButton(
-              heroTag: "btn-zoom-in",
-              child: Icon(Icons.zoom_in),
-              onPressed: () {
-                //zoomIn();
-              },
-            ),
-            FloatingActionButton(
-              heroTag: "btn-zoom-out",
-              child: Icon(Icons.zoom_out),
-              onPressed: () {
-                //zoomOut();
-              },
-            ),
+
             FloatingActionButton(
               heroTag: "btn-navigation",
               child: Icon(Icons.navigation),
