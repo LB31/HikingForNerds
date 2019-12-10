@@ -326,9 +326,6 @@ class OsmData{
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
-    //      print("Initial Heading: " + initialHeading.toString());
-    //      print("Bearing between points: " + getBearing(Node(0, startLat, startLong), Node(1, pointB[0], pointB[1])).toString());
-
       var nodeA = getClosestToPoint(startLat, startLong);
       var nodeB = getClosestToPoint(pointB[0], pointB[1]);
       var nodeC = getClosestToPoint(pointC[0], pointC[1]);
@@ -358,6 +355,8 @@ class OsmData{
     dynamic elements = jsonDecoder.convert(poisJson)['elements'];
     List<Node> pois = elements.map<Node>((element) => getClosestToPoint(element['lat'], element['lon'])).toList();
     var startNode = getClosestToPoint(startLat, startLong);
+      //todo make this parameter do something
+    alternativeRouteCount = 1; //sorry
     for(int i = 0; i<alternativeRouteCount; i++){
       var lastVisited = startNode;
       var totalRouteLength = 0.0;
@@ -371,12 +370,30 @@ class OsmData{
         pois.remove(closestPoi);
         lastVisited = closestPoi;
       }
-      var routeBack = graph.AStar(lastVisited, startNode);
+
+      List<Edge> routeBack = List();
+      if(pois.isEmpty){ //route is probably not long enough yet
+        var a = ((distanceInMeter/1000) - totalRouteLength) /2;
+        var b = ((distanceInMeter/1000) - totalRouteLength) /2;
+        var c = getDistance(startNode, lastVisited);
+        var cosGamma = (a*a+b*b-c*c)/(2*a*b);
+        var relativeGamma = _toDegrees(acos(cosGamma));
+        var relativeAlpha = (180-relativeGamma)/2;
+        var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
+        var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b * 1000, absoluteAlpha);
+        var makeRouteLongEnoughNode = getClosestToPoint(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
+        routeBack.addAll(graph.AStar(lastVisited, makeRouteLongEnoughNode));
+        graph.penalizeEdgesAlongRoute(routeBack, 5);
+        routeBack.addAll(graph.AStar(makeRouteLongEnoughNode, startNode));
+      }else{ //route is already long enough, just go back
+        routeBack.addAll(graph.AStar(lastVisited, startNode));
+      }
       totalRouteLength += routeBack.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
       route.addAll(routeBack);
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
       result.add(routeNodes);
+      print("TOTALE STRECKENLÄNGE: " + totalRouteLength.toString());
     }
     return result;
   }
@@ -390,10 +407,10 @@ class OsmData{
   }
 
   Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
-    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 315);
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
     var northernBorder = topLeftBoundingBox[0];
     var westernBorder = topLeftBoundingBox[1];
-    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 135);
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
 
@@ -408,17 +425,16 @@ class OsmData{
   }
 
    Future<String> getWaysJson(double aroundLat, double aroundLong, radius) async {
-    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 315);
+    var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
     var northernBorder = topLeftBoundingBox[0];
     var westernBorder = topLeftBoundingBox[1];
-    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius, 135);
+    var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
 
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
         ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
-//        ';way["highway"~"footway|cyclepath|track|path|residential|unclassified|service"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
