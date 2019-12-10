@@ -3,6 +3,8 @@ import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/pages/testChart.dart';
 
+import 'StackedArea.dart';
+
 class Home extends StatefulWidget {
   static bool chartIsHere = false;
   @override
@@ -23,11 +25,11 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           MapWidget(),
           Positioned(
-            top: MediaQuery.of(context).size.height - 300,
+            top: MediaQuery.of(context).size.height - 500,
             left: 10,
             height: 300,
             width: MediaQuery.of(context).size.width * 0.8,
-            child: SliderLine.withSampleData(),
+            child: SelectionCallbackExample.withSampleData(),
           ),
           FabCircularMenu(
             child: Container(

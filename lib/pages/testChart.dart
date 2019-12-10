@@ -1,33 +1,30 @@
 import 'dart:math';
-// EXCLUDE_FROM_GALLERY_DOCS_END
+
+/// Timeseries chart with example of updating external state based on selection.
+///
+/// A SelectionModelConfig can be provided for each of the different
+/// [SelectionModel] (currently info and action).
+///
+/// [SelectionModelType.info] is the default selection chart exploration type
+/// initiated by some tap event. This is a different model from
+/// [SelectionModelType.action] which is typically used to select some value as
+/// an input to some other UI component. This allows dual state of exploring
+/// and selecting data via different touch events.
+///
+/// See [SelectNearest] behavior on setting the different ways of triggering
+/// [SelectionModel] updates from hover & click events.
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 
-import 'home.dart';
-
-/// This is just a simple line chart with a behavior that adds slider controls.
-///
-/// A [Slider] behavior is added manually to enable slider controls, with an
-/// initial position at 1 along the domain axis.
-///
-/// An onChange event handler has been configured to demonstrate updating a div
-/// with data from the slider's current position. An "initial" drag state event
-/// will be fired when the chart is drawn because an initial domain value is
-/// set.
-///
-/// [Slider.moveSliderToDomain] can be called to programmatically position the
-/// slider. This is useful for synchronizing the slider with external elements.
-class SliderLine extends StatefulWidget {
+class SelectionCallbackExample extends StatefulWidget {
   final List<charts.Series> seriesList;
   final bool animate;
 
-  SliderLine(this.seriesList, {this.animate});
+  SelectionCallbackExample(this.seriesList, {this.animate});
 
-  /// Creates a [LineChart] with sample data and no transition.
-  factory SliderLine.withSampleData() {
-    return new SliderLine(
+  /// Creates a [charts.TimeSeriesChart] with sample data and no transition.
+  factory SelectionCallbackExample.withSampleData() {
+    return new SelectionCallbackExample(
       _createSampleData(),
       // Disable animations for image tests.
       animate: false,
@@ -38,123 +35,98 @@ class SliderLine extends StatefulWidget {
   // We need a Stateful widget to build the selection details with the current
   // selection as the state.
   @override
-  State<StatefulWidget> createState() => new _SliderCallbackState();
+  State<StatefulWidget> createState() => new _SelectionCallbackState();
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, int>> _createSampleData() {
-    final data = [
-      new LinearSales(0, 5),
-      new LinearSales(1, 25),
-      new LinearSales(2, 100),
-      new LinearSales(3, 75),
+  static List<charts.Series<TimeSeriesSales, DateTime>> _createSampleData() {
+    final uk_data = [
+      new TimeSeriesSales(new DateTime(2017, 9, 19), 15),
+      new TimeSeriesSales(new DateTime(2017, 9, 26), 33),
+      new TimeSeriesSales(new DateTime(2017, 10, 3), 68),
+      new TimeSeriesSales(new DateTime(2017, 10, 10), 48),
     ];
 
+
     return [
-      new charts.Series<LinearSales, int>(
-        id: 'Sales',
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: data,
+      new charts.Series<TimeSeriesSales, DateTime>(
+        id: 'UK Sales',
+        domainFn: (TimeSeriesSales sales, _) => sales.time,
+        measureFn: (TimeSeriesSales sales, _) => sales.sales,
+        data: uk_data,
       )
     ];
   }
 }
 
-class _SliderCallbackState extends State<SliderLine> {
-  num _sliderDomainValue;
-  String _sliderDragState;
-  Point<int> _sliderPosition;
+class _SelectionCallbackState extends State<SelectionCallbackExample> {
+  DateTime _time;
+  Map<String, num> _measures;
 
-  // Handles callbacks when the user drags the slider.
-  _onSliderChange(Point<int> point, dynamic domain, String roleId,
-      charts.SliderListenerDragState dragState) {
-    // Request a build.
-    void rebuild(_) {
-      setState(() {
-        _sliderDomainValue = (domain * 10).round() / 10;
-        _sliderDragState = dragState.toString();
-        _sliderPosition = point;
+  // Listens to the underlying selection changes, and updates the information
+  // relevant to building the primitive legend like information under the
+  // chart.
+  _onSelectionChanged(charts.SelectionModel model) {
+    final selectedDatum = model.selectedDatum;
+
+    DateTime time;
+    final measures = <String, num>{};
+
+    // We get the model that updated with a list of [SeriesDatum] which is
+    // simply a pair of series & datum.
+    //
+    // Walk the selection updating the measures map, storing off the sales and
+    // series name for each selection point.
+    if (selectedDatum.isNotEmpty) {
+      time = selectedDatum.first.datum.time;
+      selectedDatum.forEach((charts.SeriesDatum datumPair) {
+        measures[datumPair.series.displayName] = datumPair.datum.sales;
       });
     }
 
-    SchedulerBinding.instance.addPostFrameCallback(rebuild);
+    // Request a build.
+    setState(() {
+      _time = time;
+      _measures = measures;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    print("A G A I N");
-    Home.chartIsHere = true;
     // The children consist of a Chart and Text widgets below to hold the info.
     final children = <Widget>[
       new SizedBox(
           height: 150.0,
-          child: new charts.LineChart(
+          child: new charts.TimeSeriesChart(
             widget.seriesList,
             animate: widget.animate,
-            // Configures a [Slider] behavior.
-            //
-            // Available options include:
-            //
-            // [eventTrigger] configures the type of mouse gesture that controls
-            // the slider.
-            //
-            // [handleRenderer] draws a handle for the slider. Defaults to a
-            // rectangle.
-            //
-            // [initialDomainValue] sets the initial position of the slider in
-            // domain units. The default is the center of the chart.
-            //
-            // [onChangeCallback] will be called when the position of the slider
-            // changes during a drag event.
-            //
-            // [roleId] optional custom role ID for the slider. This can be used to
-            // allow multiple [Slider] behaviors on the same chart. Normally, there can
-            // only be one slider (per event trigger type) on a chart. This setting
-            // allows for configuring multiple independent sliders.
-            //
-            // [snapToDatum] configures the slider to snap snap onto the nearest
-            // datum (by domain distance) when dragged. By default, the slider
-            // can be positioned anywhere along the domain axis.
-            //
-            // [style] takes in a [SliderStyle] configuration object, and
-            // configures the color and sizing of the slider line and handle.
-            behaviors: [
-              new charts.Slider(
-                  initialDomainValue: 1.0, 
-                  onChangeCallback: _onSliderChange, 
-                  style: charts.SliderStyle(
-                    fillColor: charts.Color(r: 255, g: 0, b: 0, a: 100), 
-                    handleSize: const Rectangle(0, 0, 10, 80))),
+            behaviors: [new charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)],
+            selectionModels: [
+              new charts.SelectionModelConfig(
+                type: charts.SelectionModelType.info,
+                changedListener: _onSelectionChanged,
+              )
             ],
           )),
     ];
 
-    // If there is a slider change event, then include the details.
-    if (_sliderDomainValue != null) {
+    // If there is a selection, then include the details.
+    if (_time != null) {
       children.add(new Padding(
           padding: new EdgeInsets.only(top: 5.0),
-          child: new Text('Slider domain value: ${_sliderDomainValue}')));
+          child: new Text(_time.toString())));
     }
-    if (_sliderPosition != null) {
-      children.add(new Padding(
-          padding: new EdgeInsets.only(top: 5.0),
-          child: new Text(
-              'Slider position: ${_sliderPosition.x}, ${_sliderPosition.y}')));
-    }
-    if (_sliderDragState != null) {
-      children.add(new Padding(
-          padding: new EdgeInsets.only(top: 5.0),
-          child: new Text('Slider drag state: ${_sliderDragState}')));
-    }
+    _measures?.forEach((String series, num value) {
+      children.add(new Text('${series}: ${value}'));
+    });
 
     return new Column(children: children);
   }
 }
 
-/// Sample linear data type.
-class LinearSales {
-  final int year;
+/// Sample time series data type.
+class TimeSeriesSales {
+  final DateTime time;
   final int sales;
 
-  LinearSales(this.year, this.sales);
+  TimeSeriesSales(this.time, this.sales);
 }
