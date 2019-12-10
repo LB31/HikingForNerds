@@ -180,12 +180,10 @@ class _MapWidgetState extends State<MapWidget> {
       LatLng latLng = _route[i];
       double distanceToCurrentLocation =
           OsmData.getDistance(latLng, _currentDeviceLocation);
-      //print("DISTANCE $distanceToCurrentLocation");
       if (distanceToCurrentLocation > 0.0002) {
         remainingRoute.add(latLng);
       } else {
         passedRoute.add(latLng);
-        //print("i=" + i.toString() + " latlng = " + latLng.toString() + " length = " + passedRoute.length.toString());
       }
     }
 
@@ -201,26 +199,6 @@ class _MapWidgetState extends State<MapWidget> {
     });
   }
 
-  void updateRouteManually() async {
-    int numberOfNodesToUpdate = _route.length > 5 ? 5 : _route.length;
-
-    List<LatLng> passedRoute = [
-      ..._passedRoute,
-      ..._route.sublist(0, numberOfNodesToUpdate)
-    ];
-    List<LatLng> remainingRoute = _route.sublist(numberOfNodesToUpdate - 1);
-
-    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
-    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
-    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
-
-    setState(() {
-      _route = remainingRoute;
-      _passedRoute = passedRoute;
-    });
-  }
 
   static CameraPosition _getCameraPosition() {
     final latLng = LatLng(52.520008, 13.404954);
