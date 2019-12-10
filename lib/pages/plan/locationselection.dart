@@ -12,8 +12,8 @@ class LocationSelection extends StatefulWidget {
 }
 
 class _LocationSelectionState extends State<LocationSelection> {
-
-  final GlobalKey<MapWidgetState> mapWidgetKey = new GlobalKey<MapWidgetState>();
+  final GlobalKey<MapWidgetState> mapWidgetKey =
+      new GlobalKey<MapWidgetState>();
   LatLng _location;
 
   Future<void> moveToCurrentLocation() async {
@@ -33,10 +33,10 @@ class _LocationSelectionState extends State<LocationSelection> {
     moveToLatLng(latLng);
   }
 
-  void moveToLatLng(LatLng latLng){
-    mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.newLatLng(latLng));
+  void moveToLatLng(LatLng latLng) {
+    mapWidgetKey.currentState.mapController
+        .moveCamera(CameraUpdate.newLatLng(latLng));
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -59,22 +59,140 @@ class _LocationSelectionState extends State<LocationSelection> {
             child: FloatingActionButton(
               heroTag: "btn-gps",
               child: Icon(Icons.gps_fixed),
-              onPressed: (){
+              onPressed: () {
                 moveToCurrentLocation();
               },
             ),
           ),
+          Positioned(
+            left: MediaQuery.of(context).size.width * 0.5 - 25,
+            top: 15, 
+
+            child: IconButton(
+              icon: Icon(Icons.search),
+              iconSize: 50,
+              onPressed: () {
+                showSearch(context: context, delegate: CustomSearchDelegate());
+              },
+            ),
+          )
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
+        heroTag: "abbbdbasdjk",
         child: Icon(Icons.directions_walk),
-        onPressed: (){
+        onPressed: () {
           setState(() {
-            _location = mapWidgetKey.currentState.mapController.cameraPosition.target;
+            _location =
+                mapWidgetKey.currentState.mapController.cameraPosition.target;
           });
         },
       ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+class CustomSearchDelegate extends SearchDelegate {
+  final List<String> _history = <String>["Berlin", "Japan", "Weserstraße 144", "Dettlef", "Avenue 1 12052"];
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      tooltip: 'Back',
+      icon: AnimatedIcon(
+        icon: AnimatedIcons.menu_arrow,
+        progress: transitionAnimation,
+      ),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+
+    //TODO show address suggestions while typing
+    // var addresses = await Geocoder.local.findAddressesFromQuery(query);
+
+    final Iterable<String> suggestions = query.isEmpty
+        ? _history
+        : List<String>();
+
+    return _SuggestionList(
+      query: query,
+      suggestions: suggestions.map<String>((String i) => '$i').toList(),
+      onSelected: (String suggestion) {
+        query = suggestion;
+        showResults(context);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    this.close(context, query);
+    return Text(query);
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return <Widget>[
+      if (query.isNotEmpty)
+        IconButton(
+          tooltip: 'Clear',
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            query = '';
+            showSuggestions(context);
+          },
+        ),
+    ];
+  }
+}
+
+class _SuggestionList extends StatelessWidget {
+  const _SuggestionList({this.suggestions, this.query, this.onSelected});
+
+  final List<String> suggestions;
+  final String query;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (BuildContext context, int i) {
+        final String suggestion = suggestions[i];
+        return ListTile(
+          leading: query.isEmpty ? const Icon(Icons.history) : const Icon(null),
+          title: RichText(
+            text: TextSpan(
+              text: suggestion.substring(0, query.length),
+              style:
+                  theme.textTheme.subhead.copyWith(fontWeight: FontWeight.bold),
+              children: <TextSpan>[
+                TextSpan(
+                  text: suggestion.substring(query.length),
+                  style: theme.textTheme.subhead,
+                ),
+              ],
+            ),
+          ),
+          onTap: () {
+            onSelected(suggestion);
+          },
+        );
+      },
     );
   }
 }
