@@ -16,7 +16,7 @@ class Share extends StatelessWidget{
   File exportedFile;
   File exportedGpxFile;
 
-  Share({Key key, @required this.nodeList}) : super(key: key);
+    Share({Key key, @required this.nodeList}) : super(key: key);
 
   @override
   Widget build(BuildContext context){
@@ -89,7 +89,8 @@ class Share extends StatelessWidget{
                           if (this.nodeList == null) return;
                           String jsonString = GeojsonExportHandler.parseFromPolylines(nodeList);
                           this.exportedFile = await exportAsJson(jsonString);
-                          prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
+                          await prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
+                          Navigator.pop(context);
                         },
                         child: Text(ShareConsts.exportButtonGeojson),
                       ),
@@ -101,7 +102,8 @@ class Share extends StatelessWidget{
                           if (this.nodeList == null) return;
                           String gpxString = GpxExportHandler.parseFromPolylines(nodeList);
                           this.exportedGpxFile = await exportAsGpx(gpxString);
-                          prefix0.Share.file('route', 'route.gpx', this.exportedGpxFile.readAsBytesSync(), 'text/xml');
+                          await prefix0.Share.file('route', 'route.gpx', this.exportedGpxFile.readAsBytesSync(), 'text/xml');
+                          Navigator.pop(context);
                         },
                         child: Text(ShareConsts.exportButtonGpx),
                       ),
@@ -149,6 +151,7 @@ class Share extends StatelessWidget{
   }
 }
 
+//TODO: add to localization
 class ShareConsts {
   ShareConsts._();
 
