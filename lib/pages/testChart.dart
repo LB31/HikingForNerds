@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 
 /// Timeseries chart with example of updating external state based on selection.
@@ -38,20 +39,23 @@ class SelectionCallbackExample extends StatefulWidget {
   State<StatefulWidget> createState() => new _SelectionCallbackState();
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<TimeSeriesSales, DateTime>> _createSampleData() {
+  static List<charts.Series<ElevationDistanceSeries, double>> _createSampleData() {
     final uk_data = [
-      new TimeSeriesSales(new DateTime(2017, 9, 19), 15),
-      new TimeSeriesSales(new DateTime(2017, 9, 26), 33),
-      new TimeSeriesSales(new DateTime(2017, 10, 3), 68),
-      new TimeSeriesSales(new DateTime(2017, 10, 10), 48),
+      new ElevationDistanceSeries(12.3, 15.5),
     ];
 
+    Random rnd = new Random();
+    int min = 0, max = 100;
+    for (var i = 4; i < 100; i++) {
+      int r = min + rnd.nextInt(max - min);
+      uk_data.add(new ElevationDistanceSeries(r.toDouble(), i.toDouble()));
+    }
 
     return [
-      new charts.Series<TimeSeriesSales, DateTime>(
-        id: 'UK Sales',
-        domainFn: (TimeSeriesSales sales, _) => sales.time,
-        measureFn: (TimeSeriesSales sales, _) => sales.sales,
+      new charts.Series<ElevationDistanceSeries, double>(
+        id: 'Batman',
+        domainFn: (ElevationDistanceSeries sales, _) => sales.distance,
+        measureFn: (ElevationDistanceSeries sales, _) => sales.elevation,
         data: uk_data,
       )
     ];
@@ -59,16 +63,16 @@ class SelectionCallbackExample extends StatefulWidget {
 }
 
 class _SelectionCallbackState extends State<SelectionCallbackExample> {
-  DateTime _time;
   Map<String, num> _measures;
 
   // Listens to the underlying selection changes, and updates the information
   // relevant to building the primitive legend like information under the
   // chart.
   _onSelectionChanged(charts.SelectionModel model) {
+
+
     final selectedDatum = model.selectedDatum;
 
-    DateTime time;
     final measures = <String, num>{};
 
     // We get the model that updated with a list of [SeriesDatum] which is
@@ -77,15 +81,13 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
     // Walk the selection updating the measures map, storing off the sales and
     // series name for each selection point.
     if (selectedDatum.isNotEmpty) {
-      time = selectedDatum.first.datum.time;
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
-        measures[datumPair.series.displayName] = datumPair.datum.sales;
+        measures[datumPair.series.displayName] = datumPair.datum.elevation;
       });
     }
 
     // Request a build.
     setState(() {
-      _time = time;
       _measures = measures;
     });
   }
@@ -96,7 +98,7 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
     final children = <Widget>[
       new SizedBox(
           height: 150.0,
-          child: new charts.TimeSeriesChart(
+          child: new charts.LineChart(
             widget.seriesList,
             animate: widget.animate,
             behaviors: [new charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)],
@@ -109,12 +111,7 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
           )),
     ];
 
-    // If there is a selection, then include the details.
-    if (_time != null) {
-      children.add(new Padding(
-          padding: new EdgeInsets.only(top: 5.0),
-          child: new Text(_time.toString())));
-    }
+
     _measures?.forEach((String series, num value) {
       children.add(new Text('${series}: ${value}'));
     });
@@ -124,9 +121,9 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
 }
 
 /// Sample time series data type.
-class TimeSeriesSales {
-  final DateTime time;
-  final int sales;
+class ElevationDistanceSeries {
+  final double elevation;
+  final double distance;
 
-  TimeSeriesSales(this.time, this.sales);
+  ElevationDistanceSeries(this.elevation, this.distance);
 }
