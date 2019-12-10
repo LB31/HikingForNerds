@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class MapWidget extends StatefulWidget {
@@ -134,62 +133,7 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   Widget build(BuildContext context) {
     if (this._tilesLoaded) {
-      return Stack(
-        children: <Widget>[
-          _buildMapBox(context),
-          Align(
-              alignment: Alignment.centerRight,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  FloatingActionButton(
-                    heroTag: "btn-zoom-in",
-                    child: Icon(Icons.zoom_in),
-                    onPressed: () {
-                      zoomIn();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-zoom-out",
-                    child: Icon(Icons.zoom_out),
-                    onPressed: () {
-                      zoomOut();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-navigation",
-                    child: Icon(_myLocationTrackingMode ==
-                        MyLocationTrackingMode.TrackingCompass
-                        ? Icons.navigation
-                        : OMIcons.navigation),
-                    onPressed: () {
-                      setZoom(15.0);
-                      setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-gps",
-                    child: Icon(Icons.gps_fixed),
-                    onPressed: () {
-                      setTrackingMode(MyLocationTrackingMode.Tracking);
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-maptype",
-                    child: Icon(_currentStyle == _styles.keys.first
-                        ? Icons.terrain
-                        : Icons.satellite),
-                    onPressed: () {
-                      // TODO for now only switching between klokan and bright
-                      setMapStyle(_currentStyle == _styles.keys.first
-                      ? _styles.keys.elementAt(1)
-                      : _styles.keys.elementAt(0));
-                    },
-                  ),
-                ],
-              ))
-        ],
-      );
+      return _buildMapBox(context);
     } else {
       return Center(
         child: new CircularProgressIndicator(),

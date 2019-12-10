@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
+import 'package:hiking4nerds/components/mapbuttons.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -29,27 +30,29 @@ class _HomeState extends State<Home> {
           fabColor: Theme.of(context).primaryColor,
           options: <Widget>[
             IconButton(icon: Icon(
-              Icons.help_outline), 
+              Icons.help_outline),
               onPressed: () { Navigator.pushNamed(context, '/help');},
               iconSize: 42.0
             ),
             IconButton(icon: Icon(
-              Icons.info_outline), 
+              Icons.info_outline),
               onPressed: () { Navigator.pushNamed(context, '/info');},
               iconSize: 42.0
             ),
             IconButton(icon: Icon(
-              Icons.find_replace), 
+              Icons.find_replace),
               onPressed: () { Navigator.pushNamed(context, '/routesetup');},
               iconSize: 42.0
             ),
             IconButton(icon: Icon(
-              Icons.settings), 
+              Icons.settings),
               onPressed: () { Navigator.pushNamed(context, '/settings');},
               iconSize: 42.0
             ),
           ],
-        ),],
+        ),
+          MapButtons()
+        ],
       ),
     );
   }
