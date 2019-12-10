@@ -118,7 +118,9 @@ class _MapWidgetState extends State<MapWidget> {
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10);
+        10,
+        "aquarium");
+
 
     drawRoute(routes[0]);
 
