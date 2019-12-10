@@ -15,10 +15,10 @@ class MapWidget extends StatefulWidget {
   MapWidget({Key key, @required this.isStatic}) : super(key: key);
 
   @override
-  _MapWidgetState createState() => _MapWidgetState();
+  MapWidgetState createState() => MapWidgetState();
 }
 
-class _MapWidgetState extends State<MapWidget> {
+class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
@@ -51,10 +51,10 @@ class _MapWidgetState extends State<MapWidget> {
   MyLocationTrackingMode _myLocationTrackingMode =
       MyLocationTrackingMode.Tracking;
 
-  _MapWidgetState._(
+  MapWidgetState._(
       this._cameraInitialPos, this._position, this._cameraTargetBounds);
 
-  factory _MapWidgetState() {
+  factory MapWidgetState() {
     CameraPosition cameraPosition = _getCameraPosition();
 
     // get bounds for areas at https://boundingbox.klokantech.com/
@@ -64,7 +64,7 @@ class _MapWidgetState extends State<MapWidget> {
       northeast: LatLng(55.1, 15.04),
     );
 
-    return _MapWidgetState._(
+    return MapWidgetState._(
         cameraPosition, cameraPosition, CameraTargetBounds(countryBounds));
   }
 

@@ -8,7 +8,10 @@ class LocationSelection extends StatefulWidget {
 }
 
 class _LocationSelectionState extends State<LocationSelection> {
+
+  final GlobalKey<MapWidgetState> mapWidgetKey = new GlobalKey<MapWidgetState>();
   LatLng _location;
+
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +19,7 @@ class _LocationSelectionState extends State<LocationSelection> {
       body: Stack(
         children: <Widget>[
           MapWidget(
+            key: mapWidgetKey,
             isStatic: true,
           ),
           Center(
@@ -31,7 +35,7 @@ class _LocationSelectionState extends State<LocationSelection> {
         child: Icon(Icons.directions_walk),
         onPressed: (){
           setState(() {
-            _location = null;
+            _location = mapWidgetKey.currentState.mapController.cameraPosition.target;
           });
         },
       ),
