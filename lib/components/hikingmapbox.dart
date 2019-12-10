@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
+import 'package:hiking4nerds/components/mapbuttons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
 import 'dart:async';
+
 
 class MapWidget extends StatefulWidget {
   @override
@@ -254,30 +256,6 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
-  Icon getTrackingModeIcon() {
-    switch (_myLocationTrackingMode) {
-      case MyLocationTrackingMode.None:
-        {
-          return Icon(OMIcons.navigation);
-        }
-        break;
-      case MyLocationTrackingMode.Tracking:
-        {
-          return Icon(Icons.navigation);
-        }
-        break;
-      case MyLocationTrackingMode.TrackingCompass:
-        {
-          return Icon(Icons.rotate_90_degrees_ccw);
-        }
-        break;
-      default:
-        {
-          return Icon(OMIcons.navigation);
-        }
-    }
-  }
-
   void setTrackingMode(MyLocationTrackingMode mode) async {
     await requestLocationPermissionIfNotAlreadyGranted();
     bool granted = await isLocationPermissionGranted();
@@ -325,58 +303,9 @@ class _MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          Align(
-              alignment: Alignment.centerRight,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  FloatingActionButton(
-                    heroTag: "btn-gps",
-                    child: getTrackingModeIcon(),
-                    onPressed: () {
-                      cycleTrackingMode();
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-maptype",
-                    child: Icon(_currentStyle == _styles.keys.first
-                        ? Icons.terrain
-                        : Icons.satellite),
-                    onPressed: () {
-                      // TODO for now only switching between klokan and bright
-                      setMapStyle(_currentStyle == _styles.keys.first
-                          ? _styles.keys.elementAt(1)
-                          : _styles.keys.elementAt(0));
-                    },
-                  ),
-                  FloatingActionButton(
-                    heroTag: "btn-update",
-                    child: Icon(Icons.update),
-                    onPressed: () {
-                      //updateRoute();
-                      drawNextRoute();
-                    },
-                  ),
-                ],
-              )),
+          MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
           if (_isLoadingRoute)
-            Dialog(
-                child: Container(
-              width: MediaQuery.of(context).size.width * 0.7,
-              height: MediaQuery.of(context).size.height * 0.2,
-              child: Center(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    Center(child: CircularProgressIndicator()),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Center(child: Text("Calculating Route...")),
-                    ),
-                  ],
-                ),
-              ),
-            ))
+            CalculatingRoutesDialog()
         ],
       );
     } else {
