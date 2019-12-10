@@ -16,7 +16,6 @@ class Share extends StatelessWidget{
   File exportedFile;
   File exportedGpxFile;
 
-  //nodeList will be required in the future to pass route directly to widget
   Share({Key key, @required this.nodeList}) : super(key: key);
 
   @override

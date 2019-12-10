@@ -16,7 +16,6 @@ void main() => runApp(MaterialApp(
         '/help': (context) => Help(),
         '/routesetup': (context) => Routesetup(),
         '/settings': (context) => Settings(),
-        '/share': (context) => Share(),
       },
       theme: ThemeData(
           primaryColor: htwGreen,
