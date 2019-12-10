@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
+import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,8 +12,10 @@ class _HomeState extends State<Home> {
     static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
     void _onItemTapped(int index) {
-      List<String> options = ['/help', '/routesetup', '/settings'];
-      Navigator.pushNamed(context, options[index]);
+      List<String> options = ['/help', 'routeinfo', '/settings'];
+
+      if(index < options.length || options[index] != 'routeinfo') Navigator.pushNamed(context, options[index]);
+      // else RouteInfo();
     }
 
   @override
@@ -25,9 +28,16 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          MapWidget(),
-      
+          MapWidget(),      
         ]),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () { Navigator.pushNamed(context, '/routesetup');},
+        tooltip: 'Route Setup',
+        child: Icon(Icons.find_replace),
+        backgroundColor: htwGreen,
+        elevation: 2.0,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem> [
           BottomNavigationBarItem(
@@ -42,9 +52,14 @@ class _HomeState extends State<Home> {
             icon: Icon(Icons.settings),
             title: Text('Settings'),
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.save),
+            title: Text('Last Routes'),
+          ),
         ],
         onTap: _onItemTapped,
-        currentIndex: 1,
+        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.grey,
       ),
     );
   }
