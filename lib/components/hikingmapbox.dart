@@ -65,15 +65,7 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   initState() {
     super.initState();
-
-    _loadOfflineTiles().then((result) => {
-          requestLocationPermissionIfNotAlreadyGranted().then((result) {
-            getCurrentLocation().then((location) {
-              initRoutes();
-            });
-            updateCurrentLocationOnChange();
-          })
-        });
+    _loadOfflineTiles();
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -199,7 +191,6 @@ class _MapWidgetState extends State<MapWidget> {
     });
   }
 
-
   static CameraPosition _getCameraPosition() {
     final latLng = LatLng(52.520008, 13.404954);
     return CameraPosition(
@@ -237,7 +228,7 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
-  void cycleTrackingMode(){
+  void cycleTrackingMode() {
     switch (_myLocationTrackingMode) {
       case MyLocationTrackingMode.None:
         {
@@ -263,8 +254,7 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
-  Icon getTrackingModeIcon(){
-
+  Icon getTrackingModeIcon() {
     switch (_myLocationTrackingMode) {
       case MyLocationTrackingMode.None:
         {
@@ -286,8 +276,6 @@ class _MapWidgetState extends State<MapWidget> {
           return Icon(OMIcons.navigation);
         }
     }
-
-
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
@@ -424,6 +412,14 @@ class _MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
+
+    requestLocationPermissionIfNotAlreadyGranted().then((result) {
+      getCurrentLocation().then((location) {
+        initRoutes();
+      });
+      updateCurrentLocationOnChange();
+    });
+
     setState(() {});
   }
 }
