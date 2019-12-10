@@ -16,6 +16,7 @@ class _LocationSelectionState extends State<LocationSelection> {
       body: Stack(
         children: <Widget>[
           MapWidget(isStatic: true,),
+          Center(child: Icon(Icons.person_pin_circle, color: Colors.red, size: 50,))
         ],
       ),
     );
