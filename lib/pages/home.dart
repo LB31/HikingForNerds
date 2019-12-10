@@ -19,7 +19,7 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          MapWidget(),
+          MapWidget(isStatic: false,),
           FabCircularMenu(
           child: Container(
             // leave empty

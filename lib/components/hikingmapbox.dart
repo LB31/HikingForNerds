@@ -10,6 +10,10 @@ import 'dart:async';
 
 
 class MapWidget extends StatefulWidget {
+
+  final bool isStatic;
+  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+
   @override
   _MapWidgetState createState() => _MapWidgetState();
 }
@@ -303,7 +307,8 @@ class _MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
+          if(!widget.isStatic)
+            MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
           if (_isLoadingRoute)
             CalculatingRoutesDialog()
         ],
@@ -344,7 +349,7 @@ class _MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
-        initRoutes();
+        //initRoutes();
       });
       updateCurrentLocationOnChange();
     });
