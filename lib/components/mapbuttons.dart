@@ -4,8 +4,17 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 
 class MapButtons extends StatelessWidget {
 
-  Icon getTrackingModeIcon(_myLocationTrackingMode) {
-    switch (_myLocationTrackingMode) {
+  //Why do these variables exist? check out: https://stackoverflow.com/a/51033284/5630207
+  const MapButtons({this.currentTrackingMode, this.styles, this.currentStyle, this.nextRoute, this.cycleTrackingMode, this.setMapStyle});
+  final MyLocationTrackingMode currentTrackingMode;
+  final String currentStyle;
+  final Map<String, String> styles;
+  final VoidCallback nextRoute;
+  final VoidCallback cycleTrackingMode;
+  final SetMapStyleCallback setMapStyle;
+
+  Icon getTrackingModeIcon() {
+    switch (currentTrackingMode) {
       case MyLocationTrackingMode.None:
         {
           return Icon(OMIcons.navigation);
@@ -35,44 +44,35 @@ class MapButtons extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-
-            FloatingActionButton(
-              heroTag: "btn-navigation",
-              child: Icon(Icons.navigation),
-
-//              Icon(_myLocationTrackingMode ==
-//                      MyLocationTrackingMode.TrackingCompass
-//                  ? Icons.navigation
-//                  : OMIcons.navigation),
-
-
-              onPressed: () {
-//                setZoom(15.0);
-//                setTrackingMode(MyLocationTrackingMode.TrackingCompass);
-              },
-            ),
             FloatingActionButton(
               heroTag: "btn-gps",
-              child: Icon(Icons.gps_fixed),
+              child: getTrackingModeIcon(),
               onPressed: () {
-                //setTrackingMode(MyLocationTrackingMode.Tracking);
+                cycleTrackingMode();
               },
             ),
             FloatingActionButton(
               heroTag: "btn-maptype",
-              child: Icon(Icons.terrain),
-//
-//              Icon(_currentStyle == _styles.keys.first
-//                  ? Icons.terrain
-//                  : Icons.satellite),
+              child: Icon(currentStyle == styles.keys.first
+                  ? Icons.terrain
+                  : Icons.satellite),
               onPressed: () {
-// TODO for now only switching between klokan and bright
-//                setMapStyle(_currentStyle == _styles.keys.first
-//                    ? _styles.keys.elementAt(1)
-//                    : _styles.keys.elementAt(0));
+                // TODO for now only switching between klokan and bright
+                setMapStyle(currentStyle == styles.keys.first
+                    ? styles.keys.elementAt(1)
+                    : styles.keys.elementAt(0));
+              },
+            ),
+            FloatingActionButton(
+              heroTag: "btn-update",
+              child: Icon(Icons.update),
+              onPressed: () {
+                nextRoute();
               },
             ),
           ],
         ));
   }
 }
+
+typedef SetMapStyleCallback = void Function(String style);

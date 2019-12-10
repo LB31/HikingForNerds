@@ -303,7 +303,7 @@ class _MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          MapButtons(),
+          MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
           if (_isLoadingRoute)
             CalculatingRoutesDialog()
         ],
