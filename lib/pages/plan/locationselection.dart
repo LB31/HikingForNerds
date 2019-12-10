@@ -1,7 +1,10 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
+import 'package:geocoder/geocoder.dart';
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -15,8 +18,25 @@ class _LocationSelectionState extends State<LocationSelection> {
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
-    mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.newLatLng(LatLng(currentLocation.latitude, currentLocation.longitude)));
+    moveToLatLng(LatLng(currentLocation.latitude, currentLocation.longitude));
   }
+
+  Future<LatLng> addressToLatLng(String query) async {
+    var addresses = await Geocoder.local.findAddressesFromQuery(query);
+    var first = addresses.first;
+    print("${first.featureName} : ${first.coordinates}");
+    return LatLng(first.coordinates.latitude, first.coordinates.longitude);
+  }
+
+  void moveToAddress(String query) async {
+    LatLng latLng = await addressToLatLng(query);
+    moveToLatLng(latLng);
+  }
+
+  void moveToLatLng(LatLng latLng){
+    mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.newLatLng(latLng));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +63,7 @@ class _LocationSelectionState extends State<LocationSelection> {
                 moveToCurrentLocation();
               },
             ),
-          )
+          ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
