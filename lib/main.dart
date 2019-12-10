@@ -4,6 +4,7 @@ import 'package:hiking4nerds/pages/help.dart';
 import 'package:hiking4nerds/pages/info.dart';
 import 'package:hiking4nerds/pages/routesetup.dart';
 import 'package:hiking4nerds/pages/settings.dart';
+import 'package:hiking4nerds/components/share.dart';
 import 'package:hiking4nerds/styles.dart';
 
 void main() => runApp(MaterialApp(
