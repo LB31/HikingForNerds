@@ -301,6 +301,8 @@ class _MapWidgetState extends State<MapWidget> {
     _isMoving = mapController.isCameraMoving;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     if (this._tilesLoaded) {
