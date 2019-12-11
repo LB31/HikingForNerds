@@ -5,6 +5,7 @@ import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -29,13 +30,14 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 
   void moveToAddress(String query) async {
-      LatLng latLng = await addressToLatLng(query);
-      moveToLatLng(latLng);
+    LatLng latLng = await addressToLatLng(query);
+    moveToLatLng(latLng);
   }
 
   void moveToLatLng(LatLng latLng) {
     mapWidgetKey.currentState.mapController
         .moveCamera(CameraUpdate.newLatLng(latLng));
+    mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
   @override
@@ -66,14 +68,25 @@ class _LocationSelectionState extends State<LocationSelection> {
           ),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.5 - 25,
-            top: 15, 
-
+            top: 15,
             child: IconButton(
               icon: Icon(Icons.search),
               iconSize: 50,
               onPressed: () async {
-                var query = await showSearch(context: context, delegate: CustomSearchDelegate());
-                if(query.length > 0) moveToAddress(query);
+                var query = await showSearch(
+                    context: context, delegate: CustomSearchDelegate());
+                if (query.length > 0) {
+                  moveToAddress(query);
+
+                  SharedPreferences.getInstance().then((prefs) {
+                    List<String> _history =
+                        prefs.getStringList("searchHistory") ?? List<String>();
+                    prefs.setStringList("searchHistory", [
+                      ...[query],
+                      ..._history
+                    ]);
+                  });
+                }
               },
             ),
           )
@@ -94,15 +107,16 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 }
 
-
-
-
-
-
-
-
 class CustomSearchDelegate extends SearchDelegate {
-  final List<String> _history = <String>["Berlin", "Japan", "Weserstraße 144", "Dettlef", "Avenue 1 12052"];
+  List<String> _history = List<String>();
+
+  CustomSearchDelegate() {
+    //_history = <String>["Berlin Schoeneweide", "Japan", "Weserstraße 144", "Dettlef", "Avenue 1 12052"];
+
+    SharedPreferences.getInstance().then((prefs) {
+      _history = prefs.getStringList("searchHistory") ?? List<String>();
+    });
+  }
 
   @override
   Widget buildLeading(BuildContext context) {
@@ -120,20 +134,17 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-
     //TODO show address suggestions while typing
     // var addresses = await Geocoder.local.findAddressesFromQuery(query);
 
-    final Iterable<String> suggestions = query.isEmpty
-        ? _history
-        : List<String>();
+    final Iterable<String> suggestions =
+        query.isEmpty ? _history : List<String>();
 
     return _SuggestionList(
       query: query,
       suggestions: suggestions.map<String>((String i) => '$i').toList(),
       onSelected: (String suggestion) {
         query = suggestion;
-        //showResults(context);
         this.close(context, query);
       },
     );
