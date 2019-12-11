@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
@@ -6,6 +5,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -22,22 +22,47 @@ class _LocationSelectionState extends State<LocationSelection> {
     moveToLatLng(LatLng(currentLocation.latitude, currentLocation.longitude));
   }
 
-  Future<LatLng> addressToLatLng(String query) async {
+  Future<LatLng> queryToLatLng(String query) async {
     var addresses = await Geocoder.local.findAddressesFromQuery(query);
     var first = addresses.first;
     print("${first.featureName} : ${first.coordinates}");
     return LatLng(first.coordinates.latitude, first.coordinates.longitude);
   }
 
+  Future<String> queryToAddressName(String query) async {
+    var addresses = await Geocoder.local.findAddressesFromQuery(query);
+    return addresses.first.addressLine;
+  }
+
   void moveToAddress(String query) async {
-    LatLng latLng = await addressToLatLng(query);
+    LatLng latLng = await queryToLatLng(query);
     moveToLatLng(latLng);
+    saveAddressToHistory(query);
   }
 
   void moveToLatLng(LatLng latLng) {
     mapWidgetKey.currentState.mapController
         .moveCamera(CameraUpdate.newLatLng(latLng));
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
+  }
+
+  void saveAddressToHistory(query) async{
+
+    String newHistoryEntry = await queryToAddressName(query);
+
+    SharedPreferences.getInstance().then((prefs) {
+      List<String> _history =
+          prefs.getStringList("searchHistory") ?? List<String>();
+
+      List<String> updatedHistory = [
+        ...[newHistoryEntry],
+        ..._history
+      ];
+
+      //Remove duplicates from history and limit number of entries
+      updatedHistory = updatedHistory.toSet().toList().sublist(0, updatedHistory.length <= 15 ? updatedHistory.length : 15); 
+      prefs.setStringList("searchHistory", updatedHistory);
+    });
   }
 
   @override
@@ -77,15 +102,6 @@ class _LocationSelectionState extends State<LocationSelection> {
                     context: context, delegate: CustomSearchDelegate());
                 if (query.length > 0) {
                   moveToAddress(query);
-
-                  SharedPreferences.getInstance().then((prefs) {
-                    List<String> _history =
-                        prefs.getStringList("searchHistory") ?? List<String>();
-                    prefs.setStringList("searchHistory", [
-                      ...[query],
-                      ..._history
-                    ]);
-                  });
                 }
               },
             ),
