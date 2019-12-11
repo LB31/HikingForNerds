@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -46,8 +44,7 @@ class _LocationSelectionState extends State<LocationSelection> {
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
-  void saveAddressToHistory(query) async{
-
+  void saveAddressToHistory(query) async {
     String newHistoryEntry = await queryToAddressName(query);
 
     SharedPreferences.getInstance().then((prefs) {
@@ -60,7 +57,8 @@ class _LocationSelectionState extends State<LocationSelection> {
       ];
 
       //Remove duplicates from history and limit number of entries
-      updatedHistory = updatedHistory.toSet().toList().sublist(0, updatedHistory.length <= 15 ? updatedHistory.length : 15); 
+      updatedHistory = updatedHistory.toSet().toList().sublist(
+          0, updatedHistory.length <= 15 ? updatedHistory.length - 1 : 15);
       prefs.setStringList("searchHistory", updatedHistory);
     });
   }
@@ -153,17 +151,44 @@ class CustomSearchDelegate extends SearchDelegate {
     //TODO show address suggestions while typing
     // var addresses = await Geocoder.local.findAddressesFromQuery(query);
 
-    final Iterable<String> suggestions =
-        query.isEmpty ? _history : List<String>();
+    return FutureBuilder(
+        future: Geocoder.local.findAddressesFromQuery(query),
+        builder: (BuildContext context, AsyncSnapshot<List<Address>> snapshot) {
+          // check if snapshot.hasData
 
-    return _SuggestionList(
-      query: query,
-      suggestions: suggestions.map<String>((String i) => '$i').toList(),
-      onSelected: (String suggestion) {
-        query = suggestion;
-        this.close(context, query);
-      },
-    );
+          if (snapshot.connectionState == ConnectionState.done) {
+            List<Address> addresses;
+            if (snapshot.hasData) {
+              addresses = snapshot.data;
+            } else {
+              addresses = List<Address>();
+            }
+
+            List<String> addressNames = addresses.map((address) {
+              return address.addressLine;
+            }).toList();
+
+            final Iterable<String> suggestions =
+                query.isEmpty ? _history : addressNames;
+
+            return _SuggestionList(
+              query: query,
+              suggestions: suggestions.map<String>((String i) => '$i').toList(),
+              onSelected: (String suggestion) {
+                query = suggestion;
+                this.close(context, query);
+              },
+            );
+          } else {
+            return _SuggestionList(
+                query: query,
+                suggestions: List<String>(),
+                onSelected: (String suggestion) {
+                  query = suggestion;
+                  this.close(context, query);
+                });
+          }
+        });
   }
 
   @override
