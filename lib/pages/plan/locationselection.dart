@@ -29,8 +29,8 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 
   void moveToAddress(String query) async {
-    LatLng latLng = await addressToLatLng(query);
-    moveToLatLng(latLng);
+      LatLng latLng = await addressToLatLng(query);
+      moveToLatLng(latLng);
   }
 
   void moveToLatLng(LatLng latLng) {
@@ -71,8 +71,9 @@ class _LocationSelectionState extends State<LocationSelection> {
             child: IconButton(
               icon: Icon(Icons.search),
               iconSize: 50,
-              onPressed: () {
-                showSearch(context: context, delegate: CustomSearchDelegate());
+              onPressed: () async {
+                var query = await showSearch(context: context, delegate: CustomSearchDelegate());
+                if(query.length > 0) moveToAddress(query);
               },
             ),
           )
@@ -80,7 +81,7 @@ class _LocationSelectionState extends State<LocationSelection> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-        heroTag: "abbbdbasdjk",
+        heroTag: "btn-search",
         child: Icon(Icons.directions_walk),
         onPressed: () {
           setState(() {
@@ -132,7 +133,8 @@ class CustomSearchDelegate extends SearchDelegate {
       suggestions: suggestions.map<String>((String i) => '$i').toList(),
       onSelected: (String suggestion) {
         query = suggestion;
-        showResults(context);
+        //showResults(context);
+        this.close(context, query);
       },
     );
   }
