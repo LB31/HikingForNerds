@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/navbar.dart';
 
 class Settings extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class _SettingsState extends State<Settings> {
         title: Text('Settings'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
+      bottomNavigationBar: Navbar(),
     );
   }
 }

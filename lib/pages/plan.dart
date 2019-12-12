@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/navbar.dart';
 
 class Plan extends StatelessWidget {
   @override
@@ -8,6 +9,7 @@ class Plan extends StatelessWidget {
         title: Text('Plan'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
+      bottomNavigationBar: Navbar(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/navbar.dart';
 
 class Routesetup extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class _RoutesetupState extends State<Routesetup> {
         title: Text('Route Setup'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
+      bottomNavigationBar: Navbar(),
     );
   }
 }
