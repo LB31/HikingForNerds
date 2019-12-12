@@ -8,7 +8,6 @@ import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
 import 'dart:async';
 
-
 class MapWidget extends StatefulWidget {
   @override
   _MapWidgetState createState() => _MapWidgetState();
@@ -167,41 +166,36 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
-
-    List<LatLng> remainingRoute = _route;
-
-    int index = 0;
-    remainingRoute = remainingRoute.where((routeNode){
-      if(shouldRouteNodeAtIndexBeConsideredForRemoval(index)){
+    int deleteAllRouteNodesWithAnIndexSmallerThan = 0;
+    for (int index = 0; index < _route.length; index++) {
+      if (shouldRouteNodeAtIndexBeConsideredForRemoval(index)) {
         double distanceToCurrentLocation =
-        OsmData.getDistance(routeNode, _currentDeviceLocation);
-        print("DISTANCE $distanceToCurrentLocation");
-        index++;
-        return distanceToCurrentLocation > 0.05 ? true : false;
-      } else {
-        index++;
-        return true;
+            OsmData.getDistance(_route[index], _currentDeviceLocation);
+        if (distanceToCurrentLocation < 0.05) {
+          deleteAllRouteNodesWithAnIndexSmallerThan = index + 1;
+        }
       }
-    }).toList();
+    }
 
+    List<LatLng> remainingRoute =
+        _route.sublist(deleteAllRouteNodesWithAnIndexSmallerThan);
 
     LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
     await mapController.updateLine(_lineRoute, optionsRemainingRoute);
-
 
     setState(() {
       _route = remainingRoute;
     });
   }
 
-  bool shouldRouteNodeAtIndexBeConsideredForRemoval(int index){
-    if( _route.length > 50 && index > _route.length - 25) return false;
-    else return true;
+  bool shouldRouteNodeAtIndexBeConsideredForRemoval(int index) {
+    if (_route.length > 50 && index > _route.length - 25)
+      return false;
+    else
+      return true;
   }
 
   void updateRouteOLD() async {
-
-
     List<LatLng> remainingRoute = [];
     List<LatLng> passedRoute = _passedRoute;
 
@@ -341,9 +335,15 @@ class _MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
-          if (_isLoadingRoute)
-            CalculatingRoutesDialog()
+          MapButtons(
+            currentTrackingMode: _myLocationTrackingMode,
+            styles: _styles,
+            currentStyle: _currentStyle,
+            nextRoute: drawNextRoute,
+            cycleTrackingMode: cycleTrackingMode,
+            setMapStyle: setMapStyle,
+          ),
+          if (_isLoadingRoute) CalculatingRoutesDialog()
         ],
       );
     } else {
