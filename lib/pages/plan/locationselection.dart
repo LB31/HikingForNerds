@@ -53,12 +53,11 @@ class _LocationSelectionState extends State<LocationSelection> {
 
       List<String> updatedHistory = [
         ...[newHistoryEntry],
-        ..._history
+        ..._history,
       ];
 
-      //Remove duplicates from history and limit number of entries
-      updatedHistory = updatedHistory.toSet().toList().sublist(
-          0, updatedHistory.length <= 15 ? updatedHistory.length - 1 : 15);
+      //Remove duplicates from history
+      updatedHistory = updatedHistory.toSet().toList(); 
       prefs.setStringList("searchHistory", updatedHistory);
     });
   }
@@ -148,13 +147,11 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    //TODO show address suggestions while typing
-    // var addresses = await Geocoder.local.findAddressesFromQuery(query);
+    String queryString = query;
 
     return FutureBuilder(
-        future: Geocoder.local.findAddressesFromQuery(query),
+        future: queryString.length > 0 ? Geocoder.local.findAddressesFromQuery(queryString) : Future.value(List<Address>()),
         builder: (BuildContext context, AsyncSnapshot<List<Address>> snapshot) {
-          // check if snapshot.hasData
 
           if (snapshot.connectionState == ConnectionState.done) {
             List<Address> addresses;
