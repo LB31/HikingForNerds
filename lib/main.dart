@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/home.dart';
 import 'package:hiking4nerds/pages/help.dart';
 import 'package:hiking4nerds/pages/info.dart';
+import 'package:hiking4nerds/pages/plan.dart';
 import 'package:hiking4nerds/pages/routesetup.dart';
 import 'package:hiking4nerds/pages/settings.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -13,6 +14,7 @@ void main() => runApp(MaterialApp(
         '/': (context) => Home(),
         '/info': (context) => Info(),
         '/help': (context) => Help(),
+        '/plan': (context) => Plan(),
         '/routesetup': (context) => Routesetup(),
         '/settings': (context) => Settings(),
       },
