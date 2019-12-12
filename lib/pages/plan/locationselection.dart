@@ -81,7 +81,7 @@ class _LocationSelectionState extends State<LocationSelection> {
           )),
           Positioned(
             right: 5,
-            top: MediaQuery.of(context).size.height * 0.5,
+            bottom: 5,
             child: FloatingActionButton(
               heroTag: "btn-gps",
               child: Icon(Icons.gps_fixed),
@@ -108,15 +108,19 @@ class _LocationSelectionState extends State<LocationSelection> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        heroTag: "btn-search",
-        child: Icon(Icons.directions_walk),
-        onPressed: () {
-          setState(() {
-            _location =
-                mapWidgetKey.currentState.mapController.cameraPosition.target;
-          });
-        },
+      floatingActionButton: SizedBox(
+        width: 70,
+        height: 70,
+        child: FloatingActionButton(
+          heroTag: "btn-search",
+          child: Icon(Icons.directions_walk, size: 40,),
+          onPressed: () {
+            setState(() {
+              _location =
+                  mapWidgetKey.currentState.mapController.cameraPosition.target;
+            });
+          },
+        ),
       ),
     );
   }
