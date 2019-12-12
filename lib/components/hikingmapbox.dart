@@ -152,7 +152,7 @@ class _MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    //initUpdateRouteTimer();
+    initUpdateRouteTimer();
   }
 
   drawNextRoute() {
@@ -167,6 +167,41 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
+
+    List<LatLng> remainingRoute = _route;
+
+    int index = 0;
+    remainingRoute = remainingRoute.where((routeNode){
+      if(shouldRouteNodeAtIndexBeConsideredForRemoval(index)){
+        double distanceToCurrentLocation =
+        OsmData.getDistance(routeNode, _currentDeviceLocation);
+        print("DISTANCE $distanceToCurrentLocation");
+        index++;
+        return distanceToCurrentLocation > 0.05 ? true : false;
+      } else {
+        index++;
+        return true;
+      }
+    }).toList();
+
+
+    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
+    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
+
+
+    setState(() {
+      _route = remainingRoute;
+    });
+  }
+
+  bool shouldRouteNodeAtIndexBeConsideredForRemoval(int index){
+    if( _route.length > 50 && index > _route.length - 25) return false;
+    else return true;
+  }
+
+  void updateRouteOLD() async {
+
+
     List<LatLng> remainingRoute = [];
     List<LatLng> passedRoute = _passedRoute;
 
@@ -174,7 +209,10 @@ class _MapWidgetState extends State<MapWidget> {
       LatLng latLng = _route[i];
       double distanceToCurrentLocation =
           OsmData.getDistance(latLng, _currentDeviceLocation);
-      if (distanceToCurrentLocation > 0.0002) {
+
+      print(distanceToCurrentLocation);
+
+      if (distanceToCurrentLocation > 0.05) {
         remainingRoute.add(latLng);
       } else {
         passedRoute.add(latLng);
