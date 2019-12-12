@@ -71,7 +71,9 @@ class _LocationSelectionState extends State<LocationSelection> {
             key: mapWidgetKey,
             isStatic: true,
           ),
-          Center(
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.5 - 45,
+            left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
             Icons.person_pin_circle,
             color: Colors.red,
@@ -165,7 +167,7 @@ class CustomSearchDelegate extends SearchDelegate {
             }).toList();
           }
           final Iterable<String> suggestions =
-              query.isEmpty ? _history : addressNames.isNotEmpty ? addressNames : List<String>(); 
+              query.isEmpty ? _history : addressNames.isNotEmpty ? addressNames : List<String>();
 
           return _SuggestionList(
             query: query,
