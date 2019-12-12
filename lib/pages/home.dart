@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:hiking4nerds/components/navbar.dart';
+import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -21,6 +22,14 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           MapWidget(),      
         ]),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () { Navigator.pushNamed(context, '/routesetup');},
+        tooltip: 'Route Setup',
+        child: Icon(Icons.find_replace),
+        backgroundColor: htwGreen,
+        elevation: 2.0,
+      ),
       bottomNavigationBar: Navbar(),
     );
   }
