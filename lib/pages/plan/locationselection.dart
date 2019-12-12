@@ -57,7 +57,7 @@ class _LocationSelectionState extends State<LocationSelection> {
       ];
 
       //Remove duplicates from history
-      updatedHistory = updatedHistory.toSet().toList(); 
+      updatedHistory = updatedHistory.toSet().toList();
       prefs.setStringList("searchHistory", updatedHistory);
     });
   }
@@ -150,41 +150,31 @@ class CustomSearchDelegate extends SearchDelegate {
     String queryString = query;
 
     return FutureBuilder(
-        future: queryString.length > 0 ? Geocoder.local.findAddressesFromQuery(queryString) : Future.value(List<Address>()),
+        future: queryString.length > 0
+            ? Geocoder.local.findAddressesFromQuery(queryString)
+            : Future.value(List<Address>()),
         builder: (BuildContext context, AsyncSnapshot<List<Address>> snapshot) {
-
+          List<String> addressNames = List<String>();
           if (snapshot.connectionState == ConnectionState.done) {
-            List<Address> addresses;
+            List<Address> addresses = List<Address>();
             if (snapshot.hasData) {
               addresses = snapshot.data;
-            } else {
-              addresses = List<Address>();
             }
-
-            List<String> addressNames = addresses.map((address) {
+            addressNames = addresses.map((address) {
               return address.addressLine;
             }).toList();
-
-            final Iterable<String> suggestions =
-                query.isEmpty ? _history : addressNames;
-
-            return _SuggestionList(
-              query: query,
-              suggestions: suggestions.map<String>((String i) => '$i').toList(),
-              onSelected: (String suggestion) {
-                query = suggestion;
-                this.close(context, query);
-              },
-            );
-          } else {
-            return _SuggestionList(
-                query: query,
-                suggestions: List<String>(),
-                onSelected: (String suggestion) {
-                  query = suggestion;
-                  this.close(context, query);
-                });
           }
+          final Iterable<String> suggestions =
+              query.isEmpty || addressNames.isEmpty ? _history : addressNames;
+
+          return _SuggestionList(
+            query: query,
+            suggestions: suggestions.map<String>((String i) => '$i').toList(),
+            onSelected: (String suggestion) {
+              query = suggestion;
+              this.close(context, query);
+            },
+          );
         });
   }
 
