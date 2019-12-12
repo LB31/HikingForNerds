@@ -23,7 +23,6 @@ class _LocationSelectionState extends State<LocationSelection> {
   Future<LatLng> queryToLatLng(String query) async {
     var addresses = await Geocoder.local.findAddressesFromQuery(query);
     var first = addresses.first;
-    print("${first.featureName} : ${first.coordinates}");
     return LatLng(first.coordinates.latitude, first.coordinates.longitude);
   }
 
