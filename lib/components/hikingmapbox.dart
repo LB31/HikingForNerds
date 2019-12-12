@@ -147,6 +147,7 @@ class _MapWidgetState extends State<MapWidget> {
     setState(() {
       _isLoadingRoute = false;
       _route = routeLatLng;
+      _passedRoute = [];
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });
@@ -183,8 +184,16 @@ class _MapWidgetState extends State<MapWidget> {
     LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
     await mapController.updateLine(_lineRoute, optionsRemainingRoute);
 
+    List<LatLng> passedRoute = [
+      ..._passedRoute,
+      ..._route.sublist(0, deleteAllRouteNodesWithAnIndexSmallerThan + 1)
+    ];
+    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
+
     setState(() {
       _route = remainingRoute;
+      _passedRoute = passedRoute;
     });
   }
 
@@ -193,36 +202,6 @@ class _MapWidgetState extends State<MapWidget> {
       return false;
     else
       return true;
-  }
-
-  void updateRouteOLD() async {
-    List<LatLng> remainingRoute = [];
-    List<LatLng> passedRoute = _passedRoute;
-
-    for (int i = 0; i < _route.length; i++) {
-      LatLng latLng = _route[i];
-      double distanceToCurrentLocation =
-          OsmData.getDistance(latLng, _currentDeviceLocation);
-
-      print(distanceToCurrentLocation);
-
-      if (distanceToCurrentLocation > 0.05) {
-        remainingRoute.add(latLng);
-      } else {
-        passedRoute.add(latLng);
-      }
-    }
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
-    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
-
-    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
-    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
-
-    setState(() {
-      _route = remainingRoute;
-      _passedRoute = passedRoute;
-    });
   }
 
   static CameraPosition _getCameraPosition() {
