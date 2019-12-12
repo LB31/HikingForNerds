@@ -165,7 +165,7 @@ class CustomSearchDelegate extends SearchDelegate {
             }).toList();
           }
           final Iterable<String> suggestions =
-              query.isEmpty || addressNames.isEmpty ? _history : addressNames;
+              query.isEmpty ? _history : addressNames.isNotEmpty ? addressNames : List<String>(); 
 
           return _SuggestionList(
             query: query,
