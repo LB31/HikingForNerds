@@ -7,6 +7,7 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
 import 'dart:async';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MapWidget extends StatefulWidget {
   @override
@@ -195,6 +196,11 @@ class _MapWidgetState extends State<MapWidget> {
       _route = remainingRoute;
       _passedRoute = passedRoute;
     });
+
+    if(_route.length <= 1){
+      finishHikingTrip();
+    }
+
   }
 
   bool shouldRouteNodeAtIndexBeConsideredForRemoval(int index) {
@@ -202,6 +208,26 @@ class _MapWidgetState extends State<MapWidget> {
       return false;
     else
       return true;
+  }
+
+  void finishHikingTrip(){
+    Fluttertoast.showToast(
+        msg: "You have finished your Hiking Trip!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIos: 1,
+        backgroundColor: Theme.of(context).primaryColor,
+        textColor: Colors.black,
+        fontSize: 16.0
+    );
+
+    setState(() {
+      _passedRoute = [];
+      _route = [];
+    });
+
+    mapController.clearLines();
+    _timer.cancel();
   }
 
   static CameraPosition _getCameraPosition() {
