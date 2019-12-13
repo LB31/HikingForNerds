@@ -10,11 +10,15 @@ import 'dart:async';
 
 
 class MapWidget extends StatefulWidget {
+
+  final bool isStatic;
+  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+
   @override
-  _MapWidgetState createState() => _MapWidgetState();
+  MapWidgetState createState() => MapWidgetState();
 }
 
-class _MapWidgetState extends State<MapWidget> {
+class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
@@ -47,10 +51,10 @@ class _MapWidgetState extends State<MapWidget> {
   MyLocationTrackingMode _myLocationTrackingMode =
       MyLocationTrackingMode.Tracking;
 
-  _MapWidgetState._(
+  MapWidgetState._(
       this._cameraInitialPos, this._position, this._cameraTargetBounds);
 
-  factory _MapWidgetState() {
+  factory MapWidgetState() {
     CameraPosition cameraPosition = _getCameraPosition();
 
     // get bounds for areas at https://boundingbox.klokantech.com/
@@ -60,7 +64,7 @@ class _MapWidgetState extends State<MapWidget> {
       northeast: LatLng(55.1, 15.04),
     );
 
-    return _MapWidgetState._(
+    return MapWidgetState._(
         cameraPosition, cameraPosition, CameraTargetBounds(countryBounds));
   }
 
@@ -297,13 +301,16 @@ class _MapWidgetState extends State<MapWidget> {
     _isMoving = mapController.isCameraMoving;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     if (this._tilesLoaded) {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
+          if(!widget.isStatic)
+            MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
           if (_isLoadingRoute)
             CalculatingRoutesDialog()
         ],
@@ -344,7 +351,7 @@ class _MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
-        initRoutes();
+        //initRoutes();
       });
       updateCurrentLocationOnChange();
     });
