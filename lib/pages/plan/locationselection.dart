@@ -100,36 +100,44 @@ class _LocationSelectionState extends State<LocationSelection> {
                 size: 50,
               )),
           Positioned(
-            right: 5,
-            bottom: 5,
-            child: FloatingActionButton(
-              heroTag: "btn-gps",
-              child: Icon(Icons.gps_fixed),
-              onPressed: () {
-                moveToCurrentLocation();
-              },
+            right: MediaQuery.of(context).size.width * 0.15,
+            bottom: 15,
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: FloatingActionButton(
+                heroTag: "btn-gps",
+                child: Icon(Icons.gps_fixed),
+                onPressed: () {
+                  moveToCurrentLocation();
+                },
+              ),
             ),
           ),
+          Positioned(
+            bottom: 10,
+            left: MediaQuery.of(context).size.width * 0.5 - 35,
+            child: SizedBox(
+              width: 70,
+              height: 70,
+              child: FloatingActionButton(
+                heroTag: "btn-search",
+                child: Icon(
+                  Icons.directions_walk,
+                  size: 40,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _location =
+                        mapWidgetKey.currentState.mapController.cameraPosition.target;
+                  });
+                },
+              ),
+            ),
+          )
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: FloatingActionButton(
-          heroTag: "btn-search",
-          child: Icon(
-            Icons.directions_walk,
-            size: 40,
-          ),
-          onPressed: () {
-            setState(() {
-              _location =
-                  mapWidgetKey.currentState.mapController.cameraPosition.target;
-            });
-          },
-        ),
-      ),
     );
   }
 }
