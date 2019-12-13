@@ -23,5 +23,5 @@ void main() => runApp(MaterialApp(
           iconTheme: IconThemeData(color: htwGreen),
           buttonTheme: ButtonThemeData(
             buttonColor: htwGreen,
-          )),
-    ));
+          ),
+    )));

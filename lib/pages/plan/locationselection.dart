@@ -64,6 +64,12 @@ class _LocationSelectionState extends State<LocationSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        textTheme: TextTheme(title: TextStyle(color: Color(0xFF808080), fontSize: 20, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: Color(0xFF808080)),
+        backgroundColor: Colors.white,
+        title: Text("Search"),
+      ),
       resizeToAvoidBottomPadding: false,
       body: Stack(
         children: <Widget>[
