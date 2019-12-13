@@ -92,7 +92,7 @@ class _LocationSelectionState extends State<LocationSelection> {
             isStatic: true,
           ),
           Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 45,
+              top: MediaQuery.of(context).size.height * 0.5 - 45 - 40, //-45 to adjust for its own height AND -40 to adjust vor appbar (searchbar)
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,
@@ -100,7 +100,7 @@ class _LocationSelectionState extends State<LocationSelection> {
                 size: 50,
               )),
           Positioned(
-            right: MediaQuery.of(context).size.width * 0.15,
+            right: MediaQuery.of(context).size.width * 0.15, 
             bottom: 15,
             child: SizedBox(
               width: 50,
