@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
+
 
 class RouteSelection extends StatefulWidget {
   final LatLng routeStartingLocation;
@@ -17,7 +19,6 @@ class _RouteSelectionState extends State<RouteSelection> {
   final GlobalKey<MapWidgetState> mapWidgetKey =
       new GlobalKey<MapWidgetState>();
 
-  bool _isLoadingRoutes = false;
   List _routes = [];
   int _currentRouteIndex = 0;
 
@@ -28,19 +29,14 @@ class _RouteSelectionState extends State<RouteSelection> {
   }
 
   calculateRoutes() async {
-    setState(() {
-      _isLoadingRoutes = true;
-    });
-
     var osmData = OsmData();
     var routes = await osmData.calculateRoundTrip(
         widget.routeStartingLocation.latitude,
         widget.routeStartingLocation.longitude,
         10000,
-        10);
+        10); 
 
     setState(() {
-      _isLoadingRoutes = false;
       _routes = routes;
       _currentRouteIndex = 0;
     });
@@ -63,7 +59,8 @@ class _RouteSelectionState extends State<RouteSelection> {
               isStatic: true,
               route: _routes.length > 0 ? _routes[_currentRouteIndex] : null,
             ),
-        ],
+          if (_routes.length == 0) CalculatingRoutesDialog()
+          ],
       ),
     );
   }

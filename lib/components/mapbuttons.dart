@@ -5,11 +5,10 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 class MapButtons extends StatelessWidget {
 
   //Why do these variables exist? check out: https://stackoverflow.com/a/51033284/5630207
-  const MapButtons({this.currentTrackingMode, this.styles, this.currentStyle, this.nextRoute, this.cycleTrackingMode, this.setMapStyle});
+  const MapButtons({this.currentTrackingMode, this.styles, this.currentStyle, this.cycleTrackingMode, this.setMapStyle});
   final MyLocationTrackingMode currentTrackingMode;
   final String currentStyle;
   final Map<String, String> styles;
-  final VoidCallback nextRoute;
   final VoidCallback cycleTrackingMode;
   final SetMapStyleCallback setMapStyle;
 
@@ -60,11 +59,6 @@ class MapButtons extends StatelessWidget {
                     ? styles.keys.elementAt(1)
                     : styles.keys.elementAt(0));
               },
-            ),
-            FloatingActionButton(
-              heroTag: "btn-update",
-              child: Icon(Icons.update),
-              onPressed: nextRoute
             ),
           ],
         ));

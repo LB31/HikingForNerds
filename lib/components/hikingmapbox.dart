@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:hiking4nerds/components/mapbuttons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -24,7 +23,6 @@ class MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
 
-  bool _isLoadingRoute = false;
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
   Line _lineRoute;
@@ -128,7 +126,6 @@ class MapWidgetState extends State<MapWidget> {
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
-      _isLoadingRoute = false;
       _route = routeLatLng;
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
@@ -282,8 +279,6 @@ class MapWidgetState extends State<MapWidget> {
           _buildMapBox(context),
           if(!widget.isStatic)
             MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
-          if (_isLoadingRoute)
-            CalculatingRoutesDialog()
         ],
       );
     } else {
