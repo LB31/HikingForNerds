@@ -137,7 +137,6 @@ class _LocationSelectionState extends State<LocationSelection> {
           )
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
