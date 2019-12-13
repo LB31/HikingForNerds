@@ -6,17 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/geojson_export_handler.dart';
 import 'package:hiking4nerds/services/gpx_export_handler.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:path_provider/path_provider.dart';
 
 ///Stateless Share Widget
 ///requires Routes in form of multiple node Lists
 class Share extends StatelessWidget{
   //TODO: change this to Route Object issue #60
-  List<Node> nodeList;
+  HikingRoute route;
   File exportedFile;
   File exportedGpxFile;
 
-    Share({Key key, @required this.nodeList}) : super(key: key);
+    Share({Key key, @required this.route}) : super(key: key);
 
   @override
   Widget build(BuildContext context){
@@ -86,8 +87,8 @@ class Share extends StatelessWidget{
                       alignment: Alignment.bottomRight,
                       child: FlatButton(
                         onPressed: () async {
-                          if (this.nodeList == null) return;
-                          String jsonString = GeojsonExportHandler.parseFromPolylines(nodeList);
+                          if (this.route == null) return;
+                          String jsonString = GeojsonExportHandler.parseFromPolylines(route.path);
                           this.exportedFile = await exportAsJson(jsonString);
                           await prefix0.Share.file('route', 'route.geojson', this.exportedFile.readAsBytesSync(), 'application/json');
                           Navigator.pop(context);
@@ -99,8 +100,8 @@ class Share extends StatelessWidget{
                       alignment: Alignment.bottomCenter,
                       child: FlatButton(
                         onPressed: () async {
-                          if (this.nodeList == null) return;
-                          String gpxString = GpxExportHandler.parseFromPolylines(nodeList);
+                          if (this.route == null) return;
+                          String gpxString = GpxExportHandler.parseFromPolylines(route.path);
                           this.exportedGpxFile = await exportAsGpx(gpxString);
                           await prefix0.Share.file('route', 'route.gpx', this.exportedGpxFile.readAsBytesSync(), 'text/xml');
                           Navigator.pop(context);

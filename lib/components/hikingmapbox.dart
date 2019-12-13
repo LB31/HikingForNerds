@@ -118,13 +118,15 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrip(
+    var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10);
+        10,
+        "aquarium");
 
-    drawRoute(routes[0]);
+
+    drawRoute(routes[0].path);
 
     setState(() {
       _isLoadingRoute = false;
