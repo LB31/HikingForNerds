@@ -12,7 +12,8 @@ import 'dart:async';
 class MapWidget extends StatefulWidget {
 
   final bool isStatic;
-  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+  List<Node> route;
+  MapWidget({Key key, @required this.isStatic, this.route}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -24,8 +25,6 @@ class MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   bool _isLoadingRoute = false;
-  List _routes = [];
-  int _currentRouteIndex = 0;
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
   Line _lineRoute;
@@ -112,27 +111,6 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  Future<void> initRoutes() async {
-    setState(() {
-      _isLoadingRoute = true;
-    });
-
-    var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrip(
-        _currentDeviceLocation.latitude,
-        _currentDeviceLocation.longitude,
-        10000,
-        10);
-
-    drawRoute(routes[0]);
-
-    setState(() {
-      _isLoadingRoute = false;
-      _routes = routes;
-      _currentRouteIndex = 0;
-    });
-  }
-
   drawRoute(List<Node> route) async {
     mapController.clearLines();
 
@@ -157,13 +135,6 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     //initUpdateRouteTimer();
-  }
-
-  drawNextRoute() {
-    setState(() {
-      _currentRouteIndex = (_currentRouteIndex + 1) % _routes.length;
-    });
-    drawRoute(_routes[_currentRouteIndex]);
   }
 
   void initUpdateRouteTimer() {
@@ -310,7 +281,7 @@ class MapWidgetState extends State<MapWidget> {
         children: <Widget>[
           _buildMapBox(context),
           if(!widget.isStatic)
-            MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, nextRoute: drawNextRoute, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
+            MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
           if (_isLoadingRoute)
             CalculatingRoutesDialog()
         ],
@@ -351,7 +322,11 @@ class MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
-        //initRoutes();
+
+        if(widget.route != null){
+          drawRoute(widget.route);
+        }
+
       });
       updateCurrentLocationOnChange();
     });

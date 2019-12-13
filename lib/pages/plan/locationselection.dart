@@ -4,6 +4,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hiking4nerds/pages/plan/routeselection.dart';
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -13,7 +14,6 @@ class LocationSelection extends StatefulWidget {
 class _LocationSelectionState extends State<LocationSelection> {
   final GlobalKey<MapWidgetState> mapWidgetKey =
       new GlobalKey<MapWidgetState>();
-  LatLng _location;
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
@@ -127,10 +127,10 @@ class _LocationSelectionState extends State<LocationSelection> {
                   size: 40,
                 ),
                 onPressed: () {
-                  setState(() {
-                    _location =
-                        mapWidgetKey.currentState.mapController.cameraPosition.target;
-                  });
+                  LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => RouteSelection(routeStartingLocation: routeStartingLocation),
+                  ));
                 },
               ),
             ),
