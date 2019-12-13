@@ -64,11 +64,25 @@ class _LocationSelectionState extends State<LocationSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        textTheme: TextTheme(title: TextStyle(color: Color(0xFF808080), fontSize: 20, fontWeight: FontWeight.bold)),
-        iconTheme: IconThemeData(color: Color(0xFF808080)),
-        backgroundColor: Colors.white,
-        title: Text("Search"),
+      appBar: CustomAppBar(
+        appBar: AppBar(
+          textTheme: TextTheme(
+              title: TextStyle(
+                  color: Color(0xFF808080),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold)),
+          iconTheme: IconThemeData(color: Color(0xFF808080)),
+          backgroundColor: Colors.white,
+          title: Text("Search"),
+
+        ),
+        onTap: () async {
+          var query = await showSearch(
+              context: context, delegate: CustomSearchDelegate());
+          if (query.length > 0) {
+            moveToAddress(query);
+          }
+        },
       ),
       resizeToAvoidBottomPadding: false,
       body: Stack(
@@ -78,13 +92,13 @@ class _LocationSelectionState extends State<LocationSelection> {
             isStatic: true,
           ),
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.5 - 45,
-            left: MediaQuery.of(context).size.width * 0.5 - 25,
+              top: MediaQuery.of(context).size.height * 0.5 - 45,
+              left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
-            Icons.person_pin_circle,
-            color: Colors.red,
-            size: 50,
-          )),
+                Icons.person_pin_circle,
+                color: Colors.red,
+                size: 50,
+              )),
           Positioned(
             right: 5,
             bottom: 5,
@@ -96,21 +110,6 @@ class _LocationSelectionState extends State<LocationSelection> {
               },
             ),
           ),
-          Positioned(
-            left: MediaQuery.of(context).size.width * 0.5 - 25,
-            top: 15,
-            child: IconButton(
-              icon: Icon(Icons.search),
-              iconSize: 50,
-              onPressed: () async {
-                var query = await showSearch(
-                    context: context, delegate: CustomSearchDelegate());
-                if (query.length > 0) {
-                  moveToAddress(query);
-                }
-              },
-            ),
-          )
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -119,7 +118,10 @@ class _LocationSelectionState extends State<LocationSelection> {
         height: 70,
         child: FloatingActionButton(
           heroTag: "btn-search",
-          child: Icon(Icons.directions_walk, size: 40,),
+          child: Icon(
+            Icons.directions_walk,
+            size: 40,
+          ),
           onPressed: () {
             setState(() {
               _location =
@@ -176,8 +178,9 @@ class CustomSearchDelegate extends SearchDelegate {
               return address.addressLine;
             }).toList();
           }
-          final Iterable<String> suggestions =
-              query.isEmpty ? _history : addressNames.isNotEmpty ? addressNames : List<String>();
+          final Iterable<String> suggestions = query.isEmpty
+              ? _history
+              : addressNames.isNotEmpty ? addressNames : List<String>();
 
           return _SuggestionList(
             query: query,
@@ -248,4 +251,21 @@ class _SuggestionList extends StatelessWidget {
       },
     );
   }
+}
+
+//Code taken from: https://stackoverflow.com/a/51322773/5630207
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback onTap;
+  final AppBar appBar;
+
+  const CustomAppBar({Key key, this.onTap, this.appBar}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(onTap: onTap, child: appBar);
+  }
+
+  // TODO: implement preferredSize
+  @override
+  Size get preferredSize => new Size.fromHeight(kToolbarHeight);
 }
