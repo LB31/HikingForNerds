@@ -9,5 +9,5 @@ class HikingRoute {
   List<PointOfInterest> pointsOfInterest;
   //todo: add height information
 
-  HikingRoute(this.path, this.totalLength, this.pointsOfInterest);
+  HikingRoute(this.path, this.totalLength, [this.pointsOfInterest]);
 }

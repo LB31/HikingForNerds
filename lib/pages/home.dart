@@ -64,7 +64,7 @@ class _HomeState extends State<Home> {
                   Node(0, 52.510318, 13.4085592),
                   Node(1, 52.5102903, 13.4084606),
                   Node(2, 52.5101514, 13.4081806)
-                ], 2, List());
+                ], 2);
 
                 showDialog(
                     context: context,

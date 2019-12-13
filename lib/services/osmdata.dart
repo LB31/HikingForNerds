@@ -310,19 +310,19 @@ class OsmData{
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
-    List<HikingRoute> result;
+    List<HikingRoute> route;
     if(poiCategory.isEmpty){
-      result = _calculateRoundTripsWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+      route = _calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
     }
     else{
-      result = await _calculateRoundTripsWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
+      route = await _calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
     }
-    return result;
+    return route;
   }
 
-  List<HikingRoute> _calculateRoundTripsWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
+  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
     var randomGenerator = Random(1);
-    List<HikingRoute> result = List();
+    List<HikingRoute> routes = List();
     for(var i =0; i<alternativeRouteCount; i++){
       var initialHeading = randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
@@ -345,13 +345,13 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-      result.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative), List()));
+      routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
     }
-    return result;
+    return routes;
   }
 
-  Future<List<HikingRoute>> _calculateRoundTripsWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
-    List<HikingRoute> results = List();
+  Future<List<HikingRoute>> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, String poiCategory) async {
+    List<HikingRoute> routes = List();
     var jsonDecoder = JsonDecoder();
     var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
     dynamic elements = jsonDecoder.convert(poisJson)['elements'];
@@ -398,9 +398,9 @@ class OsmData{
       route.addAll(routeBack);
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-      results.add(HikingRoute(routeNodes, totalRouteLength, includedPois));
+      routes.add(HikingRoute(routeNodes, totalRouteLength, includedPois));
     }
-    return results;
+    return routes;
   }
 
   double lengthOfEdgesKM(List<Edge> edges){
