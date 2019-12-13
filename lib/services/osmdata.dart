@@ -307,7 +307,7 @@ class OsmData{
         < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
   }
 
-  Future<List<HikingRoute>> calculateRoundTrips(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
+  Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     _importJsonNodesAndWays(jsonNodesAndWays);
     List<HikingRoute> result;

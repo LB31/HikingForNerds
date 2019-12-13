@@ -114,7 +114,7 @@ class _MapWidgetState extends State<MapWidget> {
     });
 
     var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrips(
+    var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
