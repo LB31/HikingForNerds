@@ -27,12 +27,28 @@ dependencies:
   location_permissions: ^2.0.3
   mapbox_gl: ^0.0.4
   outline_material_icons: ^0.1.1
+  geocoder: ^0.2.1
+  shared_preferences: ^0.5.4
   charts_flutter: ^0.8.1
-
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
+
+  # library for share-functionality
+  share: ^0.6.3+3
+#    git:
+#      url: https://github.com/pboos/plugins.git
+#      path: packages/share
+#      ref: feature/shareFile
+
+  path_provider: ^1.4.5
+
+  esys_flutter_share: ^1.0.2
+
+  geojson: ^0.7.3
+
+  gpx: ^0.0.3
 
 dev_dependencies:
   flutter_spinkit: ^4.0.0
