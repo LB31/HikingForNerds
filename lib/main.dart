@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/home.dart';
-import 'package:hiking4nerds/pages/help.dart';
-import 'package:hiking4nerds/pages/info.dart';
-import 'package:hiking4nerds/pages/plan.dart';
-import 'package:hiking4nerds/pages/routesetup.dart';
-import 'package:hiking4nerds/pages/settings.dart';
-import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/pages/plan/locationselection.dart';
+import 'package:hiking4nerds/pages/route/route.dart' as Route;
+import 'package:hiking4nerds/pages/settings/settings.dart' as Settings;
+import 'package:hiking4nerds/styles.dart';
 
 void main() => runApp(MaterialApp(
       title: "Hiking4Nerds",
       initialRoute: '/',
       routes: {
         '/': (context) => Home(),
-        '/info': (context) => Info(),
-        '/help': (context) => Help(),
-        '/plan': (context) => Plan(),
-        '/routesetup': (context) => Routesetup(),
-        '/settings': (context) => Settings(),
+        '/plan': (context) => LocationSelection(),
+        '/route': (context) => Route.Route(),
+        '/settings': (context) => Settings.Settings(),
       },
       theme: ThemeData(
           primaryColor: htwGreen,

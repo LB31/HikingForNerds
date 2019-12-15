@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/hikingmapbox.dart';
+import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
-import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {
@@ -21,17 +20,16 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          MapWidget(),      
+          MapWidget(isStatic: false),
         ]),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-        onPressed: () { Navigator.pushNamed(context, '/routesetup');},
-        tooltip: 'Route Setup',
+        onPressed: () { },
         child: Icon(Icons.find_replace),
         backgroundColor: htwGreen,
         elevation: 2.0,
       ),
-      bottomNavigationBar: Navbar(),
+      bottomNavigationBar: NavBar(),
     );
   }
 }

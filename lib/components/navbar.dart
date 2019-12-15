@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class Navbar extends StatefulWidget {
+class NavBar extends StatefulWidget {
   @override
-  _NavbarState createState() => _NavbarState();
+  _NavBarState createState() => _NavBarState();
 }
 
-class _NavbarState extends State<Navbar> {
+class _NavBarState extends State<NavBar> {
 
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<String> options = ['/plan', '/routesetup', '/settings'];
+  static const List<String> options = ['/plan', '/route', '/settings'];
   static String currentRoute = '/';
 
   void _onItemTapped(int index) {
