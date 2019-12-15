@@ -41,14 +41,14 @@ class SelectionCallbackExample extends StatefulWidget {
   /// Create one series with sample hard coded data.
   static List<charts.Series<ElevationDistanceSeries, double>> _createSampleData() {
     final uk_data = [
-      new ElevationDistanceSeries(12.3, 15.5),
+      new ElevationDistanceSeries(12.3, 15.5, 0),
     ];
 
     Random rnd = new Random();
     int min = 0, max = 100;
-    for (var i = 4; i < 100; i++) {
+    for (var i = 1; i < 100; i++) {
       int r = min + rnd.nextInt(max - min);
-      uk_data.add(new ElevationDistanceSeries(r.toDouble(), i.toDouble()));
+      uk_data.add(new ElevationDistanceSeries(r.toDouble(), i.toDouble(), i));
     }
 
     return [
@@ -70,7 +70,6 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
   // chart.
   _onSelectionChanged(charts.SelectionModel model) {
 
-
     final selectedDatum = model.selectedDatum;
 
     final measures = <String, num>{};
@@ -82,7 +81,7 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
     // series name for each selection point.
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
-        measures[datumPair.series.displayName] = datumPair.datum.elevation;
+        measures[datumPair.series.displayName] = datumPair.datum.index;
       });
     }
 
@@ -124,6 +123,7 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
 class ElevationDistanceSeries {
   final double elevation;
   final double distance;
+  final int index;
 
-  ElevationDistanceSeries(this.elevation, this.distance);
+  ElevationDistanceSeries(this.elevation, this.distance, this.index);
 }
