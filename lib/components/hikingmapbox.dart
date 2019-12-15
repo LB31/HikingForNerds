@@ -179,7 +179,7 @@ class MapWidgetState extends State<MapWidget> {
     for (int i = 0; i < _route.length; i++) {
       LatLng latLng = _route[i];
       double distanceToCurrentLocation =
-          OsmData.getDistance(latLng, _currentDeviceLocation);
+          OsmData.getDistance(latLng, LatLng(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude));
       if (distanceToCurrentLocation > 0.0002) {
         remainingRoute.add(latLng);
       } else {
