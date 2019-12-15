@@ -1,4 +1,4 @@
-package com.example.hiking4nerds
+package de.berlin.htw.hiking4nerds
 
 import android.os.Bundle
 

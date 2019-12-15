@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:hiking4nerds/components/navbar.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {

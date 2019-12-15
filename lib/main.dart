@@ -6,6 +6,7 @@ import 'package:hiking4nerds/pages/plan.dart';
 import 'package:hiking4nerds/pages/routesetup.dart';
 import 'package:hiking4nerds/pages/settings.dart';
 import 'package:hiking4nerds/styles.dart';
+import 'package:hiking4nerds/pages/plan/locationselection.dart';
 
 void main() => runApp(MaterialApp(
       title: "Hiking4Nerds",
@@ -24,5 +25,5 @@ void main() => runApp(MaterialApp(
           iconTheme: IconThemeData(color: htwGreen),
           buttonTheme: ButtonThemeData(
             buttonColor: htwGreen,
-          )),
-    ));
+          ),
+    )));
