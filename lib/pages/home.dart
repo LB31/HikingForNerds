@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/components/share.dart';
@@ -12,6 +13,27 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  static const platform = const MethodChannel('app.hikingfornerds.shared.data');
+  var sharedData;
+
+  @override
+  initState() {
+    super.initState();
+    _getIntentData();
+  }
+
+  Future<void> _getIntentData() async {
+    var data = await _getSharedData();
+    setState(() {
+      sharedData = data;
+    });
+
+    print(sharedData);
+  }
+
+  _getSharedData() async {
+    return await platform.invokeMethod("getSharedData");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +99,13 @@ class _HomeState extends State<Home> {
               fillColor: htwGreen,
               padding: const EdgeInsets.all(5.0),
             ),
-          ),],
+          ),
+        Text(
+          sharedData != null ? sharedData : "nichts da",
+          textAlign: TextAlign.center,
+        )],
       ),
     );
   }
+
 }
