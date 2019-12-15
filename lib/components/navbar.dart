@@ -8,10 +8,15 @@ class Navbar extends StatefulWidget {
 class _NavbarState extends State<Navbar> {
 
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const List<String> options = ['/plan', '/routesetup', '/settings'];
+  static String currentRoute = '/';
 
   void _onItemTapped(int index) {
-    List<String> options = ['/plan', '/routesetup', '/settings'];
-    if(index < options.length) Navigator.pushNamed(context, options[index]);
+    currentRoute = ModalRoute.of(context).settings.name;
+    if(currentRoute != options[index]) {
+      Navigator.popUntil(context, ModalRoute.withName('/'));
+      Navigator.pushNamed(context, options[index]);
+    }
   }
 
   @override
