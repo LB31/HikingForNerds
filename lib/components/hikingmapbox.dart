@@ -125,7 +125,6 @@ class MapWidgetState extends State<MapWidget> {
         10,
         "aquarium");
 
-
     drawRoute(routes[0].path);
 
     setState(() {
@@ -353,7 +352,7 @@ class MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
-        //initRoutes();
+        initRoutes();
       });
       updateCurrentLocationOnChange();
     });
