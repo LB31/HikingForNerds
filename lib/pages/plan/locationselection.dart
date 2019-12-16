@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/hikingmapbox.dart';
+import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
