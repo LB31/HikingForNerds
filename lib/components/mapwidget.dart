@@ -112,18 +112,18 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  Future<void> initRoutes() async {
+  Future<void>  initRoutes() async {
     setState(() {
       _isLoadingRoute = true;
     });
 
     var osmData = OsmData();
+    osmData.profiling = true;
     var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10,
-        "aquarium");
+        3);
 
     drawRoute(routes[0].path);
 
@@ -353,7 +353,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
         // TODO uncomment this if you want to check the route calculation
-        // initRoutes();
+         initRoutes();
       });
       updateCurrentLocationOnChange();
     });

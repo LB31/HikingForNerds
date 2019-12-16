@@ -172,6 +172,8 @@ class OsmData{
   List<Way> ways;
   Graph graph;
   rtree.RTree locationIndex;
+  bool profiling = false;
+  int routeCalculationStartTime;
 
   OsmData(){
     nodes = HashSet();
@@ -307,7 +309,9 @@ class OsmData{
   }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
+    if(profiling) routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
+    if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     _importJsonNodesAndWays(jsonNodesAndWays);
     List<HikingRoute> route;
     if(poiCategory.isEmpty){
@@ -316,6 +320,7 @@ class OsmData{
     else{
       route = await _calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
     }
+    if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     return route;
   }
 
@@ -353,6 +358,7 @@ class OsmData{
     List<HikingRoute> routes = List();
     var jsonDecoder = JsonDecoder();
     var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
+    if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     dynamic elements = jsonDecoder.convert(poisJson)['elements'];
     Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(elements,
         value: (element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags']),
@@ -410,8 +416,11 @@ class OsmData{
     var jsonDecoder = JsonDecoder();
     dynamic parsedData = jsonDecoder.convert(jsonNodesAndWays)['elements'];
     parsedData.forEach((element) => parseToObject(element));
+    if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     buildGraph();
+    if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     buildLocationIndex();
+    if(profiling) print("Location Index built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
   }
 
   Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
