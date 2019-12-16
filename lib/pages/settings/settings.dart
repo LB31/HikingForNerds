@@ -8,6 +8,7 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
 
+  // TODO add localization
   List helpData = [
     HelpData(
         title: 'Set starting point',
