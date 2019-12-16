@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
+import 'package:hiking4nerds/services/geojson_export_handler.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
-import 'package:path_provider/path_provider.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -16,7 +17,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   static const platform = const MethodChannel('app.channel.hikingfornerds.data');
-  String sharedData;
+  //you could import mulitple routes, change it here and the index in the Handler class
+  HikingRoute sharedRoute;
 
   @override
   initState() {
@@ -24,27 +26,17 @@ class _HomeState extends State<Home> {
     _getIntentData();
   }
 
-  Future<File> sharedFile(String dataPath) async {
-    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
-
-    File file = File(sharedFilePath);
-    return file.existsSync() ? file : null;
-  }
-
   Future<void> _getIntentData() async {
     var data = await _getSharedData();
     setState(() {
-      sharedData = data;
+      sharedRoute = data;
     });
-
-
   }
 
   _getSharedData() async {
     String dataPath = await platform.invokeMethod("getSharedData");
-    if (dataPath.isEmpty) return "";
-    File readSharedFile = await sharedFile(dataPath);
-    String data = readSharedFile.readAsStringSync();
+    if (dataPath.isEmpty) return null;
+    var data = await GeojsonExportHandler.parseRouteFromPath(dataPath);
     return data;
   }
 
