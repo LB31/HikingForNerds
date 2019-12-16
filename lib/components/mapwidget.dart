@@ -352,7 +352,8 @@ class MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
-        initRoutes();
+        // TODO uncomment this if you want to check the route calculation
+        // initRoutes();
       });
       updateCurrentLocationOnChange();
     });
