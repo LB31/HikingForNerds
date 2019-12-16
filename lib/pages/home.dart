@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/components/hikingmapbox.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:hiking4nerds/components/share.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -13,13 +17,20 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  static const platform = const MethodChannel('app.hikingfornerds.shared.data');
-  var sharedData;
+  static const platform = const MethodChannel('app.channel.hikingfornerds.data');
+  String sharedData;
 
   @override
   initState() {
     super.initState();
     _getIntentData();
+  }
+
+  Future<File> sharedFile(String dataPath) async {
+    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
+
+    File file = File(sharedFilePath);
+    return file.existsSync() ? file : null;
   }
 
   Future<void> _getIntentData() async {
@@ -28,11 +39,15 @@ class _HomeState extends State<Home> {
       sharedData = data;
     });
 
-    print(sharedData);
+
   }
 
   _getSharedData() async {
-    return await platform.invokeMethod("getSharedData");
+    String dataPath = await platform.invokeMethod("getSharedData");
+    if (dataPath.isEmpty) return "";
+    File readSharedFile = await sharedFile(dataPath);
+    String data = readSharedFile.readAsStringSync();
+    return data;
   }
 
   @override
