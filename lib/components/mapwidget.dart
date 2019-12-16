@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:hiking4nerds/components/mapbuttons.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
@@ -122,10 +123,10 @@ class MapWidgetState extends State<MapWidget> {
     var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
-        10000,
-        3);
+        30000,
+        5);
 
-    drawRoute(routes[0].path);
+    drawRoute(routes[0]);
 
     setState(() {
       _isLoadingRoute = false;
@@ -134,11 +135,11 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  drawRoute(List<Node> route) async {
+  drawRoute(HikingRoute route) async {
     mapController.clearLines();
 
     List<LatLng> routeLatLng =
-        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+        route.path.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 

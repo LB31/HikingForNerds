@@ -349,6 +349,7 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
+      if(profiling) print("Route " + (i+1).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
       routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
     }
     return routes;
