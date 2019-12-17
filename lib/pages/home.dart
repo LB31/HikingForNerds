@@ -62,6 +62,11 @@ class _HomeState extends State<Home> {
               onPressed: () { Navigator.pushNamed(context, '/settings');},
               iconSize: 42.0
             ),
+            IconButton(icon: Icon(
+              Icons.weekend),
+              onPressed: () { Navigator.pushNamed(context, '/test');},
+              iconSize: 42.0
+            ),
           ],
         ),
           Align(

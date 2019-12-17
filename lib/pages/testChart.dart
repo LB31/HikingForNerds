@@ -41,11 +41,11 @@ class SelectionCallbackExample extends StatefulWidget {
   /// Create one series with sample hard coded data.
   static List<charts.Series<ElevationDistanceSeries, double>> _createSampleData() {
     final uk_data = [
-      new ElevationDistanceSeries(12.3, 15.5, 0),
+      new ElevationDistanceSeries(12.3, 0, 0),
     ];
 
     Random rnd = new Random();
-    int min = 0, max = 100;
+    int min = 0, max = 15;
     for (var i = 1; i < 100; i++) {
       int r = min + rnd.nextInt(max - min);
       uk_data.add(new ElevationDistanceSeries(r.toDouble(), i.toDouble(), i));
@@ -54,6 +54,7 @@ class SelectionCallbackExample extends StatefulWidget {
     return [
       new charts.Series<ElevationDistanceSeries, double>(
         id: 'Batman',
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
         domainFn: (ElevationDistanceSeries sales, _) => sales.distance,
         measureFn: (ElevationDistanceSeries sales, _) => sales.elevation,
         data: uk_data,

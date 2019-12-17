@@ -8,15 +8,14 @@ class HikingRoute {
   double totalLength; // routeLength in km
   List<PointOfInterest> pointsOfInterest;
   //todo: add height information
-  List<double>
-      elevations; // elevations of route points in m; route points and their elevations have the same index
+  List<double> elevations; // elevations of route points in m; route points and their elevations have the same index
 
   HikingRoute(this.path, this.totalLength, [this.pointsOfInterest]) {
-    elevations = queryElevations() as List<double>;
+    queryElevations();
   }
 
-  Future<List<double>> queryElevations() async {
-    List<double> queriedElevations;
+  void queryElevations() async {
+    List<double> queriedElevations = new List();
     String basisURL = "https://h4nsolo.f4.htw-berlin.de/elevation/api/v1/lookup?locations=";
     String currentURL = basisURL;
     int nodesPerQuery = 100; // they have to be devided because of the maximum URL character amount
@@ -25,11 +24,12 @@ class HikingRoute {
 
       currentURL += path[i].latitude.toString() + "," + path[i].longitude.toString();
 
-      if (i % nodesPerQuery == 0 || i == this.path.length - 1) { // every nodesPerQuery steps or when all paths were visisted
+      if (i % nodesPerQuery == 0 && i > 0 || i == this.path.length - 1) { // every nodesPerQuery steps or when all paths were visisted
         var response = await http.get(currentURL);
         var parsedData = JSON.jsonDecode(response.body);
         int addRuns = (i % nodesPerQuery == 0) ? nodesPerQuery : i % nodesPerQuery;
         for (var j = 0; j <= addRuns; j++) {
+          
           queriedElevations.add(parsedData["results"][j]["elevation"].toDouble());
         }
         currentURL = basisURL; // reset URL for next query
@@ -37,7 +37,8 @@ class HikingRoute {
         currentURL += "|"; // when there will follow a further node
       }
     }
-
-    return queriedElevations;
+    print("ELEVATIONS");
+    print(queriedElevations);
+    this.elevations = queriedElevations;
   }
 }

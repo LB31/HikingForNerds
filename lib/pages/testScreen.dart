@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/testChart.dart';
 
+import 'StackedArea.dart';
+
 class SecondTab extends StatelessWidget {
   final double _smallFontSize = 12;
   final double _valFontSize = 30;
@@ -82,7 +84,7 @@ class SecondTab extends StatelessWidget {
                       height: 120,
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       width: double.infinity,
-                      child: SelectionCallbackExample.withSampleData(),
+                      child: StackedAreaLineChart.withSampleData(),
                     )
                   ],
                 ),
