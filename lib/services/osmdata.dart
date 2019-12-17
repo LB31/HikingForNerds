@@ -408,6 +408,7 @@ class OsmData{
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
       routes.add(HikingRoute(routeNodes, totalRouteLength, includedPois));
+      if(profiling) print("Route " + (i+1).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     }
     return routes;
   }
