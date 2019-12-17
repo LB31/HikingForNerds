@@ -5,7 +5,6 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:r_tree/r_tree.dart' as rtree;
 
 //dummy class to be able to run code without importing mapbox which only works with flutter
 //with this class this code can be run without flutter
