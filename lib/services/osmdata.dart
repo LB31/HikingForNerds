@@ -4,16 +4,16 @@ import 'dart:math';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
-//import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:r_tree/r_tree.dart' as rtree;
 
 //dummy class to be able to run code without importing mapbox which only works with flutter
 //with this class this code can be run without flutter
-class LatLng{
-  double latitude;
-  double longitude;
-  LatLng(this.latitude, this.longitude);
-}
+//class LatLng{
+//  double latitude;
+//  double longitude;
+//  LatLng(this.latitude, this.longitude);
+//}
 
 class Node extends LatLng{
   int _id;
@@ -307,6 +307,13 @@ class OsmData{
   //something like this  https://blog.mapbox.com/a-dive-into-spatial-search-algorithms-ebd0c5e39d2a (knn nearest neighbor search)
   //would be better, but the rtree package doesn't give access to the root node, which would be required to implement that algorithm
   Node getClosestToPoint(double latitude, double longitude){
+    if(locationIndex == null){
+      var pointDummy = LatLng(latitude, longitude);
+      var timeStamp = DateTime.now().millisecondsSinceEpoch;
+      var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
+      if(profiling) print("Closest point found in" + (DateTime.now().millisecondsSinceEpoch - timeStamp).toString() + " ms");
+      return closestPoint;
+    }
     var topLeft = projectCoordinate(latitude, longitude, 50, 315);
     var bottomRight = projectCoordinate(latitude, longitude, 50, 135);
     var searchRect = Rectangle.fromPoints(Point(topLeft[0], topLeft[1]), Point(bottomRight[0], bottomRight[1]));
@@ -428,8 +435,8 @@ class OsmData{
     if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     buildGraph();
     if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
-    buildLocationIndex();
-    if(profiling) print("Location Index built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+//    buildLocationIndex();
+//    if(profiling) print("Location Index built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
   }
 
   Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
