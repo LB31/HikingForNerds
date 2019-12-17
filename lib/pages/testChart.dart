@@ -90,6 +90,8 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
     setState(() {
       _measures = measures;
     });
+
+
   }
 
   @override
@@ -100,6 +102,7 @@ class _SelectionCallbackState extends State<SelectionCallbackExample> {
           height: 150.0,
           child: new charts.LineChart(
             widget.seriesList,
+            
             animate: widget.animate,
             behaviors: [new charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)],
             selectionModels: [

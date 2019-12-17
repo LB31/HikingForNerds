@@ -28,7 +28,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           MapWidget(isStatic: false,),
           Positioned(
-            top: MediaQuery.of(context).size.height - 500,
+            top: MediaQuery.of(context).size.height - 300,
             left: 10,
             height: 300,
             width: MediaQuery.of(context).size.width * 0.8,
