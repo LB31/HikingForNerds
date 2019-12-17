@@ -4,8 +4,16 @@ import 'dart:math';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
+//import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:r_tree/r_tree.dart' as rtree;
+
+//dummy class to be able to run code without importing mapbox which only works with flutter
+//with this class this code can be run without flutter
+class LatLng{
+  double latitude;
+  double longitude;
+  LatLng(this.latitude, this.longitude);
+}
 
 class Node extends LatLng{
   int _id;
@@ -251,7 +259,7 @@ class OsmData{
       }
     }
   }
-  
+
   static double _toRadians(double angleInDeg){
     return (angleInDeg*pi)/180.0;
   }
@@ -269,7 +277,7 @@ class OsmData{
     // This formula is taken from: http://williams.best.vwh.net/avform.htm#LL
     // (http://www.movable-type.co.uk/scripts/latlong.html -> https://github.com/chrisveness/geodesy  ->  https://github.com/graphhopper/graphhopper Apache 2.0)
     // θ=heading,δ=distance,φ1=latInRadians
-    // lat2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ )     
+    // lat2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ )
     // lon2 = λ1 + atan2( sin θ ⋅ sin δ ⋅ cos φ1, cos δ − sin φ1 ⋅ sin φ2 )
     double projectedLat = asin(sin(latInRadians) * cos(angularDistance)
         + cos(latInRadians) * sin(angularDistance) * cos(headingInRadians));
@@ -458,8 +466,13 @@ class OsmData{
     var response = await http.get(url);
     if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
     return response.body;
+  }
 }
 
-
-
+void main() async {
+  var osmData = OsmData();
+  osmData.profiling = true;
+  var route = await osmData.calculateHikingRoutes(
+      52.510143, 13.408564, 30000, 1);
+  print(route.length);
 }
