@@ -179,7 +179,9 @@ class OsmData{
   List<Way> ways;
   Graph graph;
   bool profiling = false;
-  int routeCalculationStartTime;
+  int _routeCalculationStartTime;
+  Random _randomGenerator = Random(1);
+
 
   OsmData(){
     nodes = HashSet();
@@ -293,16 +295,14 @@ class OsmData{
 
   Node getClosestToPoint(double latitude, double longitude){
     var pointDummy = LatLng(latitude, longitude);
-    var timeStamp = DateTime.now().millisecondsSinceEpoch;
     var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
-    if(profiling) print("Closest point found in" + (DateTime.now().millisecondsSinceEpoch - timeStamp).toString() + " ms");
     return closestPoint;
   }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
-    if(profiling) routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
+    if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
-    if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     _importJsonNodesAndWays(jsonNodesAndWays);
     List<HikingRoute> route;
     if(poiCategory.isEmpty){
@@ -311,15 +311,14 @@ class OsmData{
     else{
       route = await _calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiCategory);
     }
-    if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     return route;
   }
 
   List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
-    var randomGenerator = Random(1);
     List<HikingRoute> routes = List();
     for(var i =0; i<alternativeRouteCount; i++){
-      var initialHeading = randomGenerator.nextInt(360).floorToDouble();
+      var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
 
@@ -340,7 +339,7 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-      if(profiling) print("Route " + (i+1).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+      if(profiling) print("Route " + (i+1).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
     }
     return routes;
@@ -350,23 +349,36 @@ class OsmData{
     List<HikingRoute> routes = List();
     var jsonDecoder = JsonDecoder();
     var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
-    if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     dynamic elements = jsonDecoder.convert(poisJson)['elements'];
     Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(elements,
         value: (element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags']),
         key: (element) => getClosestToPoint(element['lat'], element['lon']));
     List<PointOfInterest> includedPois = List();
     var startNode = getClosestToPoint(startLat, startLong);
-      //todo make this parameter do something
-    alternativeRouteCount = 1; //sorry
+//      todo make this parameter do something
+//    alternativeRouteCount = 1; //sorry
     for(int i = 0; i<alternativeRouteCount; i++){
+      List<Edge> route = List();
       var lastVisited = startNode;
       var totalRouteLength = 0.0;
-      List<Edge> route = List();
+      //determine first poi to go to
+      var unsortedPoiNodeList = wayNodeAndPOI.keys.toList();
+      unsortedPoiNodeList.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
+      var firstPoi = unsortedPoiNodeList[i % unsortedPoiNodeList.length];
+      //plan route to that poi
+      var routeToFirstPoi = graph.AStar(lastVisited, firstPoi);
+      totalRouteLength += lengthOfEdgesKM(routeToFirstPoi);
+      route.addAll(routeToFirstPoi);
+      graph.penalizeEdgesAlongRoute(routeToFirstPoi, 5);
+      includedPois.add(wayNodeAndPOI[firstPoi]);
+      wayNodeAndPOI.remove(firstPoi);
+      lastVisited = firstPoi;
+      //start loop over all the other pois
       while(wayNodeAndPOI.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
         var closestPoiWayNode = wayNodeAndPOI.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
         var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
-        totalRouteLength += routeToClosestPoi.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
+        totalRouteLength += lengthOfEdgesKM(routeToClosestPoi);
         route.addAll(routeToClosestPoi);
         graph.penalizeEdgesAlongRoute(routeToClosestPoi, 5);
         includedPois.add(wayNodeAndPOI[closestPoiWayNode]);
@@ -408,9 +420,9 @@ class OsmData{
     var jsonDecoder = JsonDecoder();
     dynamic parsedData = jsonDecoder.convert(jsonNodesAndWays)['elements'];
     parsedData.forEach((element) => parseToObject(element));
-    if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     buildGraph();
-    if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
   }
 
   Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
@@ -427,7 +439,9 @@ class OsmData{
         'out body qt;';
 
     var response = await http.get(url);
-    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
+    if(response.statusCode != 200) print("OSM POI request failed. Statuscode:" + response.statusCode.toString() +
+        "\n Query: " + url +
+        "\n Message: " + response.body);
     return response.body;
   }
 
@@ -445,7 +459,9 @@ class OsmData{
         '(._;>;); out body qt;';
 
     var response = await http.get(url);
-    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() + "\n Message: " + response.body);
+    if(response.statusCode != 200) print("OSM request failed. Statuscode:" + response.statusCode.toString() +
+        "\n Query: " + url +
+        "\n Message: " + response.body);
     return response.body;
   }
 }
