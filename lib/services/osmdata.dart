@@ -179,7 +179,6 @@ class OsmData{
   HashSet<Node> nodes;
   List<Way> ways;
   Graph graph;
-  rtree.RTree locationIndex;
   bool profiling = false;
   int routeCalculationStartTime;
 
@@ -292,35 +291,13 @@ class OsmData{
     return [projectedLat, projectedLon];
   }
 
-  void buildLocationIndex(){
-    if(graph == null) {
-      print('graph has to be built before locationIndex');
-      return;
-    }
-    locationIndex = rtree.RTree();
-    for(Node node in graph.adjacencies.keys){
-      var nodeRect = Rectangle(node.latitude, node.longitude, 0.1,0.1);
-      locationIndex.insert(rtree.RTreeDatum(nodeRect, node));
-    }
-  }
-  //This is a suboptimal solution, but its all i can do right now without implementing an rtree myself
-  //something like this  https://blog.mapbox.com/a-dive-into-spatial-search-algorithms-ebd0c5e39d2a (knn nearest neighbor search)
-  //would be better, but the rtree package doesn't give access to the root node, which would be required to implement that algorithm
+
   Node getClosestToPoint(double latitude, double longitude){
-    if(locationIndex == null){
-      var pointDummy = LatLng(latitude, longitude);
-      var timeStamp = DateTime.now().millisecondsSinceEpoch;
-      var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
-      if(profiling) print("Closest point found in" + (DateTime.now().millisecondsSinceEpoch - timeStamp).toString() + " ms");
-      return closestPoint;
-    }
-    var topLeft = projectCoordinate(latitude, longitude, 50, 315);
-    var bottomRight = projectCoordinate(latitude, longitude, 50, 135);
-    var searchRect = Rectangle.fromPoints(Point(topLeft[0], topLeft[1]), Point(bottomRight[0], bottomRight[1]));
-    var closeNodes = locationIndex.search(searchRect);
-    return closeNodes.map((datum) => datum.value)
-        .reduce((curr, next) => OsmData.getDistance(curr, Node(0, latitude, longitude))
-        < OsmData.getDistance(next, Node(0, latitude, longitude)) ? curr:next);
+    var pointDummy = LatLng(latitude, longitude);
+    var timeStamp = DateTime.now().millisecondsSinceEpoch;
+    var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
+    if(profiling) print("Closest point found in" + (DateTime.now().millisecondsSinceEpoch - timeStamp).toString() + " ms");
+    return closestPoint;
   }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
@@ -435,8 +412,6 @@ class OsmData{
     if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
     buildGraph();
     if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
-//    buildLocationIndex();
-//    if(profiling) print("Location Index built after " + (DateTime.now().millisecondsSinceEpoch - routeCalculationStartTime).toString() + " ms");
   }
 
   Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
