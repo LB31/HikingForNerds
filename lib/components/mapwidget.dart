@@ -173,26 +173,26 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
-    int deleteAllRouteNodesWithAnIndexSmallerThan = 0;
+    int currentRouteNodeIndex = 0;
     for (int index = 0; index < _route.length; index++) {
       if (shouldRouteNodeAtIndexBeConsideredForRemoval(index)) {
         double distanceToCurrentLocation =
             OsmData.getDistance(_route[index], new LatLng(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude));
         if (distanceToCurrentLocation < 0.05) {
-          deleteAllRouteNodesWithAnIndexSmallerThan = index + 1;
+          currentRouteNodeIndex = index + 1;
         }
       }
     }
 
     List<LatLng> remainingRoute =
-        _route.sublist(deleteAllRouteNodesWithAnIndexSmallerThan);
+        _route.sublist(currentRouteNodeIndex);
 
     LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
     await mapController.updateLine(_lineRoute, optionsRemainingRoute);
 
     List<LatLng> passedRoute = [
       ..._passedRoute,
-      ..._route.sublist(0, deleteAllRouteNodesWithAnIndexSmallerThan + 1)
+      ..._route.sublist(0, currentRouteNodeIndex + 1)
     ];
     LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
     await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
