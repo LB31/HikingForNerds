@@ -84,7 +84,7 @@ class SecondTab extends StatelessWidget {
                       height: 120,
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       width: double.infinity,
-                      child: StackedAreaLineChart.withSampleData(),
+                      child: SelectionCallbackExample.withSampleData(),
                     )
                   ],
                 ),

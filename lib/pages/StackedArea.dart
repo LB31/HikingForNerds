@@ -1,6 +1,6 @@
-/// Example of a stacked area chart.
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/route.dart';
 
 class StackedAreaLineChart extends StatelessWidget {
   final List<charts.Series> seriesList;
@@ -9,76 +9,74 @@ class StackedAreaLineChart extends StatelessWidget {
   StackedAreaLineChart(this.seriesList, {this.animate});
 
   /// Creates a [LineChart] with sample data and no transition.
-  factory StackedAreaLineChart.withSampleData() {
+  factory StackedAreaLineChart.withData(HikingRoute route) {
     return new StackedAreaLineChart(
-      _createSampleData(),
+      _createData(route),
       // Disable animations for image tests.
       animate: false,
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return new charts.LineChart(seriesList,
-        defaultRenderer:
-            new charts.LineRendererConfig(includeArea: true, stacked: true),
-        animate: animate);
+    return new charts.LineChart(
+      seriesList,
+      defaultRenderer:
+          new charts.LineRendererConfig(includeArea: true, stacked: true),
+      animate: animate,
+      behaviors: [
+        new charts.SelectNearest(
+            eventTrigger: charts.SelectionTrigger.tapAndDrag)
+      ],
+      selectionModels: [
+        new charts.SelectionModelConfig(
+          type: charts.SelectionModelType.info,
+          changedListener: _onSelectionChanged,
+        )
+      ],
+    );
   }
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, int>> _createSampleData() {
-    final myFakeDesktopData = [
-      new LinearSales(0, 5),
-      new LinearSales(1, 25),
-      new LinearSales(2, 100),
-      new LinearSales(3, 75),
-    ];
+  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route) {
 
-    var myFakeTabletData = [
-      new LinearSales(0, 10),
-      new LinearSales(1, 50),
-      new LinearSales(2, 200),
-      new LinearSales(3, 150),
-    ];
 
-    var myFakeMobileData = [
-      new LinearSales(0, 15),
-      new LinearSales(1, 75),
-      new LinearSales(2, 300),
-      new LinearSales(3, 225),
-    ];
+
+    final List<RouteChart> chartData = null;
+
+
+    for (var i = 1; i < route.elevations.length; i++) {
+      chartData.add(new RouteChart(route.elevations[i].toDouble(), i.toDouble(), i));
+    }
 
     return [
-      new charts.Series<LinearSales, int>(
-        id: 'Desktop',
+      new charts.Series<RouteChart, double>(
+        id: '',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeDesktopData,
-      ),
-      new charts.Series<LinearSales, int>(
-        id: 'Tablet',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeTabletData,
-      ),
-      new charts.Series<LinearSales, int>(
-        id: 'Mobile',
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeMobileData,
+        domainFn: (RouteChart sales, _) => route.totalLength,
+        measureFn: (RouteChart sales, _) => sales.elevation,
+        data: chartData,
       ),
     ];
   }
+
+  _onSelectionChanged(charts.SelectionModel<num> model) {
+    final selectedDatum = model.selectedDatum;
+    if (selectedDatum.isNotEmpty) {
+      selectedDatum.forEach((charts.SeriesDatum datumPair) {
+        print(datumPair.datum.index);
+      });
+    }
+  }
+
+
 }
 
 /// Sample linear data type.
-class LinearSales {
-  final int year;
-  final int sales;
+class RouteChart {
+  final double elevation;
+  final double distance;
+  final int index;
 
-  LinearSales(this.year, this.sales);
+  RouteChart(this.elevation, this.distance, this.index);
 }

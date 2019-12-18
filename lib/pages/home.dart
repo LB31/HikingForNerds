@@ -8,6 +8,8 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
+import 'StackedArea.dart';
+
 class Home extends StatefulWidget {
   static bool chartIsHere = false;
   @override
@@ -28,11 +30,11 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           MapWidget(isStatic: false,),
           Positioned(
-            top: MediaQuery.of(context).size.height - 300,
+            top: MediaQuery.of(context).size.height - 350,
             left: 10,
-            height: 300,
+            height: 150,
             width: MediaQuery.of(context).size.width * 0.8,
-            child: SelectionCallbackExample.withSampleData(),
+            child: StackedAreaLineChart.withData(null),
           ),
           FabCircularMenu(
           child: Container(
