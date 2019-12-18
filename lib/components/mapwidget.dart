@@ -12,8 +12,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 class MapWidget extends StatefulWidget {
 
   final bool isStatic;
-  HikingRoute route;
-  MapWidget({Key key, @required this.isStatic, this.route}) : super(key: key);
+  final HikingRouteCallback getCurrentRoute;
+  List<HikingRoute> routes;
+  MapWidget({Key key, @required this.isStatic, this.routes, this.getCurrentRoute}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -25,7 +26,7 @@ class MapWidgetState extends State<MapWidget> {
   static double defaultZoom = 12.0;
 
   List<LatLng> _passedRoute = [];
-  List<LatLng> _route = [];
+  List<LatLng> _route;
   Line _lineRoute;
   Line _linePassedRoute;
 
@@ -312,6 +313,12 @@ class MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
+
+    if(widget.routes.length > 111){
+      if(_route != widget.getCurrentRoute().path)
+        drawRoute(widget.getCurrentRoute());
+    }
+
     if (this._tilesLoaded) {
       return Stack(
         children: <Widget>[
@@ -358,8 +365,8 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
 
-        if(widget.route != null){
-          drawRoute(widget.route);
+        if(widget.routes.length > 0){
+          drawRoute(widget.getCurrentRoute());
         }
 
       });
@@ -368,3 +375,5 @@ class MapWidgetState extends State<MapWidget> {
     setState(() {});
   }
 }
+
+typedef HikingRouteCallback = HikingRoute Function();

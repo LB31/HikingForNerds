@@ -69,6 +69,10 @@ class _RoutePreviewState extends State<RoutePreview> {
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
+  HikingRoute getCurrentRoute(){
+    return _routes[_currentRouteIndex];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +82,8 @@ class _RoutePreviewState extends State<RoutePreview> {
             MapWidget(
               key: mapWidgetKey,
               isStatic: true,
-              route: _routes.length > 0 ? _routes[_currentRouteIndex] : null,
+              routes: _routes,
+              getCurrentRoute: getCurrentRoute
             ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Container(
