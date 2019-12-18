@@ -314,8 +314,8 @@ class MapWidgetState extends State<MapWidget> {
   @override
   Widget build(BuildContext context) {
 
-    if(widget.routes.length > 111){
-      if(_route != widget.getCurrentRoute().path)
+    if(widget.routes != null && widget.routes.length > 0){
+      if(_route != null &&_route.length != widget.getCurrentRoute().path.length)
         drawRoute(widget.getCurrentRoute());
     }
 
@@ -365,7 +365,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
 
-        if(widget.routes.length > 0){
+        if(widget.routes != null && widget.routes.length > 0){
           drawRoute(widget.getCurrentRoute());
         }
 
