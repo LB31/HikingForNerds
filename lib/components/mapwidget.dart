@@ -119,7 +119,7 @@ class MapWidgetState extends State<MapWidget> {
     if (this.widget.sharedRoute != null){
 
       drawRoute(this.widget.sharedRoute.path);
-      
+
       setState(() {
         _routes = this.widget.sharedRoute.path;
         _currentRouteIndex = 0;

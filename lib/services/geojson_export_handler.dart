@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
@@ -74,10 +72,8 @@ class GeojsonExportHandler{
   }
 
   //TODO: think about heightData and POIs
-  static Future<HikingRoute> parseRouteFromPath(String dataPath) async {
-    File readSharedFile = await _sharedFile(dataPath);
-
-    GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
+  static Future<HikingRoute> parseRouteFromPath(File dataFile) async {
+    GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(dataFile, nameProperty: "null");
 
     //you could export multiple routes
     return _geoJsonFeatureToRoute(featureCollection)[0];
@@ -97,17 +93,10 @@ class GeojsonExportHandler{
           nodes.add(new Node(idCounter++, geoPoint.latitude, geoPoint.longitude));
         }
 
-        routes.add(HikingRoute(nodes, 100));
+        routes.add(HikingRoute(nodes, null));
       }
     }
 
     return routes;
-  }
-
-  static Future<File> _sharedFile(String dataPath) async {
-    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
-
-    File file = File(sharedFilePath);
-    return file.existsSync() ? file : null;
   }
 }

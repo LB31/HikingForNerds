@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/geojson_export_handler.dart';
+import 'package:hiking4nerds/services/gpx_export_handler.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -34,8 +38,24 @@ class _HomeState extends State<Home> {
   _getSharedData() async {
     String dataPath = await platform.invokeMethod("getSharedData");
     if (dataPath.isEmpty) return null;
-    var data = await GeojsonExportHandler.parseRouteFromPath(dataPath);
+
+    File readSharedFile = await _sharedFile(dataPath);
+
+    var data;
+    if (dataPath.endsWith(".geojson")){
+      data = await GeojsonExportHandler.parseRouteFromPath(readSharedFile);
+    }else if (dataPath.endsWith(".gpx")){
+      String gpxString = await readSharedFile.readAsString();
+      data = GpxExportHandler.parseRouteFromString(gpxString);
+    }
     return data;
+  }
+
+  static Future<File> _sharedFile(String dataPath) async {
+    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
+
+    File file = File(sharedFilePath);
+    return file.existsSync() ? file : null;
   }
 
   @override

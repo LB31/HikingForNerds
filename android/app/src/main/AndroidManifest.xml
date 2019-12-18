@@ -37,14 +37,17 @@
             </intent-filter>
             <intent-filter android:label="Hiking4Nerds">
                 <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.SEND" />
                 <data android:scheme="file" />
                 <data android:scheme="content" />
+                <data android:scheme="resource" />
                 <data android:host="*" />
                 <data android:mimeType="*/*" />
                 <data android:pathPattern=".*\\.geojson" />
+                <data android:pathPattern=".*\\.gpx" />
             </intent-filter>
         </activity>
     </application>
