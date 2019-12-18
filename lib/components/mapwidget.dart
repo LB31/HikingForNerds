@@ -134,7 +134,7 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    initUpdateRouteTimer();
+    if(!widget.isStatic) initUpdateRouteTimer();
   }
 
   void initUpdateRouteTimer() {
