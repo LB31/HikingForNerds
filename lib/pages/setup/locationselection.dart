@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/hikingmapbox.dart';
+import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hiking4nerds/pages/plan/routeselection.dart';
+import 'package:hiking4nerds/pages/setup/routepreview.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 
 class LocationSelection extends StatefulWidget {
   @override
@@ -121,15 +122,18 @@ class _LocationSelectionState extends State<LocationSelection> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
-                heroTag: "btn-search",
+                heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
                   size: 40,
                 ),
                 onPressed: () {
                   LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
+
+                  RouteParams routeParams = RouteParams(routeStartingLocation);
+
                   Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => RouteSelection(routeStartingLocation: routeStartingLocation),
+                    builder: (context) => RoutePreview(routeParams: routeParams),
                   ));
                 },
               ),

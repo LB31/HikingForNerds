@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/hikingmapbox.dart';
+import 'package:hiking4nerds/components/mapwidget.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:location/location.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 
-class RouteSelection extends StatefulWidget {
-  final LatLng routeStartingLocation;
+class RoutePreview extends StatefulWidget {
+  final RouteParams routeParams;
 
   @override
-  _RouteSelectionState createState() => _RouteSelectionState();
+  _RoutePreviewState createState() => _RoutePreviewState();
 
-  RouteSelection({Key key, @required this.routeStartingLocation})
+  RoutePreview({Key key, @required this.routeParams})
       : super(key: key);
 }
 
-class _RouteSelectionState extends State<RouteSelection> {
+class _RoutePreviewState extends State<RoutePreview> {
   final GlobalKey<MapWidgetState> mapWidgetKey =
       new GlobalKey<MapWidgetState>();
 
-  List _routes = [];
+  List<HikingRoute> _routes = [];
   int _currentRouteIndex = 0;
 
   @override
@@ -30,9 +32,9 @@ class _RouteSelectionState extends State<RouteSelection> {
 
   calculateRoutes() async {
     var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrip(
-        widget.routeStartingLocation.latitude,
-        widget.routeStartingLocation.longitude,
+    var routes = await osmData.calculateHikingRoutes(
+        widget.routeParams.startingLocation.latitude,
+        widget.routeParams.startingLocation.longitude,
         10000,
         10);
 
