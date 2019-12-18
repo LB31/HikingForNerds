@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:hiking4nerds/components/mapbuttons.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
@@ -112,20 +113,20 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  Future<void> initRoutes() async {
+  Future<void>  initRoutes() async {
     setState(() {
       _isLoadingRoute = true;
     });
 
     var osmData = OsmData();
+//    osmData.profiling = true;
     var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10,
-        "aquarium");
+        5);
 
-    drawRoute(routes[0].path);
+    drawRoute(routes[0]);
 
     setState(() {
       _isLoadingRoute = false;
@@ -134,11 +135,11 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  drawRoute(List<Node> route) async {
+  drawRoute(HikingRoute route) async {
     mapController.clearLines();
 
     List<LatLng> routeLatLng =
-        route.map((node) => LatLng(node.latitude, node.longitude)).toList();
+        route.path.map((node) => LatLng(node.latitude, node.longitude)).toList();
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
@@ -175,7 +176,7 @@ class MapWidgetState extends State<MapWidget> {
   void updateRoute() async {
     int currentRouteNodeIndex = 0;
     for (int index = 0; index < _route.length; index++) {
-      if (shouldRouteNodeAtIndexBeConsideredForRemoval(index)) {
+      if (isRouteNodeAtIndexAhead(index)) {
         double distanceToCurrentLocation =
             OsmData.getDistance(_route[index], new LatLng(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude));
         if (distanceToCurrentLocation < 0.05) {
@@ -208,13 +209,14 @@ class MapWidgetState extends State<MapWidget> {
 
   }
 
-  bool shouldRouteNodeAtIndexBeConsideredForRemoval(int index) {
+  bool isRouteNodeAtIndexAhead(int index) {
     if (_route.length > 50 && index > _route.length - 25)
       return false;
     else
       return true;
   }
 
+  //TODO implement nicer/prettier implementation
   void finishHikingTrip(){
     Fluttertoast.showToast(
         msg: "You have finished your Hiking Trip!",
@@ -399,7 +401,6 @@ class MapWidgetState extends State<MapWidget> {
       });
       updateCurrentLocationOnChange();
     });
-
     setState(() {});
   }
 }
