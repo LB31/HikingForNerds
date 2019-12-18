@@ -5,7 +5,7 @@ import 'dart:convert' as JSON;
 
 class ElevationGetter {
 
-  void queryElevations(HikingRoute route) async {
+  Future<List<double>> queryElevations(HikingRoute route) async {
     List<Node> path = route.path;
     List<double> queriedElevations = new List();
     String basisURL = "https://h4nsolo.f4.htw-berlin.de/elevation/api/v1/lookup?locations=";
@@ -30,6 +30,6 @@ class ElevationGetter {
       }
     }
 
-    route.elevations = queriedElevations;
+    return queriedElevations;
   }
 }

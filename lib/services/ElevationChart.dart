@@ -2,19 +2,24 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
 
-class StackedAreaLineChart extends StatelessWidget {
+class ElevationChart extends StatelessWidget {
   final List<charts.Series> seriesList;
   final bool animate;
+  int index;
 
-  StackedAreaLineChart(this.seriesList, {this.animate});
+  ElevationChart(this.seriesList, {this.animate});
 
   /// Creates a [LineChart] with sample data and no transition.
-  factory StackedAreaLineChart.withData(HikingRoute route) {
-    return new StackedAreaLineChart(
+  factory ElevationChart.withData(HikingRoute route) {
+    return new ElevationChart(
       _createData(route),
       // Disable animations for image tests.
       animate: false,
     );
+  }
+
+  int getSelectedPosition(){
+    return index;
   }
 
   @override
@@ -41,19 +46,18 @@ class StackedAreaLineChart extends StatelessWidget {
   static List<charts.Series<RouteChart, double>> _createData(HikingRoute route) {
 
 
+    final List<RouteChart> chartData = new List();
 
-    final List<RouteChart> chartData = null;
 
-
-    for (var i = 1; i < route.elevations.length; i++) {
+    for (var i = 0; i < route.elevations.length; i++) {
       chartData.add(new RouteChart(route.elevations[i].toDouble(), i.toDouble(), i));
     }
 
     return [
       new charts.Series<RouteChart, double>(
         id: '',
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (RouteChart sales, _) => route.totalLength,
+        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        domainFn: (RouteChart sales, _) => sales.distance,
         measureFn: (RouteChart sales, _) => sales.elevation,
         data: chartData,
       ),
@@ -64,6 +68,7 @@ class StackedAreaLineChart extends StatelessWidget {
     final selectedDatum = model.selectedDatum;
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
+        this.index = datumPair.datum.index;
         print(datumPair.datum.index);
       });
     }
