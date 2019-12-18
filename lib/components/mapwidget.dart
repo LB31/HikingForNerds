@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:hiking4nerds/components/mapbuttons.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
@@ -12,7 +13,9 @@ import 'dart:async';
 class MapWidget extends StatefulWidget {
 
   final bool isStatic;
-  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+  final HikingRoute sharedRoute;
+
+  MapWidget({Key key, @required this.isStatic, this.sharedRoute}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -113,6 +116,18 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> initRoutes() async {
+    if (this.widget.sharedRoute != null){
+
+      drawRoute(this.widget.sharedRoute.path);
+      
+      setState(() {
+        _routes = this.widget.sharedRoute.path;
+        _currentRouteIndex = 0;
+      });
+
+      return;
+    }
+
     setState(() {
       _isLoadingRoute = true;
     });
@@ -353,7 +368,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
         // TODO uncomment this if you want to check the route calculation
-        // initRoutes();
+        initRoutes();
       });
       updateCurrentLocationOnChange();
     });

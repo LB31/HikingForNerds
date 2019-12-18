@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hiking4nerds/components/mapwidget.dart';
@@ -49,7 +47,7 @@ class _HomeState extends State<Home> {
       ),
       body: Stack(
         children: <Widget>[
-          MapWidget(isStatic: false),
+          MapWidget(isStatic: false, sharedRoute: sharedRoute,),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,

@@ -97,7 +97,7 @@ class GeojsonExportHandler{
           nodes.add(new Node(idCounter++, geoPoint.latitude, geoPoint.longitude));
         }
 
-        routes.add(HikingRoute(nodes, null));
+        routes.add(HikingRoute(nodes, 100));
       }
     }
 
