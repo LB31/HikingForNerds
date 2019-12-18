@@ -210,6 +210,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   bool isRouteNodeAtIndexAhead(int index) {
+    // check if the index is within one of the last 25 nodes and also the route length is less then 50 
     if (_route.length > 50 && index > _route.length - 25)
       return false;
     else
