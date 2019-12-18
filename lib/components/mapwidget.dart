@@ -10,11 +10,15 @@ import 'dart:async';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MapWidget extends StatefulWidget {
+
+  final bool isStatic;
+  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+
   @override
-  _MapWidgetState createState() => _MapWidgetState();
+  MapWidgetState createState() => MapWidgetState();
 }
 
-class _MapWidgetState extends State<MapWidget> {
+class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
@@ -47,10 +51,10 @@ class _MapWidgetState extends State<MapWidget> {
   MyLocationTrackingMode _myLocationTrackingMode =
       MyLocationTrackingMode.Tracking;
 
-  _MapWidgetState._(
+  MapWidgetState._(
       this._cameraInitialPos, this._position, this._cameraTargetBounds);
 
-  factory _MapWidgetState() {
+  factory MapWidgetState() {
     CameraPosition cameraPosition = _getCameraPosition();
 
     // get bounds for areas at https://boundingbox.klokantech.com/
@@ -60,7 +64,7 @@ class _MapWidgetState extends State<MapWidget> {
       northeast: LatLng(55.1, 15.04),
     );
 
-    return _MapWidgetState._(
+    return MapWidgetState._(
         cameraPosition, cameraPosition, CameraTargetBounds(countryBounds));
   }
 
@@ -114,13 +118,14 @@ class _MapWidgetState extends State<MapWidget> {
     });
 
     var osmData = OsmData();
-    var routes = await osmData.calculateRoundTrip(
+    var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         10000,
-        10);
+        10,
+        "aquarium");
 
-    drawRoute(routes[0]);
+    drawRoute(routes[0].path);
 
     setState(() {
       _isLoadingRoute = false;
@@ -172,7 +177,7 @@ class _MapWidgetState extends State<MapWidget> {
     for (int index = 0; index < _route.length; index++) {
       if (shouldRouteNodeAtIndexBeConsideredForRemoval(index)) {
         double distanceToCurrentLocation =
-            OsmData.getDistance(_route[index], _currentDeviceLocation);
+            OsmData.getDistance(_route[index], new LatLng(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude));
         if (distanceToCurrentLocation < 0.05) {
           deleteAllRouteNodesWithAnIndexSmallerThan = index + 1;
         }
@@ -334,6 +339,8 @@ class _MapWidgetState extends State<MapWidget> {
     _isMoving = mapController.isCameraMoving;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     if (this._tilesLoaded) {
@@ -387,6 +394,7 @@ class _MapWidgetState extends State<MapWidget> {
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
+        // TODO uncomment this if you want to check the route calculation
         initRoutes();
       });
       updateCurrentLocationOnChange();
