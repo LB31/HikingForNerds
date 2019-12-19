@@ -26,10 +26,8 @@ class _HomeState extends State<Home> {
     new ElevationGetter().queryElevations(route).then((value) {
       done = true;
       route.elevations = value;
-
     });
 
-    
     return Scaffold(
       appBar: AppBar(
         title: Text('Hiking 4 Nerds'),
@@ -38,6 +36,13 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: <Widget>[
           MapWidget(isStatic: false),
+          Positioned(
+            top: MediaQuery.of(context).size.height - 400,
+            left: 10,
+            height: 150,
+            width: MediaQuery.of(context).size.width * 0.7,
+            child: ElevationChart.withData(route, true, true),
+          ),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,
