@@ -4,22 +4,18 @@ import 'package:hiking4nerds/services/route.dart';
 
 class ElevationChart extends StatelessWidget {
   final List<charts.Series> seriesList;
-  final bool animate;
   final bool interactive;
   final bool withLabels;
 
   int index;
 
-  ElevationChart(this.seriesList,
-      {this.animate, this.interactive, this.withLabels});
+  ElevationChart(this.seriesList, {this.interactive, this.withLabels});
 
   /// Creates a [LineChart] with sample data and no transition.
   factory ElevationChart.withData(HikingRoute route,
       [bool interactive, bool withLabels]) {
     return new ElevationChart(
       _createData(route),
-      // Disable animations for image tests.
-      animate: false,
       interactive: interactive != null ? interactive : false,
       withLabels: withLabels != null ? withLabels : false,
     );
@@ -31,30 +27,34 @@ class ElevationChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String bottomText = withLabels ? "Distance" : "";
-    String leftText = withLabels ? "Elevation in m" : "";
+    String bottomText = "Distance";
+    String leftText = "Elevation in m";
+    int fontSize = 10;
+    charts.SelectionTrigger interaction;
 
-    List<charts.ChartBehavior> behaviours = [
-      new charts.SelectNearest(
-              eventTrigger: charts.SelectionTrigger.tapAndDrag)
-    ];
+    interaction = interactive ? charts.SelectionTrigger.tapAndDrag : charts.SelectionTrigger.hover;
 
-    if(withLabels){
+    List<charts.ChartBehavior> behaviours = [new charts.SelectNearest(
+          eventTrigger: interaction)];
+
+    if (withLabels) {
       behaviours.add(new charts.ChartTitle(bottomText,
-              behaviorPosition: charts.BehaviorPosition.bottom,
-              titleStyleSpec: new charts.TextStyleSpec(fontSize: 10),
-              titleOutsideJustification:
-                  charts.OutsideJustification.middleDrawArea));
-          
+          behaviorPosition: charts.BehaviorPosition.bottom,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+              charts.OutsideJustification.middleDrawArea));
+      behaviours.add(new charts.ChartTitle(leftText,
+          behaviorPosition: charts.BehaviorPosition.start,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+              charts.OutsideJustification.middleDrawArea));
     }
-
 
     return new Container(
       child: new charts.LineChart(
         seriesList,
         defaultRenderer:
             new charts.LineRendererConfig(includeArea: true, stacked: true),
-        animate: animate,
         behaviors: behaviours,
         selectionModels: [
           new charts.SelectionModelConfig(
@@ -75,9 +75,10 @@ class ElevationChart extends StatelessWidget {
   }
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<RouteChart, double>> _createData(
-      HikingRoute route, [bool interactive, bool withLabels]) {
-    route.elevations = [3.3, 2.1, 5.2, 5, 3, 2, 5];
+  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route,
+      [bool interactive, bool withLabels]) {
+
+    route.elevations = [3.3, 2.1, 5.2, 5, 3, 2, 5]; // TODO remove, just for testing
 
     final List<RouteChart> chartData = new List();
 
@@ -102,7 +103,6 @@ class ElevationChart extends StatelessWidget {
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
         this.index = datumPair.datum.index;
-        print(datumPair.datum.index);
       });
     }
   }

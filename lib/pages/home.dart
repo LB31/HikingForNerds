@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
             left: 10,
             height: 150,
             width: MediaQuery.of(context).size.width * 0.7,
-            child: ElevationChart.withData(route, true, true),
+            child: ElevationChart.withData(route, false, true),
           ),
           //TODO: remove mock button
           Align(
