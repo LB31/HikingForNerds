@@ -6,6 +6,10 @@ import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationSelection extends StatefulWidget {
+  final VoidCallback onPushRoutePreferences;
+
+  LocationSelection({@required this.onPushRoutePreferences});
+
   @override
   _LocationSelectionState createState() => _LocationSelectionState();
 }

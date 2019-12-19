@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
 import 'package:hiking4nerds/components/mapbuttons.dart';
-import 'package:hiking4nerds/services/route.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
-import 'package:location_permissions/location_permissions.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:location/location.dart';
-import 'dart:async';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:location_permissions/location_permissions.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 class MapWidget extends StatefulWidget {
 
@@ -398,7 +399,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
         // TODO uncomment this if you want to check the route calculation
-        initRoutes();
+        //initRoutes();
       });
       updateCurrentLocationOnChange();
     });
