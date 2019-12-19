@@ -2,6 +2,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
 
+import 'osmdata.dart';
+
 class ElevationChart extends StatelessWidget {
   final List<charts.Series> seriesList;
   final bool interactive;
@@ -27,15 +29,18 @@ class ElevationChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String bottomText = "Distance";
+    String bottomText = "Distance in m";
     String leftText = "Elevation in m";
-    int fontSize = 10;
+    int fontSize = 12;
     charts.SelectionTrigger interaction;
 
-    interaction = interactive ? charts.SelectionTrigger.tapAndDrag : charts.SelectionTrigger.hover;
+    interaction = interactive
+        ? charts.SelectionTrigger.tapAndDrag
+        : charts.SelectionTrigger.hover;
 
-    List<charts.ChartBehavior> behaviours = [new charts.SelectNearest(
-          eventTrigger: interaction)];
+    List<charts.ChartBehavior> behaviours = [
+      new charts.SelectNearest(eventTrigger: interaction)
+    ];
 
     if (withLabels) {
       behaviours.add(new charts.ChartTitle(bottomText,
@@ -77,14 +82,24 @@ class ElevationChart extends StatelessWidget {
   /// Create one series with sample hard coded data.
   static List<charts.Series<RouteChart, double>> _createData(HikingRoute route,
       [bool interactive, bool withLabels]) {
-
-    route.elevations = [3.3, 2.1, 5.2, 5, 3, 2, 5]; // TODO remove, just for testing
+    
+    route.elevations = [3.3, 2.1, 50.2, 20.8]; // TODO remove, just for testing
 
     final List<RouteChart> chartData = new List();
 
+    double lastX = 0;
+    
     for (var i = 0; i < route.elevations.length; i++) {
-      chartData
-          .add(new RouteChart(route.elevations[i].toDouble(), i.toDouble(), i));
+      print(i);
+      double x = 0;
+      if (i > 0) {
+        x = OsmData.getDistance(route.path[i - 1], route.path[i]) *
+            1000; // * 1000 to get meters
+        print(x);
+        x += lastX;
+        lastX = x;
+      }
+      chartData.add(new RouteChart(route.elevations[i], x, i));
     }
 
     return [

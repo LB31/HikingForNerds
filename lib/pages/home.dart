@@ -21,9 +21,10 @@ class _HomeState extends State<Home> {
     HikingRoute route = new HikingRoute([
       Node(0, 52.510318, 13.4085592),
       Node(1, 52.5102903, 13.4084606),
-      Node(2, 52.5101514, 13.4081806)
+      Node(2, 52.5101514, 13.4081806),
+      Node(3, 52.507592, 13.409908),
     ], 5);
-    new ElevationGetter().queryElevations(route).then((value) {
+    ElevationGetter.queryElevations(route).then((value) {
       done = true;
       route.elevations = value;
     });
@@ -39,9 +40,9 @@ class _HomeState extends State<Home> {
           Positioned(
             top: MediaQuery.of(context).size.height - 400,
             left: 10,
-            height: 150,
-            width: MediaQuery.of(context).size.width * 0.7,
-            child: ElevationChart.withData(route, false, true),
+            height: 200,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: ElevationChart.withData(route, true, true),
           ),
           //TODO: remove mock button
           Align(
