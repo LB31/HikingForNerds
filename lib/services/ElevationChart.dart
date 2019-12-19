@@ -82,20 +82,17 @@ class ElevationChart extends StatelessWidget {
   /// Create one series with sample hard coded data.
   static List<charts.Series<RouteChart, double>> _createData(HikingRoute route,
       [bool interactive, bool withLabels]) {
-    
-    route.elevations = [3.3, 2.1, 50.2, 20.8]; // TODO remove, just for testing
+    //route.elevations = [3.3, 2.1, 50.2, 20.8]; // TODO remove, just for testing
 
     final List<RouteChart> chartData = new List();
 
     double lastX = 0;
-    
+
     for (var i = 0; i < route.elevations.length; i++) {
-      print(i);
       double x = 0;
       if (i > 0) {
         x = OsmData.getDistance(route.path[i - 1], route.path[i]) *
             1000; // * 1000 to get meters
-        print(x);
         x += lastX;
         lastX = x;
       }

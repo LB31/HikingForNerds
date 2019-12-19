@@ -37,13 +37,14 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: <Widget>[
           MapWidget(isStatic: false),
-          Positioned(
-            top: MediaQuery.of(context).size.height - 400,
-            left: 10,
-            height: 200,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: ElevationChart.withData(route, true, true),
-          ),
+          // To test the elevation chart
+          // Positioned(
+          //   top: MediaQuery.of(context).size.height - 400,
+          //   left: 10,
+          //   height: 200,
+          //   width: MediaQuery.of(context).size.width * 0.6,
+          //   child: ElevationChart.withData(route, true, true),
+          // ),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,
