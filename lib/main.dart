@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/home.dart';
-import 'package:hiking4nerds/pages/plan/locationselection.dart';
+import 'package:hiking4nerds/pages/setup/location_selection.dart';
 import 'package:hiking4nerds/pages/route/route.dart' as Route;
 import 'package:hiking4nerds/pages/settings/settings.dart' as Settings;
 import 'package:hiking4nerds/styles.dart';
