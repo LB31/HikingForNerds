@@ -5,7 +5,7 @@ import 'package:hiking4nerds/pages/home.dart';
 import 'package:hiking4nerds/pages/more/credits.dart';
 import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
-import 'package:hiking4nerds/pages/setup/locationselection.dart';
+import 'package:hiking4nerds/pages/setup/location_selection.dart';
 
 class SegmentRoutes {
   static const String root = '/';
