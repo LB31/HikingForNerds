@@ -125,7 +125,7 @@ class _RoutePreviewState extends State<RoutePreview> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
-                heroTag: "btn-search",
+                heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
                   size: 40,
