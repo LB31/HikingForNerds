@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/mapwidget.dart';
+import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/osmdata.dart';

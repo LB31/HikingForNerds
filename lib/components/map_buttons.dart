@@ -3,36 +3,31 @@ import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 class MapButtons extends StatelessWidget {
-
   //Why do these variables exist? check out: https://stackoverflow.com/a/51033284/5630207
-  const MapButtons({this.currentTrackingMode, this.styles, this.currentStyle, this.cycleTrackingMode, this.setMapStyle});
+  const MapButtons(
+      {this.currentTrackingMode,
+      this.styles,
+      this.currentStyle,
+      this.onCycleTrackingMode,
+      this.setMapStyle});
+
   final MyLocationTrackingMode currentTrackingMode;
+  final VoidCallback onCycleTrackingMode;
+
   final String currentStyle;
   final Map<String, String> styles;
-  final VoidCallback cycleTrackingMode;
   final SetMapStyleCallback setMapStyle;
 
   Icon getTrackingModeIcon() {
     switch (currentTrackingMode) {
       case MyLocationTrackingMode.None:
-        {
           return Icon(OMIcons.navigation);
-        }
-        break;
       case MyLocationTrackingMode.Tracking:
-        {
           return Icon(Icons.navigation);
-        }
-        break;
       case MyLocationTrackingMode.TrackingCompass:
-        {
           return Icon(Icons.rotate_90_degrees_ccw);
-        }
-        break;
       default:
-        {
           return Icon(OMIcons.navigation);
-        }
     }
   }
 
@@ -44,10 +39,9 @@ class MapButtons extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             FloatingActionButton(
-              heroTag: "btn-gps",
-              child: getTrackingModeIcon(),
-              onPressed: cycleTrackingMode
-            ),
+                heroTag: "btn-gps",
+                child: getTrackingModeIcon(),
+                onPressed: onCycleTrackingMode),
             FloatingActionButton(
               heroTag: "btn-maptype",
               child: Icon(currentStyle == styles.keys.first

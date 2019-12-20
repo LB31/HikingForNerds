@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/mapwidget.dart';
+import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/services/osmdata.dart';
-import 'package:hiking4nerds/components/calculatingRoutesDialog.dart';
+import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
@@ -13,8 +13,7 @@ class RoutePreview extends StatefulWidget {
   @override
   _RoutePreviewState createState() => _RoutePreviewState();
 
-  RoutePreview({Key key, @required this.routeParams})
-      : super(key: key);
+  RoutePreview({Key key, @required this.routeParams}) : super(key: key);
 }
 
 class _RoutePreviewState extends State<RoutePreview> {
@@ -25,14 +24,13 @@ class _RoutePreviewState extends State<RoutePreview> {
   int _currentRouteIndex = 0;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     calculateRoutes();
   }
 
-  calculateRoutes() async {
-    var osmData = OsmData();
-    var routes = await osmData.calculateHikingRoutes(
+  Future<void> calculateRoutes() async {
+    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
         widget.routeParams.startingLocation.latitude,
         widget.routeParams.startingLocation.longitude,
         10000,
@@ -42,20 +40,13 @@ class _RoutePreviewState extends State<RoutePreview> {
       _routes = routes;
       _currentRouteIndex = 0;
     });
+
+    switchRoute(_currentRouteIndex);
   }
 
-  nextRoute() {
-    setState(() {
-      _currentRouteIndex = (_currentRouteIndex + 1) % _routes.length;
-    });
-  }
-
-  previousRoute() {
-    if (_currentRouteIndex > 0) {
-      setState(() {
-        _currentRouteIndex = (_currentRouteIndex + -1) % _routes.length;
-      });
-    }
+  void switchRoute(int index) {
+    setState(() => _currentRouteIndex = index);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
   }
 
   Future<void> moveToCurrentLocation() async {
@@ -74,41 +65,43 @@ class _RoutePreviewState extends State<RoutePreview> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          if (_routes.length > 0)
-            MapWidget(
-              key: mapWidgetKey,
-              isStatic: true,
-              route: _routes.length > 0 ? _routes[_currentRouteIndex] : null,
-            ),
+          MapWidget(
+            key: mapWidgetKey,
+            isStatic: true,
+            onMapReady: onMapReady,
+          ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Container(
             color: Theme.of(context).primaryColor,
             width: MediaQuery.of(context).size.width,
             height: 80,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  IconButton(
-                      iconSize: 50,
-                      icon: Icon(
-                        Icons.arrow_left,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        previousRoute();
-                      }),
-                  Text("Route $_currentRouteIndex", style: TextStyle(fontSize: 20, color: Colors.white),),
-                  IconButton(
-                      iconSize: 50,
-                      icon: Icon(
-                        Icons.arrow_right,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        nextRoute();
-                      }),
-                ],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                IconButton(
+                    iconSize: 50,
+                    icon: Icon(
+                      Icons.arrow_left,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => switchRoute(
+                        (_currentRouteIndex + (_routes.length - 1)) %
+                            _routes.length)),
+                Text(
+                  "Route ${_currentRouteIndex + 1}",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                IconButton(
+                    iconSize: 50,
+                    icon: Icon(
+                      Icons.arrow_right,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => switchRoute(
+                        (_currentRouteIndex + (_routes.length + 1)) %
+                            _routes.length)),
+              ],
+            ),
           ),
           Positioned(
             right: MediaQuery.of(context).size.width * 0.15,
@@ -144,5 +137,10 @@ class _RoutePreviewState extends State<RoutePreview> {
         ],
       ),
     );
+  }
+
+  void onMapReady() {
+    if (_routes.length > 0)
+      switchRoute(_currentRouteIndex);
   }
 }

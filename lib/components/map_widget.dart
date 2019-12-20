@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/mapbuttons.dart';
+import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -10,10 +10,11 @@ import 'dart:async';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MapWidget extends StatefulWidget {
-
   final bool isStatic;
-  HikingRoute route;
-  MapWidget({Key key, @required this.isStatic, this.route}) : super(key: key);
+  final VoidCallback onMapReady;
+
+  MapWidget({Key key, @required this.isStatic, this.onMapReady})
+      : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -110,12 +111,12 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-
   drawRoute(HikingRoute route) async {
     mapController.clearLines();
 
-    List<LatLng> routeLatLng =
-        route.path.map((node) => LatLng(node.latitude, node.longitude)).toList();
+    List<LatLng> routeLatLng = route.path
+        .map((node) => LatLng(node.latitude, node.longitude))
+        .toList();
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
@@ -134,7 +135,7 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if(!widget.isStatic) initUpdateRouteTimer();
+    if (!widget.isStatic) initUpdateRouteTimer();
   }
 
   void initUpdateRouteTimer() {
@@ -145,16 +146,17 @@ class MapWidgetState extends State<MapWidget> {
     int currentRouteNodeIndex = 0;
     for (int index = 0; index < _route.length; index++) {
       if (isRouteNodeAtIndexAhead(index)) {
-        double distanceToCurrentLocation =
-            OsmData.getDistance(_route[index], new LatLng(_currentDeviceLocation.latitude, _currentDeviceLocation.longitude));
+        double distanceToCurrentLocation = OsmData.getDistance(
+            _route[index],
+            new LatLng(_currentDeviceLocation.latitude,
+                _currentDeviceLocation.longitude));
         if (distanceToCurrentLocation < 0.05) {
           currentRouteNodeIndex = index + 1;
         }
       }
     }
 
-    List<LatLng> remainingRoute =
-        _route.sublist(currentRouteNodeIndex);
+    List<LatLng> remainingRoute = _route.sublist(currentRouteNodeIndex);
 
     LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
     await mapController.updateLine(_lineRoute, optionsRemainingRoute);
@@ -171,14 +173,13 @@ class MapWidgetState extends State<MapWidget> {
       _passedRoute = passedRoute;
     });
 
-    if(_route.length <= 1){
+    if (_route.length <= 1) {
       finishHikingTrip();
     }
-
   }
 
   bool isRouteNodeAtIndexAhead(int index) {
-    // check if the index is within one of the last 25 nodes and also the route length is less then 50 
+    // check if the index is within one of the last 25 nodes and also the route length is less then 50
     if (_route.length > 50 && index > _route.length - 25)
       return false;
     else
@@ -186,7 +187,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   //TODO implement nicer/prettier implementation
-  void finishHikingTrip(){
+  void finishHikingTrip() {
     Fluttertoast.showToast(
         msg: "You have finished your Hiking Trip!",
         toastLength: Toast.LENGTH_LONG,
@@ -194,8 +195,7 @@ class MapWidgetState extends State<MapWidget> {
         timeInSecForIos: 1,
         backgroundColor: Theme.of(context).primaryColor,
         textColor: Colors.black,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
 
     setState(() {
       _passedRoute = [];
@@ -281,7 +281,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   //TODO find way to rebuild map?!
-  forceRebuildMap() {}
+  void forceRebuildMap() {}
 
   void setZoom(double zoom) {
     mapController.moveCamera(CameraUpdate.zoomTo(zoom));
@@ -316,16 +316,20 @@ class MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          if(!widget.isStatic)
-            MapButtons(currentTrackingMode: _myLocationTrackingMode, styles: _styles, currentStyle: _currentStyle, cycleTrackingMode: cycleTrackingMode, setMapStyle: setMapStyle,),
-
+          if (!widget.isStatic)
+            MapButtons(
+              currentTrackingMode: _myLocationTrackingMode,
+              styles: _styles,
+              currentStyle: _currentStyle,
+              onCycleTrackingMode: cycleTrackingMode,
+              setMapStyle: setMapStyle,
+            ),
         ],
       );
-    } else {
-      return Center(
-        child: new CircularProgressIndicator(),
-      );
     }
+    return Center(
+      child: new CircularProgressIndicator(),
+    );
   }
 
   MapboxMap _buildMapBox(BuildContext context) {
@@ -356,15 +360,9 @@ class MapWidgetState extends State<MapWidget> {
     _extractMapInfo();
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      getCurrentLocation().then((location) {
-
-        if(widget.route != null){
-          drawRoute(widget.route);
-        }
-
-      });
+      getCurrentLocation();
       updateCurrentLocationOnChange();
     });
-    setState(() {});
+    widget.onMapReady();
   }
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/mapwidget.dart';
+import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hiking4nerds/pages/setup/routepreview.dart';
+import 'package:hiking4nerds/pages/setup/route_preview.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class LocationSelection extends StatefulWidget {
@@ -22,13 +22,13 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 
   Future<LatLng> queryToLatLng(String query) async {
-    var addresses = await Geocoder.local.findAddressesFromQuery(query);
-    var first = addresses.first;
+    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
+    Address first = addresses.first;
     return LatLng(first.coordinates.latitude, first.coordinates.longitude);
   }
 
   Future<String> queryToAddressName(String query) async {
-    var addresses = await Geocoder.local.findAddressesFromQuery(query);
+    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
     return addresses.first.addressLine;
   }
 
@@ -78,7 +78,7 @@ class _LocationSelectionState extends State<LocationSelection> {
 
         ),
         onTap: () async {
-          var query = await showSearch(
+          String query = await showSearch(
               context: context, delegate: CustomSearchDelegate());
           if (query.length > 0) {
             moveToAddress(query);
@@ -145,7 +145,7 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 }
 
-class CustomSearchDelegate extends SearchDelegate {
+class CustomSearchDelegate extends SearchDelegate<String> {
   List<String> _history = List<String>();
 
   CustomSearchDelegate() {
