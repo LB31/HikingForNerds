@@ -227,7 +227,7 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     mapController.clearLines();
-    mapController.clearSymbols();
+    mapController.clearCircles();
     _timer.cancel();
   }
 
