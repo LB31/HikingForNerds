@@ -363,6 +363,6 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
-    widget.onMapReady();
+    if(widget.onMapReady != null) widget.onMapReady();
   }
 }
