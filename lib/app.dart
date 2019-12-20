@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/navigation/segmentnavigator.dart';
-import 'navigation/bottomnavigation.dart';
+import 'package:hiking4nerds/navigation/segment_navigator.dart';
+import 'navigation/bottom_navigation.dart';
 
 class App extends StatefulWidget {
   @override

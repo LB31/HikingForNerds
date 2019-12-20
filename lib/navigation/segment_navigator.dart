@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/navigation/bottomnavigation.dart';
+import 'package:hiking4nerds/navigation/bottom_navigation.dart';
 import 'package:hiking4nerds/pages/history.dart';
 import 'package:hiking4nerds/pages/home.dart';
 import 'package:hiking4nerds/pages/more/credits.dart';
