@@ -6,6 +6,7 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
+import 'package:hiking4nerds/pages/home.dart';
 
 class RoutePreview extends StatefulWidget {
   final RouteParams routeParams;
@@ -130,7 +131,17 @@ class _RoutePreviewState extends State<RoutePreview> {
                   Icons.directions_walk,
                   size: 40,
                 ),
-                onPressed: () {},
+                onPressed: () {
+
+                   Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Home(
+                          route: _routes[_currentRouteIndex],
+                        ),
+                      ), (Route<dynamic> route) => false,);
+
+                },
               ),
             ),
           )
@@ -140,7 +151,6 @@ class _RoutePreviewState extends State<RoutePreview> {
   }
 
   void onMapReady() {
-    if (_routes.length > 0)
-      switchRoute(_currentRouteIndex);
+    if (_routes.length > 0) switchRoute(_currentRouteIndex);
   }
 }

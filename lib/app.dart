@@ -21,7 +21,7 @@ class AppState extends State<App> {
     setState(() => _currentSegment = segment);
   }
 
-  final navigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {

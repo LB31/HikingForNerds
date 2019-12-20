@@ -31,7 +31,9 @@ class SegmentNavigator extends StatelessWidget {
       SegmentRoutes.help: (context) => Help(
           onPushHistorySaveState: () => onChangeSegment(AppSegment.history),
           onPushHistory: () => onChangeSegment(AppSegment.history, true)),
-      // TODO add routePreferences, routeList, routePreview and more if needed
+      SegmentRoutes.routePreview: (context) => Home(
+          onPushHistory: () => onChangeSegment(AppSegment.history, true)),
+      // TODO add routePreferences, routeList and more if needed
     };
   }
 

@@ -7,17 +7,33 @@ import 'package:hiking4nerds/styles.dart';
 
 // TODO rename to map
 class Home extends StatefulWidget {
+  final HikingRoute route;
+  final VoidCallback onPushHistory;
+
+
   @override
   _HomeState createState() => _HomeState();
+
+  Home({Key key, this.route, this.onPushHistory}) : super(key: key);
 }
 
 class _HomeState extends State<Home> {
+  final GlobalKey<MapWidgetState> mapWidgetKey =
+  new GlobalKey<MapWidgetState>();
+
+  onMapReady(){
+    if(widget.route != null) {
+      mapWidgetKey.currentState.drawRoute(widget.route);
+      mapWidgetKey.currentState.initUpdateRouteTimer();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(isStatic: false),
+          MapWidget(key: mapWidgetKey, isStatic: false, onMapReady: onMapReady,),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,
