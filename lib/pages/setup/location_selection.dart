@@ -8,6 +8,10 @@ import 'package:hiking4nerds/pages/setup/route_preview.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class LocationSelection extends StatefulWidget {
+  final VoidCallback onPushRoutePreferences;
+
+  LocationSelection({@required this.onPushRoutePreferences});
+
   @override
   _LocationSelectionState createState() => _LocationSelectionState();
 }
@@ -93,7 +97,7 @@ class _LocationSelectionState extends State<LocationSelection> {
             isStatic: true,
           ),
           Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 45 - 40, //-45 to adjust for its own height AND -40 to adjust vor appbar (searchbar)
+              top: MediaQuery.of(context).size.height * 0.5 - 45 - 70, 
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,

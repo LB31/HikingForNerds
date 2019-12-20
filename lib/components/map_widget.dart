@@ -1,13 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hiking4nerds/services/osmdata.dart';
-import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
-import 'dart:async';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:location_permissions/location_permissions.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
@@ -360,9 +361,8 @@ class MapWidgetState extends State<MapWidget> {
     _extractMapInfo();
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      getCurrentLocation();
       updateCurrentLocationOnChange();
     });
-    widget.onMapReady();
+    if(widget.onMapReady != null) widget.onMapReady();
   }
 }
