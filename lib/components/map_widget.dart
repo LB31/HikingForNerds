@@ -151,9 +151,15 @@ class MapWidgetState extends State<MapWidget> {
 
   drawHikingDirection(HikingRoute route) async{
     List<LatLng> startingPointPath = route.path.sublist(0, 25);
-    LineOptions optionsHikingDirection =
+    List<LatLng> endingPointPath = route.path.sublist(route.path.length-25, route.path.length);
+
+    LineOptions optionsHikingDirectionStart =
     LineOptions(geometry: startingPointPath, lineColor: "Green", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
-    mapController.addLine(optionsHikingDirection);
+        LineOptions optionsHikingDirectionEnd =
+    LineOptions(geometry: endingPointPath, lineColor: "Red", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
+
+    mapController.addLine(optionsHikingDirectionStart);
+    mapController.addLine(optionsHikingDirectionEnd); 
   }
 
   void initUpdateRouteTimer() {
