@@ -125,13 +125,13 @@ class ShareRoute extends StatelessWidget {
   }
 
   Future<File> exportAsJson(String jsonString) async {
-    final file = await localPath('route.geojson');
+    final file = await localPath(ShareConsts.sharedFileName + '.geojson');
 
     return file.writeAsString(json.encode(json.decode(jsonString)));
   }
 
   Future<File> exportAsGpx(String gpxString) async {
-    final file = await localPath('route.gpx');
+    final file = await localPath(ShareConsts.sharedFileName + '.gpx');
 
     return file.writeAsString(gpxString);
   }
@@ -161,6 +161,8 @@ class ShareRoute extends StatelessWidget {
 //TODO: add to localization
 class ShareConsts {
   ShareConsts._();
+
+  static const String sharedFileName = "route";
 
   static const double padding = 16.0;
   static const double blurRadius = 10.0;
