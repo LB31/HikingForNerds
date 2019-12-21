@@ -212,7 +212,7 @@ class OsmData{
     }
   }
 
-  static double getDistance(nodeA, nodeB){
+  static double getDistance(LatLng nodeA, LatLng nodeB){
     //optimized haversine formular from https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
     var p = 0.017453292519943295;    // PI / 180
     var a = 0.5 - cos((nodeB.latitude - nodeA.latitude) * p)/2 + cos(nodeA.latitude* p) * cos(nodeB.latitude* p) * (1 - cos((nodeB.longitude - nodeA.longitude) * p))/2;

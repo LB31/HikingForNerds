@@ -1,31 +1,21 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
-
 import 'osmdata.dart';
 
 class ElevationChart extends StatelessWidget {
-  final List<charts.Series> seriesList;
+  final HikingRoute route;
   final bool interactive;
   final bool withLabels;
 
-  int index;
+  final Function(int) onSelectionChanged;
 
-  ElevationChart(this.seriesList, {this.interactive, this.withLabels});
+  List<charts.Series> seriesList;
 
-  /// Creates a [LineChart] with sample data and no transition.
-  factory ElevationChart.withData(HikingRoute route,
-      [bool interactive, bool withLabels]) {
-    return new ElevationChart(
-      _createData(route),
-      interactive: interactive != null ? interactive : false,
-      withLabels: withLabels != null ? withLabels : false,
-    );
+  ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true}){ 
+    seriesList = _createData(route);
   }
 
-  int getSelectedPosition() {
-    return index;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,24 +69,20 @@ class ElevationChart extends StatelessWidget {
     );
   }
 
-  /// Create one series with sample hard coded data.
-  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route,
-      [bool interactive, bool withLabels]) {
-    //route.elevations = [3.3, 2.1, 50.2, 20.8]; // TODO remove, just for testing
+
+  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route) {
 
     final List<RouteChart> chartData = new List();
 
-    double lastX = 0;
-
-    for (var i = 0; i < route.elevations.length; i++) {
-      double x = 0;
+    double lastDistance = 0;
+    for (int i = 0; i < route.elevations.length; i++) {
+      double distance = 0;
       if (i > 0) {
-        x = OsmData.getDistance(route.path[i - 1], route.path[i]) *
-            1000; // * 1000 to get meters
-        x += lastX;
-        lastX = x;
+        distance = OsmData.getDistance(route.path[i - 1], route.path[i]); // * 1000; for testing with smaller routes
+        distance += lastDistance;
+        lastDistance = distance;
       }
-      chartData.add(new RouteChart(route.elevations[i], x, i));
+      chartData.add(new RouteChart(route.elevations[i], distance, i));
     }
 
     return [
@@ -114,13 +100,12 @@ class ElevationChart extends StatelessWidget {
     final selectedDatum = model.selectedDatum;
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
-        this.index = datumPair.datum.index;
+        onSelectionChanged(datumPair.datum.index);
       });
     }
   }
 }
 
-/// Sample linear data type.
 class RouteChart {
   final double elevation;
   final double distance;

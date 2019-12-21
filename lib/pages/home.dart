@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
-import 'package:hiking4nerds/services/ElevationChart.dart';
-import 'package:hiking4nerds/services/elevationQuery.dart';
+import 'package:hiking4nerds/services/elevation_chart.dart'; // needed for testing
 import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
 class Home extends StatefulWidget {
-  static bool chartIsHere = false;
   @override
   _HomeState createState() => _HomeState();
 }
@@ -17,17 +15,12 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    bool done = false;
     HikingRoute route = new HikingRoute([
       Node(0, 52.510318, 13.4085592),
       Node(1, 52.5102903, 13.4084606),
       Node(2, 52.5101514, 13.4081806),
       Node(3, 52.507592, 13.409908),
-    ], 5);
-    ElevationGetter.queryElevations(route).then((value) {
-      done = true;
-      route.elevations = value;
-    });
+    ], 50, null, [3.3, 2.1, 50.2, 20.8]);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,13 +30,17 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: <Widget>[
           MapWidget(isStatic: false),
-          // To test the elevation chart
+          //To test the elevation chart
           // Positioned(
-          //   top: MediaQuery.of(context).size.height - 400,
+          //   top: MediaQuery.of(context).size.height - 450,
           //   left: 10,
           //   height: 200,
-          //   width: MediaQuery.of(context).size.width * 0.6,
-          //   child: ElevationChart.withData(route, true, true),
+          //   width: MediaQuery.of(context).size.width * 0.8,
+          //   child: new ElevationChart(
+          //     route,  
+          //     onSelectionChanged: (int index) => print(index),
+          //     withLabels: false,
+          //      ),
           // ),
           //TODO: remove mock button
           Align(

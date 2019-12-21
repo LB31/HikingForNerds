@@ -9,6 +9,6 @@ class HikingRoute {
   //todo: add height information
   List<double> elevations; // elevations of route points in m; route points and their elevations have the same index
 
-  HikingRoute(this.path, this.totalLength,[this.pointsOfInterest]);
+  HikingRoute(this.path, this.totalLength, [this.pointsOfInterest, this.elevations]);
 
 }
