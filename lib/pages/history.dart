@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class History extends StatefulWidget {
+class HistoryPage extends StatefulWidget {
   @override
-  _HistoryState createState() => _HistoryState();
+  _HistoryPageState createState() => _HistoryPageState();
 }
 
-class _HistoryState extends State<History> {
+class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

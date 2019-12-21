@@ -5,35 +5,23 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
-// TODO rename to map
-class Home extends StatefulWidget {
-  final HikingRoute route;
-  final VoidCallback onPushHistory;
-
+class MapPage extends StatefulWidget {
 
   @override
-  _HomeState createState() => _HomeState();
+  MapPageState createState() => MapPageState();
 
-  Home({Key key, this.route, this.onPushHistory}) : super(key: key);
+  MapPage({Key key}) : super(key: key);
 }
 
-class _HomeState extends State<Home> {
-  final GlobalKey<MapWidgetState> mapWidgetKey =
-  new GlobalKey<MapWidgetState>();
-
-  onMapReady(){
-    if(widget.route != null) {
-      mapWidgetKey.currentState.drawRoute(widget.route);
-      mapWidgetKey.currentState.initUpdateRouteTimer();
-    }
-  }
+class MapPageState extends State<MapPage> {
+  final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(key: mapWidgetKey, isStatic: false, onMapReady: onMapReady,),
+          MapWidget(key: mapWidgetKey, isStatic: false),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,
@@ -65,12 +53,10 @@ class _HomeState extends State<Home> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.find_replace),
-        backgroundColor: htwGreen,
-        elevation: 2.0,
-      ),
     );
+  }
+
+  void updateState(HikingRoute route) {
+    mapWidgetKey.currentState.drawRoute(route);
   }
 }

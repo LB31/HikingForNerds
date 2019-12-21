@@ -45,11 +45,12 @@ class AppState extends State<App> {
     );
   }
 
-  void changeSegment(AppSegment segment, [bool popToFirst = false]) {
-    if (popToFirst) {
+  void changeSegment(AppSegment segment, [bool popToRoot = false]) {
+    if (popToRoot) {
       // pop to first route
-      _navigatorKeys[_currentSegment].currentState.popUntil((route) =>
-      route.isFirst);
+      _navigatorKeys[_currentSegment]
+          .currentState
+          .popUntil((route) => route.isFirst);
     }
     _selectSegment(segment);
   }

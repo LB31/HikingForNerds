@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 // TODO this was created only for testing purpose
-class Credits extends StatefulWidget {
+class CreditsPage extends StatefulWidget {
   @override
-  _CreditsState createState() => _CreditsState();
+  _CreditsPageState createState() => _CreditsPageState();
 }
 
-class _CreditsState extends State<Credits> {
+class _CreditsPageState extends State<CreditsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
