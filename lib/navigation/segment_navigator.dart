@@ -97,7 +97,7 @@ class SegmentNavigator extends StatelessWidget {
 
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
           routeParams: params["route-params"],
-          // TODO swap route params with routes
+          // TODO swap route-params with route list
           onSwitchToMap: (route) {
             onChangeSegment(AppSegment.map);
             // refresh the state of the new segment by passing parameters
