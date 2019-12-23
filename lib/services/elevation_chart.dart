@@ -10,15 +10,11 @@ class ElevationChart extends StatelessWidget {
 
   final Function(int) onSelectionChanged;
 
-  List<charts.Series> seriesList;
-
-  ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true}){ 
-    seriesList = _createData(route);
-  }
-
+  ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 
   @override
   Widget build(BuildContext context) {
+    // TODO add localization
     String bottomText = "Distance in m";
     String leftText = "Elevation in m";
     int fontSize = 12;
@@ -47,7 +43,7 @@ class ElevationChart extends StatelessWidget {
 
     return new Container(
       child: new charts.LineChart(
-        seriesList,
+        _createData(route),
         defaultRenderer:
             new charts.LineRendererConfig(includeArea: true, stacked: true),
         behaviors: behaviours,

@@ -26,29 +26,27 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: <Widget>[
           MapWidget(isStatic: false),
-          //To test the elevation chart
-          // Positioned(
-          //   top: MediaQuery.of(context).size.height - 450,
-          //   left: 10,
-          //   height: 200,
-          //   width: MediaQuery.of(context).size.width * 0.8,
-          //   child: new ElevationChart(
-          //     route,  
-          //     onSelectionChanged: (int index) => print(index),
-          //     withLabels: false,
-          //      ),
-          // ),
+//          //To test the elevation chart
+//           Positioned(
+//             top: MediaQuery.of(context).size.height - 450,
+//             left: 10,
+//             height: 200,
+//             width: MediaQuery.of(context).size.width * 0.8,
+//             child: new ElevationChart(
+//               route,
+//               onSelectionChanged: (int index) => print(index),
+//               withLabels: false,
+//                ),
+//           ),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,
             child: RawMaterialButton(
               onPressed: () {
-                HikingRoute mockRoute = route;
-
                 showDialog(
                     context: context,
                     builder: (BuildContext context) => ShareRoute(
-                          route: mockRoute,
+                          route: route,
                         ));
               },
               child: Icon(
