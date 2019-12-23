@@ -30,6 +30,7 @@ class ElevationGetter {
       }
     }
 
-    return queriedElevations;
+    // Alternatively the result could be assigned to the passed route reference
+    return queriedElevations; 
   }
 }
