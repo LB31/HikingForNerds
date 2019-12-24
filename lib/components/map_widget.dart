@@ -111,8 +111,11 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  drawRoute(HikingRoute route) async {
+  void drawRoute(HikingRoute route) async {
     mapController.clearLines();
+
+    drawRouteStartingPoint(route);
+    drawHikingDirection(route);
 
     List<LatLng> routeLatLng = route.path
         .map((node) => LatLng(node.latitude, node.longitude))
@@ -121,11 +124,11 @@ class MapWidgetState extends State<MapWidget> {
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0);
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
@@ -136,7 +139,27 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  void initUpdatesRouteTimer() {
+  void drawRouteStartingPoint(HikingRoute route){
+    mapController.clearCircles();
+    LatLng startingPoint = route.path[0];
+    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 12, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    mapController.addCircle(optionsStartingPoint);
+  }
+
+  void drawHikingDirection(HikingRoute route) {
+    List<LatLng> startingPointPath = route.path.sublist(0, 25);
+    List<LatLng> endingPointPath = route.path.sublist(route.path.length-25, route.path.length);
+
+    LineOptions optionsHikingDirectionStart =
+    LineOptions(geometry: startingPointPath, lineColor: "Green", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
+        LineOptions optionsHikingDirectionEnd =
+    LineOptions(geometry: endingPointPath, lineColor: "Red", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
+
+    mapController.addLine(optionsHikingDirectionStart);
+    mapController.addLine(optionsHikingDirectionEnd); 
+  }
+
+  void initUpdateRouteTimer() {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
@@ -201,6 +224,7 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     mapController.clearLines();
+    mapController.clearCircles();
     _timer.cancel();
   }
 

@@ -50,6 +50,19 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
   }
 
+  void switchDirection() {
+    List<HikingRoute> updatedRoutes = _routes.map((route) {
+      route.path = route.path.reversed.toList();
+      return route;
+    }).toList();
+
+    setState(() {
+      _routes = updatedRoutes;
+    });
+
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+  }
+
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
     moveToLatLng(LatLng(currentLocation.latitude, currentLocation.longitude));
@@ -101,6 +114,21 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         (_currentRouteIndex + (_routes.length + 1)) %
                             _routes.length)),
               ],
+            ),
+          ),
+          Positioned(
+            left: MediaQuery.of(context).size.width * 0.15,
+            bottom: 15,
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: FloatingActionButton(
+                heroTag: "btn-switch-direction",
+                child: Icon(Icons.swap_horizontal_circle),
+                onPressed: () {
+                  switchDirection();
+                },
+              ),
             ),
           ),
           Positioned(
