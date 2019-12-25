@@ -167,10 +167,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       ),
     );
   }
-
-  void onMapReady() {
-    if (_routes.length > 0) switchRoute(_currentRouteIndex);
-  }
 }
 
 typedef SwitchToMapCallback = void Function(HikingRoute route);

@@ -137,6 +137,8 @@ class MapWidgetState extends State<MapWidget> {
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
     });
+
+    if (!widget.isStatic) initUpdateRouteTimer();
   }
 
   void drawRouteStartingPoint(HikingRoute route){
