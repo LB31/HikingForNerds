@@ -21,7 +21,7 @@ class AppState extends State<App> {
     setState(() => _currentSegment = segment);
   }
 
-  final navigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +45,12 @@ class AppState extends State<App> {
     );
   }
 
-  void changeSegment(AppSegment segment, [bool popToFirst = false]) {
-    if (popToFirst) {
+  void changeSegment(AppSegment segment, [bool popToRoot = false]) {
+    if (popToRoot) {
       // pop to first route
-      _navigatorKeys[_currentSegment].currentState.popUntil((route) =>
-      route.isFirst);
+      _navigatorKeys[_currentSegment]
+          .currentState
+          .popUntil((route) => route.isFirst);
     }
     _selectSegment(segment);
   }

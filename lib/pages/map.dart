@@ -6,13 +6,17 @@ import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 
-// TODO rename to map
-class Home extends StatefulWidget {
+class MapPage extends StatefulWidget {
+
   @override
-  _HomeState createState() => _HomeState();
+  MapPageState createState() => MapPageState();
+
+  MapPage({Key key}) : super(key: key);
 }
 
-class _HomeState extends State<Home> {
+class MapPageState extends State<MapPage> {
+  final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
+
   @override
   Widget build(BuildContext context) {
     HikingRoute route = new HikingRoute([
@@ -25,7 +29,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(isStatic: false),
+          MapWidget(key: mapWidgetKey, isStatic: false),
 //          //To test the elevation chart
 //           Positioned(
 //             top: MediaQuery.of(context).size.height - 450,
@@ -63,12 +67,10 @@ class _HomeState extends State<Home> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.find_replace),
-        backgroundColor: htwGreen,
-        elevation: 2.0,
-      ),
     );
+  }
+
+  void updateState(HikingRoute route) {
+    mapWidgetKey.currentState.drawRoute(route);
   }
 }

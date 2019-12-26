@@ -12,9 +12,8 @@ import 'package:location_permissions/location_permissions.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
-  final VoidCallback onMapReady;
 
-  MapWidget({Key key, @required this.isStatic, this.onMapReady})
+  MapWidget({Key key, @required this.isStatic})
       : super(key: key);
 
   @override
@@ -387,6 +386,5 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
-    if(widget.onMapReady != null) widget.onMapReady();
   }
 }

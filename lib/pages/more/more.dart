@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
 // TODO this class shows how to navigate to another page on the same segment
-class More extends StatefulWidget {
+/// please modify this to your needs (remove routing in segment navigator if necessary)
+class MorePage extends StatefulWidget {
   final VoidCallback onPushCredit;
   final VoidCallback onPushHelp;
 
-  More({@required this.onPushCredit, @required this.onPushHelp});
+  MorePage({@required this.onPushCredit, @required this.onPushHelp});
 
   @override
-  _MoreState createState() => _MoreState();
+  _MorePageState createState() => _MorePageState();
 }
 
-class _MoreState extends State<More> {
+class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

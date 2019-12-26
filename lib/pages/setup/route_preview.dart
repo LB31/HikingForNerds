@@ -7,18 +7,19 @@ import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
-class RoutePreview extends StatefulWidget {
+class RoutePreviewPage extends StatefulWidget {
   final RouteParams routeParams;
+  final SwitchToMapCallback onSwitchToMap;
 
   @override
-  _RoutePreviewState createState() => _RoutePreviewState();
+  _RoutePreviewPageState createState() => _RoutePreviewPageState();
 
-  RoutePreview({Key key, @required this.routeParams}) : super(key: key);
+  RoutePreviewPage({Key key, @required this.onSwitchToMap, @required this.routeParams})
+      : super(key: key);
 }
 
-class _RoutePreviewState extends State<RoutePreview> {
-  final GlobalKey<MapWidgetState> mapWidgetKey =
-      new GlobalKey<MapWidgetState>();
+class _RoutePreviewPageState extends State<RoutePreviewPage> {
+  final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   List<HikingRoute> _routes = [];
   int _currentRouteIndex = 0;
@@ -81,7 +82,6 @@ class _RoutePreviewState extends State<RoutePreview> {
           MapWidget(
             key: mapWidgetKey,
             isStatic: true,
-            onMapReady: onMapReady,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Container(
@@ -153,12 +153,13 @@ class _RoutePreviewState extends State<RoutePreview> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
-                heroTag: "btn-search",
+                heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
                   size: 40,
                 ),
-                onPressed: () {},
+                onPressed: (() => widget
+                    .onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
           )
@@ -166,8 +167,6 @@ class _RoutePreviewState extends State<RoutePreview> {
       ),
     );
   }
-
-  void onMapReady() {
-    if (_routes.length > 0) switchRoute(_currentRouteIndex);
-  }
 }
+
+typedef SwitchToMapCallback = void Function(HikingRoute route);

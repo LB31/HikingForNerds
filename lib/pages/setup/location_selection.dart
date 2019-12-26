@@ -4,21 +4,19 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hiking4nerds/pages/setup/route_preview.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
-class LocationSelection extends StatefulWidget {
-  final VoidCallback onPushRoutePreferences;
+class LocationSelectionPage extends StatefulWidget {
+  final RouteParamsCallback onPushRoutePreferences;
 
-  LocationSelection({@required this.onPushRoutePreferences});
+  LocationSelectionPage({@required this.onPushRoutePreferences});
 
   @override
-  _LocationSelectionState createState() => _LocationSelectionState();
+  _LocationSelectionPageState createState() => _LocationSelectionPageState();
 }
 
-class _LocationSelectionState extends State<LocationSelection> {
-  final GlobalKey<MapWidgetState> mapWidgetKey =
-      new GlobalKey<MapWidgetState>();
+class _LocationSelectionPageState extends State<LocationSelectionPage> {
+  final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
@@ -133,12 +131,8 @@ class _LocationSelectionState extends State<LocationSelection> {
                 ),
                 onPressed: () {
                   LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
-
                   RouteParams routeParams = RouteParams(routeStartingLocation);
-
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => RoutePreview(routeParams: routeParams),
-                  ));
+                  widget.onPushRoutePreferences(routeParams);
                 },
               ),
             ),
@@ -284,3 +278,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => new Size.fromHeight(kToolbarHeight);
 }
+
+typedef RouteParamsCallback = void Function(RouteParams routeParams);
+

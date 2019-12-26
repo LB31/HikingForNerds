@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-// TODO this class shows how to navigate to another segment
-class Help extends StatefulWidget {
+/// TODO this class shows how to navigate to another segment
+/// please modify this to your needs (remove routing in segment navigator if necessary)
+class HelpPage extends StatefulWidget {
   final VoidCallback onPushHistory;
   final VoidCallback onPushHistorySaveState;
 
-  Help({@required this.onPushHistory, @required this.onPushHistorySaveState});
+  HelpPage({@required this.onPushHistory, @required this.onPushHistorySaveState});
 
   @override
-  _HelpState createState() => _HelpState();
+  _HelpPageState createState() => _HelpPageState();
 }
 
-class _HelpState extends State<Help> {
+class _HelpPageState extends State<HelpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
