@@ -111,7 +111,6 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-
   void drawRoute(HikingRoute route) async {
     mapController.clearLines();
 
@@ -125,12 +124,11 @@ class MapWidgetState extends State<MapWidget> {
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: .5);
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 1);
-
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
