@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/mapwidget.dart';
 import 'package:hiking4nerds/components/navbar.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
-import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 

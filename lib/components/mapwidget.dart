@@ -4,7 +4,7 @@ import 'package:hiking4nerds/components/mapbuttons.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:location/location.dart';
 import 'dart:async';
@@ -119,12 +119,12 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     var osmData = OsmData();
-//    osmData.profiling = true;
+    osmData.profiling = true;
     var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
         30000,
-        5);
+        10);
 
     drawRoute(routes[0]);
 
@@ -144,11 +144,11 @@ class MapWidgetState extends State<MapWidget> {
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0);
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: .5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0);
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 1);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
@@ -354,7 +354,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
         // TODO uncomment this if you want to check the route calculation
-//         initRoutes();
+         initRoutes();
       });
       updateCurrentLocationOnChange();
     });

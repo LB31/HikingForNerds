@@ -1,5 +1,5 @@
 
-import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 
 class HikingRoute {

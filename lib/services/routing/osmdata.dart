@@ -1,185 +1,15 @@
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
-import 'package:collection/collection.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/edge.dart';
+import 'package:hiking4nerds/services/routing/graph.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
-//import 'package:mapbox_gl/mapbox_gl.dart';
-
-//dummy class to be able to run code without importing mapbox which only works with flutter
-//with this class this code can be run without flutter
-class LatLng{
-  double latitude;
-  double longitude;
-  LatLng(this.latitude, this.longitude);
-}
-
-class Node extends LatLng{
-  int _id;
-  int get id => _id;
-
-  Node(this._id, latitude, longitude):
-    super(latitude, longitude);
 
 
-  @override
-  bool operator ==(other) => other is Node && other.id ==id;
-
-  @override
-  int get hashCode => id;
-
-  @override
-  String toString() => "id: $id, lat: $latitude, lng: $longitude";
-}
-
-class Way{
-  int _id;
-  int get id => _id;
-  double initialPenalty;
-  List<Node> childNodes;
-  Way(this._id, List<int> nodeIds, OsmData dataWithNodes, this.initialPenalty){
-    childNodes = List();
-    for(int nodeId in nodeIds){
-      //adds the actual node object to the way instead of only the node id. Lookup returns the object found in the set,
-      //so with an overridden equals method we can get the wanted node by passing that function a dummy node with the required id.
-      childNodes.add(dataWithNodes.nodes.lookup(Node(nodeId, 0.0, 0.0)));
-    }
-  }
-}
-
-class Edge{
-  Node nodeFrom;
-  Node nodeTo;
-  double weight;
-  Way parentWay;
-  Edge back;
-
-  Edge(this.nodeFrom, this.nodeTo, this.weight, this.parentWay);
-}
-
-class Graph {
-  Map<Node, List<Edge>> adjacencies;
-  Map<Edge, double> penalties; //factor that penalizes edges, for example when they were used already in a roundtrip
-
-  Graph() {
-    adjacencies = Map();
-    penalties = Map();
-  }
-
-  void addEdge(Node nodeA, Node nodeB, double weight, Way parentWay) {
-    adjacencies.putIfAbsent(nodeA, () => List<Edge>());
-    adjacencies.putIfAbsent(nodeB, () => List<Edge>());
-
-    var edgeAtoB = Edge(nodeA, nodeB, weight, parentWay);
-    var edgeBtoA = Edge(nodeB, nodeA, weight, parentWay);
-
-    adjacencies[nodeA].add(edgeAtoB);
-    adjacencies[nodeB].add(edgeBtoA);
-
-    edgeAtoB.back = edgeBtoA;
-    edgeBtoA.back = edgeAtoB;
-
-    penalties.putIfAbsent(edgeAtoB, () => parentWay.initialPenalty);
-    penalties.putIfAbsent(edgeBtoA, () => parentWay.initialPenalty);
-  }
-
-  int getNodeCount() {
-    return adjacencies.length;
-  }
-
-  void penalizeEdgesAlongRoute(List<Edge> route, double penalty){
-    for(var edge in route){
-      penalties[edge] *= penalty;
-      penalties[edge.back] *= penalty;
-    }
-  }
-
-  List<Node> edgeToNodes(Edge edge) {
-    List<Node> result = List<Node>();
-    bool startAdding = false;
-    bool reverseResult = false;
-    for (var node in edge.parentWay.childNodes) {
-      if (node == edge.nodeFrom && !startAdding) startAdding = true;
-      if (node == edge.nodeTo && !startAdding) {
-        startAdding = true;
-        reverseResult = true;
-      }
-      if (startAdding) result.add(node);
-      if (node == edge.nodeTo && startAdding && !reverseResult) break;
-      if (node == edge.nodeFrom && startAdding && reverseResult) break;
-    }
-    if(reverseResult) return result.reversed.toList();
-    else return result;
-  }
-
-
-  List<Edge> AStar(Node start, Node end) {
-    //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
-    //https://en.wikipedia.org/wiki/A*_search_algorithm
-
-
-    // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
-    h(Node node) => OsmData.getDistance(node, end);
-
-    // For node n, cameFrom[n] is the edge immediately preceding it on the cheapest path from start to n currently known.
-    Map<Node, Edge> cameFrom = Map();
-    List<Edge> reconstructPath(Node current) {
-      var totalPath = List<Edge>();
-//      totalPath.add(current);
-      while (cameFrom.containsKey(current)) {
-        totalPath.insert(0, cameFrom[current]);
-        current = cameFrom[current].nodeFrom;
-      }
-      return totalPath;
-    }
-
-    // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
-    Map<Node, double> gScore = Map();
-    gScore[start] = 0;
-
-    // For node n, fScore[n] := gScore[n] + h(n).
-    Map<Node, double> fScore = Map();
-    fScore[start] = h(start);
-
-    // The set of discovered nodes that may need to be (re-)expanded.
-    // Initially, only the start node is known.
-    Set<Node> openSet = HashSet();
-    PriorityQueue<Node> openQueue = PriorityQueue((nodeA, nodeB) => (fScore[nodeA] ?? double.infinity).compareTo(fScore[nodeB] ?? double.infinity));
-    openSet.add(start);
-    openQueue.add(start);
-
-    while (openSet.isNotEmpty) {
-
-      var current = openQueue.removeFirst();
-      openSet.remove(current);
-
-      if (current == end) {
-        return reconstructPath(current);
-      }
-      for (Edge neighborEdge in adjacencies[current]) {
-        // d(current,neighbor) is the weight of the edge from current to neighbor
-        // tentative_gScore is the distance from start to the neighbor through current
-        var tentativeGScore = (gScore[current] ?? double.infinity) +
-            neighborEdge.weight * penalties[neighborEdge];
-        var neighbor = neighborEdge.nodeTo;
-        if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
-          // This path to neighbor is better than any previous one. Record it!
-          cameFrom[neighbor] = neighborEdge;
-          gScore[neighbor] = tentativeGScore;
-          fScore[neighbor] = tentativeGScore + h(neighbor);
-          if(openSet.contains(neighbor)){
-            openQueue.remove(neighbor);
-          }
-          openQueue.add(neighbor);
-          openSet.add(neighbor);
-        }
-      }
-    }
-    return null;
-  }
-
-}
 
 class OsmData{
   HashSet<Node> nodes;
@@ -188,6 +18,7 @@ class OsmData{
   bool profiling = false;
   int _routeCalculationStartTime;
   Random _randomGenerator = Random(1);
+  int maxRetries = 20;
 
 
   OsmData(){
@@ -323,7 +154,8 @@ class OsmData{
 
   List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
     List<HikingRoute> routes = List();
-    for(var i =0; i<alternativeRouteCount; i++){
+    var retryCount = 0;
+    while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
       var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
@@ -333,10 +165,25 @@ class OsmData{
       var nodeC = getClosestToPoint(pointC[0], pointC[1]);
 
       var aToB = graph.AStar(nodeA, nodeB);
+      if(aToB == null){
+        print("Warning: path to B not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
+        continue;
+      }
       graph.penalizeEdgesAlongRoute(aToB, 2);
       var bToC = graph.AStar(nodeB, nodeC);
+      if(bToC == null){
+        print("Warning: path to C not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
+        continue;
+      }
       graph.penalizeEdgesAlongRoute(bToC, 2);
       var cToA = graph.AStar(nodeC, nodeA);
+      if(aToB == null){
+        print("Warning: path to C not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
+        continue;
+      }
       graph.penalizeEdgesAlongRoute(cToA, 2);
 
       var routeAlternative = aToB;
@@ -345,8 +192,8 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-      if(profiling) print("Route " + (i+1).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
+      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     }
     return routes;
   }
@@ -367,8 +214,6 @@ class OsmData{
         key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
     if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after" + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     List<PointOfInterest> includedPois = List();
-//      todo make this parameter do something
-//    alternativeRouteCount = 1; //sorry
     for(int i = 0; i<alternativeRouteCount; i++){
       List<Edge> route = List();
       var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
@@ -472,7 +317,7 @@ class OsmData{
 
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
-        ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
+        ';way["highway"~"pedestrian|footway|unclassified|cyclepath|track|path|bridleway|sidewalk|residential|service"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
 
     var response = await http.get(url);

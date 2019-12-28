@@ -1,6 +1,6 @@
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
-import 'package:hiking4nerds/services/osmdata.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 
 class GeojsonExportHandler{
 
