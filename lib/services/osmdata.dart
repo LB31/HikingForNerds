@@ -5,15 +5,15 @@ import 'package:collection/collection.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
+//import 'package:mapbox_gl/mapbox_gl.dart';
 
 //dummy class to be able to run code without importing mapbox which only works with flutter
 //with this class this code can be run without flutter
-//class LatLng{
-//  double latitude;
-//  double longitude;
-//  LatLng(this.latitude, this.longitude);
-//}
+class LatLng{
+  double latitude;
+  double longitude;
+  LatLng(this.latitude, this.longitude);
+}
 
 class Node extends LatLng{
   int _id;
@@ -255,7 +255,6 @@ class OsmData{
         currentLength += getDistance(lastNode, node);
         lastNode = node;
         if(nodeCount[node] > 1 && node != lastIntersection){
-          //Todo: Maybe add the List of nodes to each edge right here, so those don't have to be reconstructed after the routing algorithm finished
           graph.addEdge(lastIntersection, node, currentLength, way);
           currentLength = 0;
           lastIntersection = node;
@@ -488,6 +487,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 30000, 10);
+      52.510143, 13.408564, 20000, 10);
   print(route.length);
 }
