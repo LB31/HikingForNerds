@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
+import 'package:collection/collection.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:http/http.dart' as http;
@@ -117,10 +118,6 @@ class Graph {
     //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
     //https://en.wikipedia.org/wiki/A*_search_algorithm
 
-    // The set of discovered nodes that may need to be (re-)expanded.
-    // Initially, only the start node is known.
-    Set<Node> openSet = Set();
-    openSet.add(start);
 
     // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
     h(Node node) => OsmData.getDistance(node, end);
@@ -145,15 +142,21 @@ class Graph {
     Map<Node, double> fScore = Map();
     fScore[start] = h(start);
 
+    // The set of discovered nodes that may need to be (re-)expanded.
+    // Initially, only the start node is known.
+    Set<Node> openSet = HashSet();
+    PriorityQueue<Node> openQueue = PriorityQueue((nodeA, nodeB) => (fScore[nodeA] ?? double.infinity).compareTo(fScore[nodeB] ?? double.infinity));
+    openSet.add(start);
+    openQueue.add(start);
+
     while (openSet.isNotEmpty) {
-      var current = openSet.reduce((curr, next) =>
-      (fScore[curr] ?? double.infinity) < (fScore[next] ?? double.infinity)
-          ? curr
-          : next);
+
+      var current = openQueue.removeFirst();
+      openSet.remove(current);
+
       if (current == end) {
         return reconstructPath(current);
       }
-      openSet.remove(current);
       for (Edge neighborEdge in adjacencies[current]) {
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
@@ -165,6 +168,10 @@ class Graph {
           cameFrom[neighbor] = neighborEdge;
           gScore[neighbor] = tentativeGScore;
           fScore[neighbor] = tentativeGScore + h(neighbor);
+          if(openSet.contains(neighbor)){
+            openQueue.remove(neighbor);
+          }
+          openQueue.add(neighbor);
           openSet.add(neighbor);
         }
       }
@@ -349,21 +356,27 @@ class OsmData{
     List<HikingRoute> routes = List();
     var jsonDecoder = JsonDecoder();
     var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
-    if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    dynamic elements = jsonDecoder.convert(poisJson)['elements'];
-    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(elements,
-        value: (element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags']),
-        key: (element) => getClosestToPoint(element['lat'], element['lon']));
-    List<PointOfInterest> includedPois = List();
     var startNode = getClosestToPoint(startLat, startLong);
+
+    if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    List<dynamic> elements = jsonDecoder.convert(poisJson)['elements'];
+    var pointsOfInterests = elements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
+    pointsOfInterests.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
+    var closestPointsOfInterests = pointsOfInterests.sublist(0,30);
+    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(closestPointsOfInterests,
+        value: (cPoi) => cPoi,
+        key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
+    if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after" + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    List<PointOfInterest> includedPois = List();
 //      todo make this parameter do something
 //    alternativeRouteCount = 1; //sorry
     for(int i = 0; i<alternativeRouteCount; i++){
       List<Edge> route = List();
+      var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
       var lastVisited = startNode;
       var totalRouteLength = 0.0;
       //determine first poi to go to
-      var unsortedPoiNodeList = wayNodeAndPOI.keys.toList();
+      var unsortedPoiNodeList = wayNodeAndPOICopy.keys.toList();
       unsortedPoiNodeList.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
       var firstPoi = unsortedPoiNodeList[i % unsortedPoiNodeList.length];
       //plan route to that poi
@@ -371,23 +384,27 @@ class OsmData{
       totalRouteLength += lengthOfEdgesKM(routeToFirstPoi);
       route.addAll(routeToFirstPoi);
       graph.penalizeEdgesAlongRoute(routeToFirstPoi, 5);
-      includedPois.add(wayNodeAndPOI[firstPoi]);
-      wayNodeAndPOI.remove(firstPoi);
+      includedPois.add(wayNodeAndPOICopy[firstPoi]);
+      wayNodeAndPOICopy.remove(firstPoi);
       lastVisited = firstPoi;
       //start loop over all the other pois
-      while(wayNodeAndPOI.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
-        var closestPoiWayNode = wayNodeAndPOI.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
+      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
+        var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
         var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
+        if(routeToClosestPoi == null){
+          wayNodeAndPOICopy.remove(closestPoiWayNode);
+          continue;
+        }
         totalRouteLength += lengthOfEdgesKM(routeToClosestPoi);
         route.addAll(routeToClosestPoi);
         graph.penalizeEdgesAlongRoute(routeToClosestPoi, 5);
-        includedPois.add(wayNodeAndPOI[closestPoiWayNode]);
-        wayNodeAndPOI.remove(closestPoiWayNode);
+        includedPois.add(wayNodeAndPOICopy[closestPoiWayNode]);
+        wayNodeAndPOICopy.remove(closestPoiWayNode);
         lastVisited = closestPoiWayNode;
       }
 
       List<Edge> routeBack = List();
-      if(wayNodeAndPOI.isEmpty){ //route is probably not long enough yet
+      if(wayNodeAndPOICopy.isEmpty){ //route is probably not long enough yet
         var a = ((distanceInMeter/1000) - totalRouteLength) /2;
         var b = ((distanceInMeter/1000) - totalRouteLength) /2;
         var c = getDistance(startNode, lastVisited);
@@ -471,6 +488,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 30000, 1);
+      52.510143, 13.408564, 30000, 10);
   print(route.length);
 }

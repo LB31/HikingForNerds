@@ -37,7 +37,7 @@ packages:
     source: hosted
     version: "1.1.2"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
       url: "https://pub.dartlang.org"
@@ -71,13 +71,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
-  dart2_constant:
-    dependency: transitive
-    description:
-      name: dart2_constant
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2+dart2"
   esys_flutter_share:
     dependency: "direct main"
     description:
@@ -298,13 +291,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
-  r_tree:
-    dependency: "direct main"
-    description:
-      name: r_tree
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.6"
   rxdart:
     dependency: transitive
     description:

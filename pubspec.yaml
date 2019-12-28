@@ -19,7 +19,7 @@ environment:
 dependencies:
   flutter_map:
   http:
-  r_tree:
+  collection: 1.14.11
   location:
   flutter:
     sdk: flutter
