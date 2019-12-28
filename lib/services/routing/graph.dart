@@ -1,5 +1,5 @@
 import 'dart:collection';
-
+import 'package:quiver/core.dart';
 import 'package:collection/collection.dart';
 import 'package:hiking4nerds/services/routing/edge.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -63,7 +63,7 @@ class Graph {
   }
 
 
-  List<Edge> AStar(Node start, Node end) {
+  Optional<List<Edge>> AStar(Node start, Node end) {
     //Implemented from pseudocode from Wikipedia. Copied the comments from there es well for better understanding
     //https://en.wikipedia.org/wiki/A*_search_algorithm
 
@@ -73,14 +73,14 @@ class Graph {
 
     // For node n, cameFrom[n] is the edge immediately preceding it on the cheapest path from start to n currently known.
     Map<Node, Edge> cameFrom = Map();
-    List<Edge> reconstructPath(Node current) {
+    Optional<List<Edge>> reconstructPath(Node current) {
       var totalPath = List<Edge>();
 //      totalPath.add(current);
       while (cameFrom.containsKey(current)) {
         totalPath.insert(0, cameFrom[current]);
         current = cameFrom[current].nodeFrom;
       }
-      return totalPath;
+      return Optional.fromNullable(totalPath);
     }
 
     // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
@@ -125,7 +125,7 @@ class Graph {
         }
       }
     }
-    return null;
+    return Optional.absent();
   }
 
 }

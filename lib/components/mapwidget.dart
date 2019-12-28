@@ -119,12 +119,11 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     var osmData = OsmData();
-    osmData.profiling = true;
+//    osmData.profiling = true;
     var routes = await osmData.calculateHikingRoutes(
         _currentDeviceLocation.latitude,
         _currentDeviceLocation.longitude,
-        30000,
-        10);
+        10000, 10, "popelbande"); //testing the exception for no pois found
 
     drawRoute(routes[0]);
 
@@ -354,7 +353,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       getCurrentLocation().then((location) {
         // TODO uncomment this if you want to check the route calculation
-         initRoutes();
+//         initRoutes();
       });
       updateCurrentLocationOnChange();
     });
