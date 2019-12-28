@@ -1,4 +1,4 @@
-//import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:location/location.dart';
 
 //dummy class to be able to run code without importing mapbox which only works with flutter
 //with this class this code can be run without flutter

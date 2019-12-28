@@ -6,6 +6,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/edge.dart';
 import 'package:hiking4nerds/services/routing/graph.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:hiking4nerds/services/routing/noroutesfoundexception.dart';
 import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
 
@@ -194,6 +195,9 @@ class OsmData{
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
       routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
       if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    }
+    if(routes.length == 0){
+      throw NoRoutesFoundException;
     }
     return routes;
   }
