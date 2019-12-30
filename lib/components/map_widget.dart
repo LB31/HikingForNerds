@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 

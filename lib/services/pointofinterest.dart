@@ -1,4 +1,5 @@
-import 'osmdata.dart';
+
+import 'package:hiking4nerds/services/routing/node.dart';
 
 class PointOfInterest extends Node{
   Map<String, dynamic> tags;

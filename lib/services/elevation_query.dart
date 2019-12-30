@@ -1,5 +1,5 @@
-import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as JSON;
 
