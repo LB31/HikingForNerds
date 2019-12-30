@@ -1,6 +1,6 @@
 import 'package:gpx/gpx.dart';
-import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 
 class GpxExportHandler{
 
