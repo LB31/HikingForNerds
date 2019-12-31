@@ -40,7 +40,13 @@ class GeojsonExportHandler{
     for(PointOfInterest pointOfInterest in pointsOfInterest){
       GeoJsonFeature poi = new GeoJsonFeature<GeoJsonPoint>();
       poi.type = GeoJsonFeatureType.point;
-      poi.properties = pointOfInterest.tags;
+      poi.properties = new Map();
+
+      //TODO: copy all tags, not just name: wirte own mapper?
+      if (!pointOfInterest.tags.containsKey("name"))
+        poi.properties.putIfAbsent("name", () => "POI" + pointOfInterest.id.toString());
+
+      poi.properties.addAll(pointOfInterest.tags);
       poi.geometry = _toGeojsonPoint(pointOfInterest);
 
       pois.add(poi);
