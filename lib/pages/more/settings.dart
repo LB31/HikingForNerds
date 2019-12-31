@@ -8,6 +8,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool checkboxValue = false;
+  double sliderValue = 0;
+  RangeValues sliderRange = RangeValues(2, 10);
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
           backgroundColor: Theme.of(context).primaryColor,
         ),
         body: Container(
-          child: Stack(
+          child: Column(
             children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -30,6 +32,42 @@ class _SettingsPageState extends State<SettingsPage> {
                         checkboxValue = value;
                       });
                     },
+                  )
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text("Slider"),
+                  Slider(
+                    value: sliderValue,
+                    onChanged: (double value) {
+                      setState(() {
+                        sliderValue = value;
+                      });
+                    },
+                    min: 0,
+                    max: 15,
+                    divisions: 5,
+                    label: "$sliderValue",
+                  )
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text("Range Slider"),
+                  RangeSlider(
+                    values: sliderRange,
+                    onChanged: (RangeValues range) {
+                      setState(() {
+                        sliderRange = range;
+                      });
+                    },
+                    min: 0,
+                    max: 15,
+                    divisions: 15,
+                    labels: RangeLabels(sliderRange.start.toString(), sliderRange.end.toString()),
                   )
                 ],
               )
