@@ -91,7 +91,7 @@ class ShareRoute extends StatelessWidget {
                       onPressed: () async {
                         if (this.route == null) return;
                         String jsonString =
-                            GeojsonExportHandler.parseFromPolylines(route.path);
+                            GeojsonExportHandler.parseFromPolylines(route);
                         File exportedFile = await exportAsJson(jsonString);
                         await Share.file('route', 'route.geojson',
                             exportedFile.readAsBytesSync(), 'application/json');

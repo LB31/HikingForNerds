@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/elevation_chart.dart'; // needed for testing
+import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -24,7 +25,17 @@ class MapPageState extends State<MapPage> {
       Node(1, 52.5102903, 13.4084606),
       Node(2, 52.5101514, 13.4081806),
       Node(3, 52.507592, 13.409908),
-    ], 50, null, [3.3, 2.1, 50.2, 20.8]);
+    ], 50,
+        [
+          new PointOfInterest(0, 52.5102903, 13.4084606,
+              {
+                "highway": "bus_stop",
+                "name": "Main Street"
+              }
+          )
+        ],
+        [3.3, 2.1, 50.2, 20.8]
+    );
 
     return Scaffold(
       body: Stack(
