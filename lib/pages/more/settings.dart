@@ -10,6 +10,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool checkboxValue = false;
   double sliderValue = 0;
   RangeValues sliderRange = RangeValues(2, 10);
+  bool switchValue = false;
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +68,27 @@ class _SettingsPageState extends State<SettingsPage> {
                     min: 0,
                     max: 15,
                     divisions: 15,
-                    labels: RangeLabels(sliderRange.start.toString(), sliderRange.end.toString()),
+                    labels: RangeLabels(sliderRange.start.toString(),
+                        sliderRange.end.toString()),
                   )
                 ],
-              )
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text("Switch"),
+                  Switch(
+                    value : switchValue,
+                    onChanged: (bool value){
+                      setState(() {
+                        switchValue = value;
+                      });
+                    },
+                    activeColor: Color(0xFF00FF00),
+                    inactiveTrackColor: Color(0xFFFF0000),
+                  )
+                ],
+              ),
             ],
           ),
         ));
