@@ -5,6 +5,7 @@ import 'package:hiking4nerds/pages/map.dart';
 import 'package:hiking4nerds/pages/more/credits.dart';
 import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
+import 'package:hiking4nerds/pages/more/settings.dart';
 import 'package:hiking4nerds/pages/setup/location_selection.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
 
@@ -16,6 +17,7 @@ class SegmentRoutes {
   static const String routePreview = '/setup/routepreview';
   static const String help = '/more/help';
   static const String credits = '/more/credits';
+  static const String settings = '/more/settings';
 }
 
 /// There are two options for navigation between pages.
@@ -63,7 +65,8 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.more:
         return MorePage(
             onPushCredit: () => _push(context, SegmentRoutes.credits),
-            onPushHelp: () => _push(context, SegmentRoutes.help));
+            onPushHelp: () => _push(context, SegmentRoutes.help),
+            onPushSettings: () => _push(context, SegmentRoutes.settings));
     }
 
     throw new Exception(
@@ -75,10 +78,10 @@ class SegmentNavigator extends StatelessWidget {
       [Map<String, dynamic> params]) {
     return {
       SegmentRoutes.credits: (context) => CreditsPage(),
-
       SegmentRoutes.help: (context) => HelpPage(
           onPushHistorySaveState: () => onChangeSegment(AppSegment.history),
           onPushHistory: () => onChangeSegment(AppSegment.history, true)),
+      SegmentRoutes.settings: (context) => SettingsPage(),
 
       // TODO add route preferences
 //      SegmentRoutes.routePreferences: (context) => RoutePreferences(

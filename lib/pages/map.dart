@@ -29,7 +29,8 @@ class MapPageState extends State<MapPage> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(key: mapWidgetKey, isStatic: false),
+          // TODO activate next line again. It stops me from proper debugging
+          //MapWidget(key: mapWidgetKey, isStatic: false),
 //          //To test the elevation chart
 //           Positioned(
 //             top: MediaQuery.of(context).size.height - 450,
