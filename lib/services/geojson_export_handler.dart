@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:geojson/geojson.dart';
@@ -13,7 +14,7 @@ class GeojsonExportHandler{
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     return _trimWrongPluginSyntax(
         _getGeojsonFeatureCollection(route)
-            .serialize()
+            .serialize(), route.pointsOfInterest
     );
   }
 
@@ -93,17 +94,38 @@ class GeojsonExportHandler{
   /// trim wrong syntax from geopoint package
   /// could lead to problems with polygons in geojson string
   /// pls don't ask
-  static String _trimWrongPluginSyntax(String jsonString) {
+  static String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest) {
+    //trim out wrong line feature type name
     RegExp regExp = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
     if (regExp.hasMatch(jsonString))
       jsonString = jsonString.replaceAll(regExp, "\"type\":\"LineString\"");
 
+    //trim out wrongly placed braces
     RegExp regExp1 = new RegExp("\\\"([Ff]eatures)\\\"(\\s*):(\\s*)\\[(\s*)\\[(\\s*)\\{(\\s*)\\\"([Tt]ype)\\\"");
     if (regExp1.hasMatch(jsonString)) {
       jsonString = jsonString.replaceAll(regExp1, "\"features\":[{\"type\"");
       jsonString = jsonString.replaceAll(new RegExp("\\],\\[\\{\\\"[Tt]ype\\\""), ",{\"type\"");
       jsonString = jsonString.replaceAll(new RegExp("(\\]\\]\\})\$"), "]}");
     }
+
+    //trim out wrong properties of pois
+    RegExp regExp2 = new RegExp("\\\"([Pp]roperties)\\\"(\\s*):(\\s*)\\{\\\"name\\\"(\\s*):(\\s*)\\\"null\\\"\\}");
+    if (regExp2.hasMatch(jsonString)){
+      var allMatches = regExp2.allMatches(jsonString);
+      assert(allMatches.length == pointsOfInterest.length);
+      var matchesList = allMatches.toList();
+
+      for(int i = 0; i < matchesList.length; i++){
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("\"properties\":{");
+        var counter = 0;
+        pointsOfInterest[i].tags.forEach((key, value) =>
+          buffer.write("\"" + key + "\"" + ":" + "\"" + value + "\"" + (++counter >= pointsOfInterest[i].tags.length ? "" : ",")));
+        buffer.write("}");
+        jsonString = jsonString.replaceRange(matchesList[i].start, matchesList[i].end, buffer.toString());
+      }
+    }
+
 
     return jsonString;
   }
