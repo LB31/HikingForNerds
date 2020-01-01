@@ -32,6 +32,11 @@ class MapPageState extends State<MapPage> {
                 "highway": "bus_stop",
                 "name": "Main Street"
               }
+          ),
+          new PointOfInterest(0, 52.507592, 13.409908,
+              {
+                "name": "Just another Street"
+              }
           )
         ],
         [3.3, 2.1, 50.2, 20.8]

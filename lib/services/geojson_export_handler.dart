@@ -110,22 +110,18 @@ class GeojsonExportHandler{
 
     //trim out wrong properties of pois
     RegExp regExp2 = new RegExp("\\\"([Pp]roperties)\\\"(\\s*):(\\s*)\\{\\\"name\\\"(\\s*):(\\s*)\\\"null\\\"\\}");
-    if (regExp2.hasMatch(jsonString)){
-      var allMatches = regExp2.allMatches(jsonString);
-      assert(allMatches.length == pointsOfInterest.length);
-      var matchesList = allMatches.toList();
-
-      for(int i = 0; i < matchesList.length; i++){
-        StringBuffer buffer = new StringBuffer();
-        buffer.write("\"properties\":{");
-        var counter = 0;
-        pointsOfInterest[i].tags.forEach((key, value) =>
-          buffer.write("\"" + key + "\"" + ":" + "\"" + value + "\"" + (++counter >= pointsOfInterest[i].tags.length ? "" : ",")));
-        buffer.write("}");
-        jsonString = jsonString.replaceRange(matchesList[i].start, matchesList[i].end, buffer.toString());
-      }
+    var match;
+    var poiIndex = -1;
+    StringBuffer buffer = new StringBuffer();
+    while((match = regExp2.firstMatch(jsonString)) != null && ++poiIndex < pointsOfInterest.length){
+      buffer.write("\"properties\":{");
+      var counter = 0;
+      pointsOfInterest[poiIndex].tags.forEach((key, value) =>
+          buffer.write("\"" + key + "\"" + ":" + "\"" + value + "\"" + (++counter >= pointsOfInterest[poiIndex].tags.length ? "" : ",")));
+      buffer.write("}");
+      jsonString = jsonString.replaceRange(match.start, match.end, buffer.toString());
+      buffer.clear();
     }
-
 
     return jsonString;
   }
