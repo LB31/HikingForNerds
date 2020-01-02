@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
@@ -10,7 +11,7 @@ import 'package:hiking4nerds/services/routing/node.dart';
 class GeojsonExportHandler{
 
   /// parse List of Polyline objects to Geojson as String
-  static String parseFromPolylines(HikingRoute route){
+  static String parseStringFromRoute(HikingRoute route){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     return _trimWrongPluginSyntax(
         _getGeojsonFeatureCollection(route)
@@ -128,16 +129,19 @@ class GeojsonExportHandler{
 
   //importing part
   //TODO: think about heightData and POIs
-  static Future<HikingRoute> parseRouteFromPath(File dataFile) async {
-    GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(dataFile, nameProperty: "null");
+  static Future<HikingRoute> parseRouteFromPath(String dataPath) async {
+    File readSharedFile = await _sharedFile(dataPath);
 
-    //you could export multiple routes
-    return _geoJsonFeatureToRoute(featureCollection)[0];
+    GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
+
+    return _geoJsonFeatureToRoute(featureCollection);
   }
 
-  static List<HikingRoute> _geoJsonFeatureToRoute(GeoJsonFeatureCollection geoJsonFeatureCollection){
+  ///Translates parsed GeoJsonFeatureCollection to a HikingRoute
+  ///NOTE: a single point in a feature collection will be interpreted as a Point of Interest
+  static HikingRoute _geoJsonFeatureToRoute(GeoJsonFeatureCollection geoJsonFeatureCollection){
     List<GeoJsonFeature> features = geoJsonFeatureCollection.collection;
-    List<HikingRoute> routes = List<HikingRoute>();
+    HikingRoute hikingRoute = new HikingRoute(null, 0, new List<PointOfInterest>());
 
     for (GeoJsonFeature feature in features){
       if (feature.type == GeoJsonFeatureType.line){
@@ -149,10 +153,29 @@ class GeojsonExportHandler{
           nodes.add(new Node(idCounter++, geoPoint.latitude, geoPoint.longitude));
         }
 
-        routes.add(HikingRoute(nodes, null));
+        hikingRoute.path = nodes;
+
+      }else if (feature.type == GeoJsonFeatureType.point){
+        GeoJsonPoint point = feature.geometry as GeoJsonPoint;
+
+        PointOfInterest pointOfInterest = new PointOfInterest(
+          hikingRoute.pointsOfInterest.length,
+          point.geoPoint.latitude,
+          point.geoPoint.longitude,
+          feature.properties);
+
+        hikingRoute.pointsOfInterest.add(pointOfInterest);
       }
+
     }
 
-    return routes;
+    return hikingRoute;
+  }
+
+  static Future<File> _sharedFile(String dataPath) async {
+    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
+
+    File file = File(sharedFilePath);
+    return file.existsSync() ? file : null;
   }
 }

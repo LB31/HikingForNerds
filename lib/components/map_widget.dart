@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/geojson_export_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 
@@ -24,6 +25,9 @@ class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
+
+  static const platform = const MethodChannel('app.channel.hikingfornerds.data');
+  HikingRoute sharedRoute;
 
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
@@ -71,6 +75,22 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
+    _getIntentData();
+  }
+
+  Future<void> _getIntentData() async {
+    var data = await _getSharedData();
+    if (data == null) return;
+    setState(() {
+      sharedRoute = data;
+    });
+  }
+
+  _getSharedData() async {
+    String dataPath = await platform.invokeMethod("getSharedData");
+    if (dataPath.isEmpty) return null;
+    var data = await GeojsonExportHandler.parseRouteFromPath(dataPath);
+    return data;
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -386,5 +406,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
+
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
