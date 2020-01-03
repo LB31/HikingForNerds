@@ -13,9 +13,11 @@ class GeojsonExportHandler{
   /// parse List of Polyline objects to Geojson as String
   static String parseStringFromRoute(HikingRoute route){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
+    /// note that you could pass an elevation list that is longer than the passed route to add elevation data for POIs if necessary
     return _trimWrongPluginSyntax(
-        _getGeojsonFeatureCollection(route)
-            .serialize(), route.pointsOfInterest
+        _getGeojsonFeatureCollection(route).serialize(),
+        route.pointsOfInterest,
+        route.elevations
     );
   }
 
@@ -23,13 +25,13 @@ class GeojsonExportHandler{
   static GeoJsonFeatureCollection _getGeojsonFeatureCollection(HikingRoute hikingRoute){
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
-    geojsonFeatures.add(_createPathFeature(hikingRoute.path));
+    geojsonFeatures.add(_createPathFeature(hikingRoute.path, hikingRoute.elevations));
     _createPOIFeature(hikingRoute.pointsOfInterest).forEach((poi) => geojsonFeatures.add(poi));
 
     return new GeoJsonFeatureCollection(geojsonFeatures);
   }
 
-  static GeoJsonFeature _createPathFeature(List<Node> path) {
+  static GeoJsonFeature _createPathFeature(List<Node> path, List<double> elevations) {
     GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
     feature.type = GeoJsonFeatureType.line;
     feature.properties = {};
@@ -44,7 +46,6 @@ class GeojsonExportHandler{
       poi.type = GeoJsonFeatureType.point;
       poi.properties = new Map();
 
-      //TODO: copy all tags, not just name: wirte own mapper?
       if (!pointOfInterest.tags.containsKey("name"))
         poi.properties.putIfAbsent("name", () => "POI" + pointOfInterest.id.toString());
 
@@ -69,7 +70,7 @@ class GeojsonExportHandler{
     for(int i = 0; i < nodes.length; i++){
       geoPointList.add(GeoPoint(
           latitude: nodes[i].latitude,
-          longitude: nodes[i].longitude)
+          longitude: nodes[i].longitude,)
       );
     }
 
@@ -95,7 +96,7 @@ class GeojsonExportHandler{
   /// trim wrong syntax from geopoint package
   /// could lead to problems with polygons in geojson string
   /// pls don't ask
-  static String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest) {
+  static String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest, List<double> elevations) {
     //trim out wrong line feature type name
     RegExp regExp = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
     if (regExp.hasMatch(jsonString))
@@ -124,6 +125,16 @@ class GeojsonExportHandler{
       buffer.clear();
     }
 
+    //add elevation data
+    RegExp regExp3 = new RegExp("(\\\"([Cc]oordinates)\\\"(\\s*):(\\s*))*\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*");
+    var matchCoordinate;
+    var lastSubstringIndex = 0;
+    var elevationIndex = -1;
+    while((matchCoordinate = regExp3.firstMatch(jsonString.substring(lastSubstringIndex))) != null && ++elevationIndex < elevations.length){
+      jsonString = jsonString.substring(0, lastSubstringIndex + matchCoordinate.end) + "," + elevations[elevationIndex].toString() + jsonString.substring(lastSubstringIndex + matchCoordinate.end);
+      lastSubstringIndex += matchCoordinate.end + elevations[elevationIndex].toString().length + 1;
+    }
+
     return jsonString;
   }
 
@@ -147,13 +158,17 @@ class GeojsonExportHandler{
       if (feature.type == GeoJsonFeatureType.line){
         GeoJsonLine geometry = feature.geometry as GeoJsonLine;
         List<Node> nodes = new List<Node>();
+        List<double> elevations = new List<double>();
         int idCounter = 0;
 
+        //TODO: check if elevation here is not null (because plugin might do bullshit?)
         for(GeoPoint geoPoint in geometry.geoSerie.geoPoints){
           nodes.add(new Node(idCounter++, geoPoint.latitude, geoPoint.longitude));
+          elevations.add(geoPoint.altitude);
         }
 
         hikingRoute.path = nodes;
+        hikingRoute.elevations = elevations;
 
       }else if (feature.type == GeoJsonFeatureType.point){
         GeoJsonPoint point = feature.geometry as GeoJsonPoint;
@@ -168,6 +183,8 @@ class GeojsonExportHandler{
       }
 
     }
+
+    if (hikingRoute.pointsOfInterest.isEmpty) hikingRoute.pointsOfInterest = null;
 
     return hikingRoute;
   }
