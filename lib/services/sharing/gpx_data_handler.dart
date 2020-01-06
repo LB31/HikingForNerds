@@ -1,16 +1,17 @@
-import 'dart:ui';
+import 'dart:io';
 
-import 'package:xml/xml.dart';
+import 'package:hiking4nerds/services/sharing/import_export_handler.dart';
 
 import 'package:gpx/gpx.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:http/http.dart';
 
-class GpxExportHandler{
+class GpxDataHandler extends ImportExportHandler{
 
   /// parse List of Polyline objects to Gpx as String
-  static String parseFromRoute(HikingRoute route){
+  String parseStringFromRoute(HikingRoute route){
     final gpx = Gpx();
     gpx.version = '1.1';
     gpx.creator = 'Hiking4Nerds';
@@ -31,8 +32,18 @@ class GpxExportHandler{
     );*/
   }
 
-  static HikingRoute parseRouteFromString(String xmlGpxString){
-    Gpx gpxData = GpxReader().fromString(xmlGpxString);
+  Future<HikingRoute> parseRouteFromString(String dataPath) async {
+    File readSharedFile = await sharedFile(dataPath);
+    String xmlString = await readSharedFile.readAsString();
+
+    HikingRoute route = _parseStringToRoute(xmlString);
+    route.totalLength = calculateDistance(route.path);
+
+    return route;
+  }
+
+  HikingRoute _parseStringToRoute(String xmlString){
+    Gpx gpxData = GpxReader().fromString(xmlString);
 
     List<Node> path = new List<Node>();
     List<double> elevations = new List<double>();
@@ -45,12 +56,12 @@ class GpxExportHandler{
       });
     }
 
-    return new HikingRoute(path, null, null, elevations);
+    return new HikingRoute(path, 0, null, elevations);
   }
 
   ///returns a Rte (Route) Object containing Wpts
   ///one tracksegment containing multiple Waypoint objects
-  static Rte _getRoute(List<Node> nodes, List<double> elevations) {
+  Rte _getRoute(List<Node> nodes, List<double> elevations) {
     List<Wpt> wpts = new List<Wpt>();
     for (int i = 0; i < nodes.length; i++){
       wpts.add(new Wpt(lat: nodes[i].latitude, lon: nodes[i].longitude, ele: (i < elevations.length ? elevations[i] : 0)));
@@ -63,7 +74,7 @@ class GpxExportHandler{
     );
   }
 
-  static Trk _getPOIs(List<PointOfInterest> pointsOfInterest){
+  Trk _getPOIs(List<PointOfInterest> pointsOfInterest){
     List<Wpt> wpts = new List<Wpt>();
     for (PointOfInterest poi in pointsOfInterest){
       wpts.add(new Wpt(

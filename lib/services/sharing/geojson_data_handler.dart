@@ -1,17 +1,16 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:geojson/geojson.dart';
 import 'package:geopoint/geopoint.dart';
+import 'package:hiking4nerds/services/sharing/import_export_handler.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 
-class GeojsonExportHandler{
+class GeojsonDataHandler extends ImportExportHandler{
 
   /// parse List of Polyline objects to Geojson as String
-  static String parseStringFromRoute(HikingRoute route){
+  String parseStringFromRoute(HikingRoute route){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     /// note that you could pass an elevation list that is longer than the passed route to add elevation data for POIs if necessary
     return _trimWrongPluginSyntax(
@@ -22,7 +21,7 @@ class GeojsonExportHandler{
   }
 
   /// creates new GeoJsonFeatureCollection object containing data of route
-  static GeoJsonFeatureCollection _getGeojsonFeatureCollection(HikingRoute hikingRoute){
+  GeoJsonFeatureCollection _getGeojsonFeatureCollection(HikingRoute hikingRoute){
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
     geojsonFeatures.add(_createPathFeature(hikingRoute.path, hikingRoute.elevations));
@@ -31,7 +30,7 @@ class GeojsonExportHandler{
     return new GeoJsonFeatureCollection(geojsonFeatures);
   }
 
-  static GeoJsonFeature _createPathFeature(List<Node> path, List<double> elevations) {
+  GeoJsonFeature _createPathFeature(List<Node> path, List<double> elevations) {
     GeoJsonFeature feature = new GeoJsonFeature<GeoJsonLine>();
     feature.type = GeoJsonFeatureType.line;
     feature.properties = {};
@@ -39,7 +38,7 @@ class GeojsonExportHandler{
     return feature;
   }
 
-  static List<GeoJsonFeature> _createPOIFeature(List<PointOfInterest> pointsOfInterest) {
+  List<GeoJsonFeature> _createPOIFeature(List<PointOfInterest> pointsOfInterest) {
     List<GeoJsonFeature> pois = new List<GeoJsonFeature<GeoJsonPoint>>();
     for(PointOfInterest pointOfInterest in pointsOfInterest){
       GeoJsonFeature poi = new GeoJsonFeature<GeoJsonPoint>();
@@ -59,7 +58,7 @@ class GeojsonExportHandler{
   }
 
   /// returns GeoJsonLine object representing a Route
-  static GeoJsonLine _toGeojsonLine(List<Node> nodes){
+  GeoJsonLine _toGeojsonLine(List<Node> nodes){
     GeoJsonLine geoJsonLine = new GeoJsonLine();
     GeoSerie geoSerie = new GeoSerie(
         type: GeoSerieType.line,
@@ -80,7 +79,7 @@ class GeojsonExportHandler{
     return geoJsonLine;
   }
 
-  static GeoJsonPoint _toGeojsonPoint(PointOfInterest pointOfInterest) {
+  GeoJsonPoint _toGeojsonPoint(PointOfInterest pointOfInterest) {
     GeoPoint geoPoint = new GeoPoint(
         latitude: pointOfInterest.latitude,
         longitude: pointOfInterest.longitude,
@@ -96,7 +95,7 @@ class GeojsonExportHandler{
   /// trim wrong syntax from geopoint package
   /// could lead to problems with polygons in geojson string
   /// pls don't ask
-  static String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest, List<double> elevations) {
+  String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest, List<double> elevations) {
     //trim out wrong line feature type name
     RegExp regExp = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
     if (regExp.hasMatch(jsonString))
@@ -139,18 +138,22 @@ class GeojsonExportHandler{
   }
 
   //importing part
-  //TODO: think about heightData and POIs
-  static Future<HikingRoute> parseRouteFromPath(String dataPath) async {
-    File readSharedFile = await _sharedFile(dataPath);
+  Future<HikingRoute> parseRouteFromPath(String dataPath) async {
+    File readSharedFile = await sharedFile(dataPath);
 
     GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
+    GeoJson geo = new GeoJson();
+    //TODO. search for height data in json string seperately (because geojson plugin sucks)
 
-    return _geoJsonFeatureToRoute(featureCollection);
+    HikingRoute route = _geoJsonFeatureToRoute(featureCollection);
+    route.totalLength = calculateDistance(route.path);
+
+    return route;
   }
 
   ///Translates parsed GeoJsonFeatureCollection to a HikingRoute
   ///NOTE: a single point in a feature collection will be interpreted as a Point of Interest
-  static HikingRoute _geoJsonFeatureToRoute(GeoJsonFeatureCollection geoJsonFeatureCollection){
+  HikingRoute _geoJsonFeatureToRoute(GeoJsonFeatureCollection geoJsonFeatureCollection){
     List<GeoJsonFeature> features = geoJsonFeatureCollection.collection;
     HikingRoute hikingRoute = new HikingRoute(null, 0, new List<PointOfInterest>());
 
@@ -189,10 +192,5 @@ class GeojsonExportHandler{
     return hikingRoute;
   }
 
-  static Future<File> _sharedFile(String dataPath) async {
-    final sharedFilePath = await FlutterAbsolutePath.getAbsolutePath(dataPath);
 
-    File file = File(sharedFilePath);
-    return file.existsSync() ? file : null;
-  }
 }

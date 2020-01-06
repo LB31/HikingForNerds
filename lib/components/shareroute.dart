@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/services/geojson_export_handler.dart';
-import 'package:hiking4nerds/services/gpx_export_handler.dart';
+import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
+import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -90,8 +90,7 @@ class ShareRoute extends StatelessWidget {
                     child: FlatButton(
                       onPressed: () async {
                         if (this.route == null) return;
-                        String jsonString =
-                            GeojsonExportHandler.parseStringFromRoute(route);
+                        String jsonString = new GeojsonDataHandler().parseStringFromRoute(route);
                         File exportedFile = await exportAsJson(jsonString);
                         await Share.file('route', 'route.geojson',
                             exportedFile.readAsBytesSync(), 'application/json');
@@ -105,8 +104,7 @@ class ShareRoute extends StatelessWidget {
                     child: FlatButton(
                       onPressed: () async {
                         if (this.route == null) return;
-                        String gpxString =
-                            GpxExportHandler.parseFromRoute(route);
+                        String gpxString = new GpxDataHandler().parseStringFromRoute(route);
                         File exportedFile = await exportAsGpx(gpxString);
                         await Share.file('route', 'route.gpx',
                             exportedFile.readAsBytesSync(), 'text/xml');

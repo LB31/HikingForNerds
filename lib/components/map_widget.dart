@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
-import 'package:hiking4nerds/services/geojson_export_handler.dart';
+import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
+import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -89,7 +90,11 @@ class MapWidgetState extends State<MapWidget> {
   _getSharedData() async {
     String dataPath = await platform.invokeMethod("getSharedData");
     if (dataPath.isEmpty) return null;
-    var data = await GeojsonExportHandler.parseRouteFromPath(dataPath);
+    var data;
+    if (dataPath.endsWith(".geojson"))
+      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
+    else if (dataPath.endsWith(".gpx"))
+      data = new GpxDataHandler().parseRouteFromString(dataPath);
     return data;
   }
 
