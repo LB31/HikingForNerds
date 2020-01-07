@@ -10,7 +10,7 @@ enum AltitudeType{
 class RouteParams {
 
   LatLng startingLocation;
-  int distance;
+  double distance;
   List<String> poi;
   AltitudeType altitudeType;
 

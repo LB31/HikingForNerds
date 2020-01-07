@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:search_widget/search_widget.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 
 class RoutePreferences extends StatefulWidget {
-  final VoidCallback routeParams;
-  final VoidCallback onPushRouteList;
+  final RouteParams routeParams;
 
-  RoutePreferences({@required this.routeParams, @required this.onPushRouteList});
+  RoutePreferences({@required this.routeParams});
 
   @override
   _RoutePreferencesState createState() => _RoutePreferencesState();
@@ -15,26 +15,25 @@ class RoutePreferences extends StatefulWidget {
 class _RoutePreferencesState extends State<RoutePreferences> {
  
   double distance = 5.0; // default
-  List<String> osmkeys = <String>[];
-  List<String> altitudeOptions = <String>['N/A', 'minimum', 'high'];
   int selectedAltitude = 0;
 
   altitudeSelection(){
-    List<Widget> optionsBar = List();
-    altitudeOptions.forEach((opt) {
-      int index = altitudeOptions.indexOf(opt);
-      optionsBar.add(
+    List<Widget> typesBar = List();
+    AltitudeType.values.forEach((v) {
+      int index = v.index;
+      typesBar.add(
       FlatButton(
-        child: Text(altitudeOptions[index]),
+        child: Text('$v'),
         color: index == selectedAltitude ? htwGreen : htwGrey,
         onPressed: (){
           setState(() {
+            widget.routeParams.altitudeType = v;
             selectedAltitude = index;            
           });
         }, 
       ));
     });
-    return optionsBar;
+    return typesBar;
   }
 
   @override
@@ -72,7 +71,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                         divisions: maxValue.toInt(),
                         label: distance.toString(),
                         onChanged: (newDistance) {
-                          setState(() => distance = newDistance.roundToDouble());
+                          setState(() => widget.routeParams.distance = newDistance.roundToDouble());
                         },
                       ),
                     ),
@@ -124,7 +123,8 @@ class _RoutePreferencesState extends State<RoutePreferences> {
           ),
           Container(
               child: RawMaterialButton(
-                  onPressed: () => print('Calculating ${distance.toString()} route with ${osmkeys.length} item(s) and ${altitudeOptions[selectedAltitude]} altitude level'),
+                // TODO - push and calc new route 
+                  onPressed: () => print('Calculating ${widget.routeParams.distance.toString()} route with ${widget.routeParams.poi.length} item(s) and ${widget.routeParams.altitudeType.toString()} altitude level'),
                   child: Text('GO'),
                   shape: CircleBorder(),
                   elevation: 2.0,
@@ -150,7 +150,7 @@ class OSMKeySearch extends StatefulWidget {
 class _OSMKeySearchState extends State<OSMKeySearch> {
 
   List<String> osmkeys = <String>[
-    'architecture', 'bar', 'church', 'exhibition', 'gas station', 'lake, ''monuments', 'museum', 'park', 'river', 'romanic', 'school', 'zoo',
+    'architecture', 'bar', 'basilica', 'cathedral', 'church', 'exhibition', 'gas station', 'lake, ''monuments', 'museum', 'park', 'river', 'romanic', 'school', 'zoo',
   ];
 
   @override
@@ -166,8 +166,8 @@ class _OSMKeySearchState extends State<OSMKeySearch> {
         return PopupListItemWidget(osmkey);
       },
       selectedItemBuilder: (String selectedOSMKey, VoidCallback deleteSelectedOSMKey) {
-        if(widget.parent.osmkeys.length < 3 && !widget.parent.osmkeys.contains(selectedOSMKey)) widget.parent.osmkeys.add(selectedOSMKey);
-        return SelectedItemsWidget(selectedOSMKey, deleteSelectedOSMKey, widget.parent.osmkeys);
+        if(widget.parent.widget.routeParams.poi.length < 3 && !widget.parent.widget.routeParams.poi.contains(selectedOSMKey)) widget.parent.widget.routeParams.poi.add(selectedOSMKey);
+        return SelectedItemsWidget(selectedOSMKey, deleteSelectedOSMKey, widget.parent.widget.routeParams.poi);
       },
       // widget customization
       noItemsFoundWidget: NoItemsFound(),
