@@ -84,7 +84,8 @@ class SegmentNavigator extends StatelessWidget {
       // TODO add route preferences
      SegmentRoutes.routePreferences: (context) => RoutePreferences(
        routeParams: params["route-params"],
-      //  onPushRouteList: (routeParams) => _push(context, SegmentRoutes.routeList, {"route-params": routeParams}),
+       onPushRoutePreview: (routeParams) =>
+           _push(context, SegmentRoutes.routePreview, {"route-params": routeParams}),
      ),
 
       // TODO add route list
@@ -96,8 +97,7 @@ class SegmentNavigator extends StatelessWidget {
 //      )
 
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
-          routeParams: params["route-params"],
-          // TODO swap route-params with route list
+          routeParams: params["route-params"], // TODO swap route-params with route list
           onSwitchToMap: (route) {
             onChangeSegment(AppSegment.map);
             // refresh the state of the new segment by passing parameters

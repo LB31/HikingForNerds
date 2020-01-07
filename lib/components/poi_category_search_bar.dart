@@ -4,13 +4,18 @@ import 'package:search_widget/search_widget.dart';
 
 import '../styles.dart';
 
-class OSMKeySearchBar extends StatefulWidget {
+class PoiCategorySearchBar extends StatefulWidget {
+  final List<String> selectedCategories;
+
+  PoiCategorySearchBar({Key key, @required this.selectedCategories})
+      : super(key: key);
+
   @override
-  _OSMKeySearchBarState createState() => _OSMKeySearchBarState();
+  _PoiCategorySearchBarState createState() => _PoiCategorySearchBarState();
 }
 
-class _OSMKeySearchBarState extends State<OSMKeySearchBar> {
-  List<String> osmKeys = <String>[
+class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
+  List<String> categories = <String>[
     'architecture',
     'bar',
     'basilica',
@@ -27,29 +32,28 @@ class _OSMKeySearchBarState extends State<OSMKeySearchBar> {
     'zoo',
   ];
 
-  List<String> selectedKeys;
 
   @override
   Widget build(BuildContext context) {
     return SearchWidget<String>(
-        dataList: osmKeys,
+        dataList: categories,
         hideSearchBoxWhenItemSelected: false,
         listContainerHeight: MediaQuery.of(context).size.height / 4,
         queryBuilder: (String query, List<String> list) {
           return list
-              .where((String osmKey) =>
-              osmKey.toLowerCase().contains(query.toLowerCase()))
+              .where((String category) =>
+                  category.toLowerCase().contains(query.toLowerCase()))
               .toList();
         },
-        popupListItemBuilder: (String osmKey) {
-          return PopupListItemWidget(osmKey);
+        popupListItemBuilder: (String category) {
+          return PopupListItemWidget(category);
         },
         selectedItemBuilder:
-            (String selectedOSMKey, VoidCallback deleteSelectedOSMKey) {
-          if (selectedKeys.length < 3 && !selectedKeys.contains(selectedOSMKey))
-            selectedKeys.add(selectedOSMKey);
-          return SelectedItemsWidget(selectedOSMKey, deleteSelectedOSMKey,
-              widget.parent.widget.routeParams.poi);
+            (String selectedCategory, VoidCallback onDeleteSelectedCategory) {
+          if (widget.selectedCategories.length < 3 && !widget.selectedCategories.contains(selectedCategory))
+            widget.selectedCategories.add(selectedCategory);
+          return SelectedItemsWidget(
+              selectedCategory, onDeleteSelectedCategory, widget.selectedCategories);
         },
         // widget customization
         noItemsFoundWidget: NoItemsFound(),
@@ -61,12 +65,12 @@ class _OSMKeySearchBarState extends State<OSMKeySearchBar> {
 }
 
 class SelectedItemsWidget extends StatefulWidget {
-  final String selectedOSMKey;
-  final VoidCallback deleteSelectedOSMKey;
-  final List<String> selectedOSMKeys;
+  final String selectedCategory;
+  final VoidCallback onDeleteSelectedCategory;
+  final List<String> selectedCategories;
 
   SelectedItemsWidget(
-      this.selectedOSMKey, this.deleteSelectedOSMKey, this.selectedOSMKeys);
+      this.selectedCategory, this.onDeleteSelectedCategory, this.selectedCategories);
 
   @override
   _SelectedItemsWidgetState createState() => _SelectedItemsWidgetState();
@@ -75,20 +79,16 @@ class SelectedItemsWidget extends StatefulWidget {
 class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
   chips() {
     List<Widget> chips = List();
-    widget.selectedOSMKeys.forEach((key) {
-      chips.add(Container(
-        padding: const EdgeInsets.all(2.0),
-        child: Chip(
-          label: Text(key),
-          backgroundColor: htwGreen,
-          shadowColor: Colors.white,
-          deleteIcon: Icon(Icons.close),
-          onDeleted: () {
-            setState(() {
-              widget.selectedOSMKeys.remove(key);
-            });
-          },
-        ),
+    widget.selectedCategories.forEach((key) {
+      chips.add(Chip(
+        label: Text(key, style: TextStyle(fontSize: 16.0)),
+        backgroundColor: htwGreen,
+        deleteIcon: Icon(Icons.close),
+        onDeleted: () {
+          setState(() {
+            widget.selectedCategories.remove(key);
+          });
+        },
       ));
     });
     return chips;
@@ -96,9 +96,12 @@ class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      children: chips(),
-    );
+    return Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Wrap(
+          children: chips(),
+          spacing: 4.0,
+        ));
   }
 }
 
@@ -125,7 +128,7 @@ class SearchTextField extends StatelessWidget {
           ),
           suffixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          hintText: "Search categories here (max 3)...",
+          hintText: "Search categories here (max. 3) ...",
           contentPadding: EdgeInsets.only(
             left: 16,
             right: 20,
@@ -146,7 +149,7 @@ class NoItemsFound extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(
-            Icons.folder_open,
+            Icons.search,
             size: 24,
             color: Colors.grey[900].withOpacity(0.7),
           ),
@@ -165,16 +168,16 @@ class NoItemsFound extends StatelessWidget {
 }
 
 class PopupListItemWidget extends StatelessWidget {
-  final String osmkey;
+  final String category;
 
-  PopupListItemWidget(this.osmkey);
+  PopupListItemWidget(this.category);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12.0),
       child: Text(
-        osmkey,
+        category,
         style: TextStyle(fontSize: 16.0),
       ),
     );

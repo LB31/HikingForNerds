@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
@@ -103,13 +104,14 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                 size: 50,
               )),
           Positioned(
-            right: MediaQuery.of(context).size.width * 0.15, 
-            bottom: 15,
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
                 heroTag: "btn-gps",
+                backgroundColor: htwGrey,
                 child: Icon(Icons.gps_fixed),
                 onPressed: () {
                   moveToCurrentLocation();
@@ -124,10 +126,11 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
+                backgroundColor: htwGreen,
                 heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
-                  size: 40,
+                  size: 36,
                 ),
                 onPressed: () {
                   LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
@@ -278,6 +281,3 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => new Size.fromHeight(kToolbarHeight);
 }
-
-typedef RouteParamsCallback = void Function(RouteParams routeParams);
-

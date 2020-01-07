@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/osm_key_search_bar.dart';
+import 'package:hiking4nerds/components/poi_category_search_bar.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class RoutePreferences extends StatefulWidget {
+  final RouteParamsCallback onPushRoutePreview;
   final RouteParams routeParams;
 
-  RoutePreferences({@required this.routeParams});
+  RoutePreferences(
+      {@required this.onPushRoutePreview, @required this.routeParams});
 
   @override
   _RoutePreferencesState createState() => _RoutePreferencesState();
@@ -15,30 +17,29 @@ class RoutePreferences extends StatefulWidget {
 class _RoutePreferencesState extends State<RoutePreferences> {
   double distance = 5.0; // default
   int selectedAltitude = 0;
+  List<String> selectedPoiCategories = List<String>();
 
   altitudeSelection() {
-    List<Widget> typesBar = List();
+    List<Widget> altitudeTypes = List();
     AltitudeType.values.forEach((v) {
       int index = v.index;
-      typesBar.add(FlatButton(
-        child: Text('$v'),
+      altitudeTypes.add(FlatButton(
+        child: Text(AltitudeTypeHelper.asString(v),
+            style: TextStyle(fontSize: 16)),
         color: index == selectedAltitude ? htwGreen : htwGrey,
         onPressed: () {
-          setState(() {
-            widget.routeParams.altitudeType = v;
-            selectedAltitude = index;
-          });
+          setState(() => selectedAltitude = index);
         },
       ));
     });
-    return typesBar;
+    return altitudeTypes;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Setup'),
+        title: Text('Route Preferences'), // TODO add localization
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Stack(
@@ -52,11 +53,16 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ),
                 child: Column(
                   children: <Widget>[
+                    Padding(padding: EdgeInsets.only(top: 10)),
                     Text(
-                      'Select Route Distance',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      'Select Route Distance', // TODO add localization
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600]),
                       textAlign: TextAlign.left,
                     ),
+                    Padding(padding: EdgeInsets.only(top: 10)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -64,21 +70,24 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                           flex: 1,
                           child: Slider(
                             activeColor: htwGreen,
-                            inactiveColor: htwBlue,
+                            inactiveColor: htwGrey,
                             min: 1.0,
                             max: 30.0,
                             label: distance.toString(),
                             onChanged: (value) {
-                              setState(() => distance = value);
+                              setState(() => distance = value.roundToDouble());
                             },
                             value: distance,
                           ),
                         ),
                         Container(
-                          width: 100.0,
+                          width: 50.0,
                           alignment: Alignment.center,
-                          child: Text('${distance.toInt()}\nKM',
-                              style: Theme.of(context).textTheme.display1),
+                          child: Text(
+                            '${distance.toInt()} km',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[600]),
+                          ),
                         ),
                       ],
                     ),
@@ -86,7 +95,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 40, 10, 20),
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 20),
                 child: Divider(
                   color: htwGrey,
                 ),
@@ -95,47 +104,47 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Select Points of Interest',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    'Select Points of Interest', // todo add localization
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600]),
                     textAlign: TextAlign.left,
                   ),
-                  OSMKeySearchBar(this),
+                  Padding(padding: EdgeInsets.only(top: 20)),
+                  PoiCategorySearchBar(
+                      selectedCategories: selectedPoiCategories),
                 ],
-              ),/*
+              ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 40, 10, 20),
+                padding: EdgeInsets.fromLTRB(10, 30, 10, 20),
                 child: Divider(color: htwGrey),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Select Altitude Level',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    'Select Altitude Level', // TODO add localization
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600]),
                     textAlign: TextAlign.left,
                   ),
+                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 20)),
                   Wrap(
                     children: altitudeSelection(),
                   ),
                 ],
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 40, 10, 20),
-              ),*/
+                padding: EdgeInsets.fromLTRB(10, 30, 10, 20),
+                child: Divider(
+                  color: htwGrey,
+                ),
+              ),
             ],
           ),
-          /*Container(
-              child: RawMaterialButton(
-                // TODO - push and calc new route
-                  onPressed: () => print('Calculating ${widget.routeParams.distance.toString()} route with ${widget.routeParams.poi.length} item(s) and ${widget.routeParams.altitudeType.toString()} altitude level'),
-                  child: Text('GO'),
-                  shape: CircleBorder(),
-                  elevation: 2.0,
-                  fillColor: htwGreen,
-                  padding: const EdgeInsets.all(20.0),
-                ),
-                alignment: Alignment.bottomCenter,
-          ),*/
           Positioned(
             bottom: 10,
             left: MediaQuery.of(context).size.width * 0.5 - 35,
@@ -143,14 +152,20 @@ class _RoutePreferencesState extends State<RoutePreferences> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
-                heroTag: "btn-go",
-                child: Icon(
-                  Icons.directions_walk,
-                  size: 40,
-                ),
-                onPressed: () => print(
-                    'Calculating ${widget.routeParams.distance.toString()} route with ${widget.routeParams.poi.length} item(s) and ${widget.routeParams.altitudeType.toString()} altitude level'),
-              ),
+                  backgroundColor: htwGreen,
+                  heroTag: "btn-go",
+                  child: Icon(
+                    Icons.directions_walk,
+                    size: 36,
+                  ),
+                  onPressed: () {
+                    widget.routeParams.distanceKm = distance;
+                    widget.routeParams.poiCategories = selectedPoiCategories;
+                    widget.routeParams.altitudeType =
+                        AltitudeTypeHelper.fromIndex(selectedAltitude);
+
+                    widget.onPushRoutePreview(widget.routeParams);
+                  }),
             ),
           ),
         ],

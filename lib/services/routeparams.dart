@@ -1,22 +1,38 @@
 import 'package:mapbox_gl/mapbox_gl.dart';
 
+typedef RouteParamsCallback = void Function(RouteParams routeParams);
 
-enum AltitudeType{
+enum AltitudeType {
   none,
   minimal,
   high,
 }
 
-class RouteParams {
+class AltitudeTypeHelper {
+  static String asString(AltitudeType type) {
+    switch (type) {
+      case AltitudeType.none:
+        return "N/A";
+      case AltitudeType.minimal:
+        return "minimal";
+      case AltitudeType.high:
+        return "high";
+    }
 
-  LatLng startingLocation;
-  double distance;
-  List<String> poi;
-  AltitudeType altitudeType;
+    return "";
+  }
 
-  //todo: add height information
-
-  RouteParams(this.startingLocation, [this.distance, this.poi, this.altitudeType]);
+  static AltitudeType fromIndex(int index) {
+    return AltitudeType.values[index];
+  }
 }
 
+class RouteParams {
+  LatLng startingLocation;
+  double distanceKm;
+  List<String> poiCategories;
+  AltitudeType altitudeType;
 
+  RouteParams(this.startingLocation,
+      [this.distanceKm, this.poiCategories, this.altitudeType]);
+}
