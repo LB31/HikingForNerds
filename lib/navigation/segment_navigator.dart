@@ -6,7 +6,7 @@ import 'package:hiking4nerds/pages/more/credits.dart';
 import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
 import 'package:hiking4nerds/pages/setup/location_selection.dart';
-import 'package:hiking4nerds/pages/setup/routepref.dart';
+import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
 
 class SegmentRoutes {
@@ -56,7 +56,7 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.setup:
         return LocationSelectionPage(
             onPushRoutePreferences: (routeParams) => _push(context,
-                SegmentRoutes.routePreview, {"route-params": routeParams}));
+                SegmentRoutes.routePreferences, {"route-params": routeParams}));
       case AppSegment.map:
         return MapPage(key: mapKey);
       case AppSegment.history:
