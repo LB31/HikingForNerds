@@ -212,14 +212,8 @@ class OsmData{
     for(int i = 0; i < alternativeRouteCount; ++i) {
         computeFutures.add(compute(doRouteCalculationsThreaded, data));
     }
-    List<HikingRoute> results = await Future.wait(computeFutures);
-    routes.addAll(results);
-
-    if(routes.isEmpty)
-      throw NoRoutesFoundException;
-
     if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    return routes;
+    return Future.wait(computeFutures);
   }
 
   HikingRoute _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
