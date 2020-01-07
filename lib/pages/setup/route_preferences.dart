@@ -15,8 +15,10 @@ class RoutePreferences extends StatefulWidget {
 }
 
 class _RoutePreferencesState extends State<RoutePreferences> {
+  int avgHikingSpeed = 12; // 12 min per km
   double distance = 5.0; // default
   int selectedAltitude = 0;
+  bool distanceAsDuration = false;
   List<String> selectedPoiCategories = List<String>();
 
   altitudeSelection() {
@@ -40,7 +42,9 @@ class _RoutePreferencesState extends State<RoutePreferences> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Route Preferences'), // TODO add localization
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme
+            .of(context)
+            .primaryColor,
       ),
       body: Stack(
         children: <Widget>[
@@ -52,6 +56,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                   horizontal: 16.0,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Padding(padding: EdgeInsets.only(top: 10)),
                     Text(
@@ -63,6 +68,22 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                       textAlign: TextAlign.left,
                     ),
                     Padding(padding: EdgeInsets.only(top: 10)),
+                    Wrap(children: <Widget>[
+                      FlatButton(
+                          child: Text("Distance",
+                              style: TextStyle(fontSize: 16)),
+                          color: !distanceAsDuration ? htwGreen : htwGrey,
+                          onPressed: () {
+                            setState(() => distanceAsDuration = false);
+                          }),
+                      FlatButton(
+                          child: Text("Time",
+                              style: TextStyle(fontSize: 16)),
+                          color: distanceAsDuration ? htwGreen : htwGrey,
+                          onPressed: () {
+                            setState(() => distanceAsDuration = true);
+                          })],
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -81,10 +102,11 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                           ),
                         ),
                         Container(
-                          width: 50.0,
+                          width: 60.0,
                           alignment: Alignment.center,
                           child: Text(
-                            '${distance.toInt()} km',
+                            distanceAsDuration ? '${distance.toInt() *
+                                avgHikingSpeed} min' : '${distance.toInt()} km',
                             style: TextStyle(
                                 fontSize: 16, color: Colors.grey[600]),
                           ),
@@ -147,7 +169,10 @@ class _RoutePreferencesState extends State<RoutePreferences> {
           ),
           Positioned(
             bottom: 10,
-            left: MediaQuery.of(context).size.width * 0.5 - 35,
+            left: MediaQuery
+                .of(context)
+                .size
+                .width * 0.5 - 35,
             child: SizedBox(
               width: 70,
               height: 70,
