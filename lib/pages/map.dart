@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/elevation_chart.dart'; // needed for testing
-import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/styles.dart';
 
 class MapPage extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'osmdata.dart';
+import 'package:hiking4nerds/services/routing/osmdata.dart';
 
 class ElevationChart extends StatelessWidget {
   final HikingRoute route;

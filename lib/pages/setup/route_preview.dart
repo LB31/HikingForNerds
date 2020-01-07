@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
+import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:hiking4nerds/services/osmdata.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
@@ -15,7 +15,8 @@ class RoutePreviewPage extends StatefulWidget {
   @override
   _RoutePreviewPageState createState() => _RoutePreviewPageState();
 
-  RoutePreviewPage({Key key, @required this.onSwitchToMap, @required this.routeParams})
+  RoutePreviewPage(
+      {Key key, @required this.onSwitchToMap, @required this.routeParams})
       : super(key: key);
 }
 
@@ -32,13 +33,25 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   }
 
   Future<void> calculateRoutes() async {
-    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
-        widget.routeParams.startingLocation.latitude,
-        widget.routeParams.startingLocation.longitude,
-        widget.routeParams.distanceKm * 1000.0,
-        10,
-        /*widget.routeParams.poiCategories[0]*/); // TODO when using an poi most of the time the route calculation crashes
+    List<HikingRoute> routes;
 
+    try {
+      routes = await OsmData().calculateHikingRoutes(
+          widget.routeParams.startingLocation.latitude,
+          widget.routeParams.startingLocation.longitude,
+          widget.routeParams.distanceKm * 1000.0,
+          10,
+          widget.routeParams.poiCategories[0]);
+    } catch (err) {
+      if (err == NoPOIsFoundException) {
+        print("no poi found exception");
+        routes = await OsmData().calculateHikingRoutes(
+            widget.routeParams.startingLocation.latitude,
+            widget.routeParams.startingLocation.longitude,
+            widget.routeParams.distanceKm * 1000.0,
+            10);
+      }
+    }
     setState(() {
       _routes = routes;
       _currentRouteIndex = 0;
@@ -163,8 +176,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                   Icons.directions_walk,
                   size: 36,
                 ),
-                onPressed: (() => widget
-                    .onSwitchToMap(_routes[_currentRouteIndex])),
+                onPressed: (() =>
+                    widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
           )
