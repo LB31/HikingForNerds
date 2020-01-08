@@ -142,17 +142,18 @@ class GeojsonDataHandler extends ImportExportHandler{
     File readSharedFile = await sharedFile(dataPath);
 
     GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
-    GeoJson geo = new GeoJson();
-    //TODO. search for height data in json string seperately (because geojson plugin sucks)
 
     HikingRoute route = _geoJsonFeatureToRoute(featureCollection);
     route.totalLength = calculateDistance(route.path);
+    
+    String jsonDataString = await readSharedFile.readAsString();
+    route.elevations = extractElevations(jsonDataString);
 
     return route;
   }
 
   ///Translates parsed GeoJsonFeatureCollection to a HikingRoute
-  ///NOTE: a single point in a feature collection will be interpreted as a Point of Interest
+  ///NOTE: a single feature represented as point in a feature collection will be interpreted as a POI
   HikingRoute _geoJsonFeatureToRoute(GeoJsonFeatureCollection geoJsonFeatureCollection){
     List<GeoJsonFeature> features = geoJsonFeatureCollection.collection;
     HikingRoute hikingRoute = new HikingRoute(null, 0, new List<PointOfInterest>());
@@ -192,5 +193,23 @@ class GeojsonDataHandler extends ImportExportHandler{
     return hikingRoute;
   }
 
+  ///helper method extract elevations from three dimensional representation
+  List<double> extractElevations(String jsonDataString) {
+    //Regex to match three dimensional vectors in string
+    RegExp regExp = new RegExp("\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*\\]");
+
+    //Regex to match last value in three dimensional vector string
+    RegExp regExp1 = new RegExp("[0-9]+\\\.?[0-9]*\\]");
+
+    List<double> elevations = new List<double>();
+    var matches = regExp.allMatches(jsonDataString);
+    for(Match match in matches){
+      String vectorString = jsonDataString.substring(match.start, match.end);
+      Match elevationMatch = regExp1.firstMatch(vectorString);
+      elevations.add(double.parse(vectorString.substring(elevationMatch.start, elevationMatch.end - 1)));
+    }
+
+    return elevations;
+  }
 
 }

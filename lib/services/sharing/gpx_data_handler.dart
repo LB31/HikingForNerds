@@ -64,7 +64,9 @@ class GpxDataHandler extends ImportExportHandler{
   Rte _getRoute(List<Node> nodes, List<double> elevations) {
     List<Wpt> wpts = new List<Wpt>();
     for (int i = 0; i < nodes.length; i++){
-      wpts.add(new Wpt(lat: nodes[i].latitude, lon: nodes[i].longitude, ele: (i < elevations.length ? elevations[i] : 0)));
+      Wpt wpt = new Wpt(lat: nodes[i].latitude, lon: nodes[i].longitude);
+      if (i < elevations.length) wpt.ele = elevations[i];
+      wpts.add(wpt);
     }
 
     return new Rte(
@@ -89,20 +91,4 @@ class GpxDataHandler extends ImportExportHandler{
       trksegs: [new Trkseg(trkpts: wpts)],
     );
   }
-/*
-  static String _insertPOITags(XmlNode gpxXML) {
-    final builder = XmlBuilder();
-    List<XmlNode> xmlNodes;
-    while ((xmlNodes = gpxXML.children).isNotEmpty){
-      for(XmlNode xmlNode in xmlNodes){
-        xmlNode.attributes
-            .where((attribute) => attribute.name.toString() == "desc")
-            .map((attribute) => new XmlAttribute("extensions"));
-        if (xmlNode.attributes.)
-      }
-    }
-    var type = gpxXML.nodeType;
-
-    builder.text(gpxXML);
-  }*/
 }

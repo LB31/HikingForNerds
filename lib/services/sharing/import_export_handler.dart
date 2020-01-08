@@ -4,6 +4,7 @@ import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
+/// Superclass providing basic functionality used gpx and geojson data handling
 class ImportExportHandler{
 
   Future<File> sharedFile(String dataPath) async {
