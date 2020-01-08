@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:hiking4nerds/services/sharing/import_export_handler.dart';
@@ -6,10 +7,10 @@ import 'package:gpx/gpx.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:http/http.dart';
 
 class GpxDataHandler extends ImportExportHandler{
 
+  //export part
   /// parse List of Polyline objects to Gpx as String
   String parseStringFromRoute(HikingRoute route){
     final gpx = Gpx();
@@ -27,36 +28,6 @@ class GpxDataHandler extends ImportExportHandler{
 
 
     return GpxWriter().asString(gpx, pretty: true);
-    /*return _insertPOITags(
-      GpxWriter().asXml(gpx)
-    );*/
-  }
-
-  Future<HikingRoute> parseRouteFromString(String dataPath) async {
-    File readSharedFile = await sharedFile(dataPath);
-    String xmlString = await readSharedFile.readAsString();
-
-    HikingRoute route = _parseStringToRoute(xmlString);
-    route.totalLength = calculateDistance(route.path);
-
-    return route;
-  }
-
-  HikingRoute _parseStringToRoute(String xmlString){
-    Gpx gpxData = GpxReader().fromString(xmlString);
-
-    List<Node> path = new List<Node>();
-    List<double> elevations = new List<double>();
-    for (Rte rte in gpxData.rtes){
-      int counter = 0;
-
-      rte.rtepts.forEach((wpt) {
-        path.add(new Node(counter++, wpt.lat, wpt.lon));
-        elevations.add(wpt.ele);
-      });
-    }
-
-    return new HikingRoute(path, 0, null, elevations);
   }
 
   ///returns a Rte (Route) Object containing Wpts
@@ -82,7 +53,9 @@ class GpxDataHandler extends ImportExportHandler{
       wpts.add(new Wpt(
           lat: poi.latitude,
           lon: poi.longitude,
-          desc: "POI"));
+          name: "POI",
+          desc: (poi.tags != null) ? new JsonEncoder.withIndent("  ").convert(poi.tags) : 'N/A'
+      ));
     }
 
     return new Trk(
@@ -90,5 +63,42 @@ class GpxDataHandler extends ImportExportHandler{
       desc: "contains pois of route",
       trksegs: [new Trkseg(trkpts: wpts)],
     );
+  }
+
+  //import part
+  Future<HikingRoute> parseRouteFromString(String dataPath) async {
+    File readSharedFile = await sharedFile(dataPath);
+    String xmlString = await readSharedFile.readAsString();
+
+    HikingRoute hikingRoute = _parseStringToRoute(xmlString);
+    hikingRoute.totalLength = calculateDistance(hikingRoute.path);
+
+    return hikingRoute;
+  }
+
+  HikingRoute _parseStringToRoute(String xmlString){
+    Gpx gpxData = GpxReader().fromString(xmlString);
+
+    List<Node> path = new List<Node>();
+    List<double> elevations = new List<double>();
+    for (Rte rte in gpxData.rtes){
+      var idCounter = 0;
+
+      rte.rtepts.forEach((wpt) {
+        path.add(new Node(idCounter++, wpt.lat, wpt.lon));
+        elevations.add(wpt.ele != null ? wpt.ele : 0);
+      });
+    }
+
+    List<PointOfInterest> pointsOfInterest = new List();
+    for (Trk trk in gpxData.trks){
+      var idCounter = 0;
+
+      trk.trksegs.forEach((trkSeg) => {
+        trkSeg.trkpts.forEach((poiWpt) => pointsOfInterest.add(new PointOfInterest(idCounter++, poiWpt.lat, poiWpt.lon, json.decode(poiWpt.desc))))
+      });
+    }
+
+    return new HikingRoute(path, 0, pointsOfInterest, elevations);
   }
 }

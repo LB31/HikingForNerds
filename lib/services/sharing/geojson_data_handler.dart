@@ -9,14 +9,20 @@ import 'package:hiking4nerds/services/routing/node.dart';
 
 class GeojsonDataHandler extends ImportExportHandler{
 
+  static RegExp lineStringRegex = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
+  static RegExp wrongBracesRegex = new RegExp("\\\"([Ff]eatures)\\\"(\\s*):(\\s*)\\[(\s*)\\[(\\s*)\\{(\\s*)\\\"([Tt]ype)\\\"");
+  static RegExp propertiesRegex = new RegExp("\\\"([Pp]roperties)\\\"(\\s*):(\\s*)\\{\\\"name\\\"(\\s*):(\\s*)\\\"null\\\"\\}");
+  static RegExp elevationDataRegex = new RegExp("(\\\"([Cc]oordinates)\\\"(\\s*):(\\s*))*\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*");
+  static RegExp threeDimensionalVectorRegex = new RegExp("\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*\\]");
+  static RegExp elevationDataVectorRegex = new RegExp("[0-9]+\\\.?[0-9]*\\]");
+
+
   /// parse List of Polyline objects to Geojson as String
   String parseStringFromRoute(HikingRoute route){
     /// WORKAROUND: invocation of Method [trimWrongPluginSyntax] to trim out wrong syntax provided by plugin
     /// note that you could pass an elevation list that is longer than the passed route to add elevation data for POIs if necessary
     return _trimWrongPluginSyntax(
-        _getGeojsonFeatureCollection(route).serialize(),
-        route.pointsOfInterest,
-        route.elevations
+        _getGeojsonFeatureCollection(route).serialize(), route
     );
   }
 
@@ -95,26 +101,27 @@ class GeojsonDataHandler extends ImportExportHandler{
   /// trim wrong syntax from geopoint package
   /// could lead to problems with polygons in geojson string
   /// pls don't ask
-  String _trimWrongPluginSyntax(String jsonString, List<PointOfInterest> pointsOfInterest, List<double> elevations) {
+  String _trimWrongPluginSyntax(String jsonString, HikingRoute hikingRoute) {
+    List<PointOfInterest> pointsOfInterest = hikingRoute.pointsOfInterest;
+    List<double> elevations = hikingRoute.elevations;
+    List<Node> path = hikingRoute.path;
+
     //trim out wrong line feature type name
-    RegExp regExp = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
-    if (regExp.hasMatch(jsonString))
-      jsonString = jsonString.replaceAll(regExp, "\"type\":\"LineString\"");
+    if (lineStringRegex.hasMatch(jsonString))
+      jsonString = jsonString.replaceAll(lineStringRegex, "\"type\":\"LineString\"");
 
     //trim out wrongly placed braces
-    RegExp regExp1 = new RegExp("\\\"([Ff]eatures)\\\"(\\s*):(\\s*)\\[(\s*)\\[(\\s*)\\{(\\s*)\\\"([Tt]ype)\\\"");
-    if (regExp1.hasMatch(jsonString)) {
-      jsonString = jsonString.replaceAll(regExp1, "\"features\":[{\"type\"");
+    if (wrongBracesRegex.hasMatch(jsonString)) {
+      jsonString = jsonString.replaceAll(wrongBracesRegex, "\"features\":[{\"type\"");
       jsonString = jsonString.replaceAll(new RegExp("\\],\\[\\{\\\"[Tt]ype\\\""), ",{\"type\"");
       jsonString = jsonString.replaceAll(new RegExp("(\\]\\]\\})\$"), "]}");
     }
 
     //trim out wrong properties of pois
-    RegExp regExp2 = new RegExp("\\\"([Pp]roperties)\\\"(\\s*):(\\s*)\\{\\\"name\\\"(\\s*):(\\s*)\\\"null\\\"\\}");
     var match;
     var poiIndex = -1;
     StringBuffer buffer = new StringBuffer();
-    while((match = regExp2.firstMatch(jsonString)) != null && ++poiIndex < pointsOfInterest.length){
+    while((match = propertiesRegex.firstMatch(jsonString)) != null && ++poiIndex < pointsOfInterest.length){
       buffer.write("\"properties\":{");
       var counter = 0;
       pointsOfInterest[poiIndex].tags.forEach((key, value) =>
@@ -125,13 +132,13 @@ class GeojsonDataHandler extends ImportExportHandler{
     }
 
     //add elevation data
-    RegExp regExp3 = new RegExp("(\\\"([Cc]oordinates)\\\"(\\s*):(\\s*))*\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*");
     var matchCoordinate;
     var lastSubstringIndex = 0;
     var elevationIndex = -1;
-    while((matchCoordinate = regExp3.firstMatch(jsonString.substring(lastSubstringIndex))) != null && ++elevationIndex < elevations.length){
-      jsonString = jsonString.substring(0, lastSubstringIndex + matchCoordinate.end) + "," + elevations[elevationIndex].toString() + jsonString.substring(lastSubstringIndex + matchCoordinate.end);
-      lastSubstringIndex += matchCoordinate.end + elevations[elevationIndex].toString().length + 1;
+    while((matchCoordinate = elevationDataRegex.firstMatch(jsonString.substring(lastSubstringIndex))) != null && ++elevationIndex < path.length){
+      double elevation = (elevationIndex < elevations.length) ? elevations?.elementAt(elevationIndex) : 0.0;
+      jsonString = jsonString.substring(0, lastSubstringIndex + matchCoordinate.end) + "," + elevation.toString() + jsonString.substring(lastSubstringIndex + matchCoordinate.end);
+      lastSubstringIndex += matchCoordinate.end + elevation.toString().length + 1;
     }
 
     return jsonString;
@@ -143,13 +150,13 @@ class GeojsonDataHandler extends ImportExportHandler{
 
     GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
 
-    HikingRoute route = _geoJsonFeatureToRoute(featureCollection);
-    route.totalLength = calculateDistance(route.path);
+    HikingRoute hikingRoute = _geoJsonFeatureToRoute(featureCollection);
+    hikingRoute.totalLength = calculateDistance(hikingRoute.path);
     
     String jsonDataString = await readSharedFile.readAsString();
-    route.elevations = extractElevations(jsonDataString);
+    hikingRoute.elevations = extractElevations(jsonDataString);
 
-    return route;
+    return hikingRoute;
   }
 
   ///Translates parsed GeoJsonFeatureCollection to a HikingRoute
@@ -195,17 +202,13 @@ class GeojsonDataHandler extends ImportExportHandler{
 
   ///helper method extract elevations from three dimensional representation
   List<double> extractElevations(String jsonDataString) {
-    //Regex to match three dimensional vectors in string
-    RegExp regExp = new RegExp("\\[*[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*(\\s*),(\\s*)[0-9]+\\\.?[0-9]*\\]");
 
-    //Regex to match last value in three dimensional vector string
-    RegExp regExp1 = new RegExp("[0-9]+\\\.?[0-9]*\\]");
-
+    //extract three dimensional vectors in string
     List<double> elevations = new List<double>();
-    var matches = regExp.allMatches(jsonDataString);
+    var matches = threeDimensionalVectorRegex.allMatches(jsonDataString);
     for(Match match in matches){
       String vectorString = jsonDataString.substring(match.start, match.end);
-      Match elevationMatch = regExp1.firstMatch(vectorString);
+      Match elevationMatch = elevationDataVectorRegex.firstMatch(vectorString);
       elevations.add(double.parse(vectorString.substring(elevationMatch.start, elevationMatch.end - 1)));
     }
 
