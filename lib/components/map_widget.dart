@@ -124,11 +124,11 @@ class MapWidgetState extends State<MapWidget> {
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2, lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1, lineOpacity: 0.5);
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     setState(() {
@@ -144,7 +144,7 @@ class MapWidgetState extends State<MapWidget> {
   void drawRouteStartingPoint(HikingRoute route){
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 12, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 11, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
     mapController.addCircle(optionsStartingPoint);
   }
 
