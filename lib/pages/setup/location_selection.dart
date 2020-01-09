@@ -88,7 +88,6 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
           }
         },
       ),
-      resizeToAvoidBottomPadding: false,
       body: Stack(
         children: <Widget>[
           MapWidget(
