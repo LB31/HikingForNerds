@@ -48,7 +48,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
       ),
       body: Stack(
         children: <Widget>[
-          Column(
+          ListView(
             children: <Widget>[
               Container(
                 padding: EdgeInsets.symmetric(
@@ -58,7 +58,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 10)),
+                    Padding(padding: EdgeInsets.only(top: 5)),
                     Text(
                       'Select Route Distance', // TODO add localization
                       style: TextStyle(
@@ -117,7 +117,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 20),
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Divider(
                   color: htwGrey,
                 ),
@@ -139,7 +139,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ],
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 30, 10, 20),
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Divider(color: htwGrey),
               ),
               Column(
@@ -153,7 +153,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                         color: Colors.grey[600]),
                     textAlign: TextAlign.left,
                   ),
-                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 20)),
+                  Padding(padding: EdgeInsets.fromLTRB(10, 0, 10, 5)),
                   Wrap(
                     children: altitudeSelection(),
                   ),
