@@ -20,6 +20,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+
   }
 
   saveSettings() async {
@@ -140,6 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onChanged: (String newValue) {
                       setState(() {
                         gs.selectedLanguage = newValue;
+                        saveSettings();
                       });
                     },
                     items: buildDropdownItems(gs.languageOptions),
@@ -164,6 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onChanged: (String newValue) {
                       setState(() {
                         gs.selectedUnit = newValue;
+                        saveSettings();
                       });
                     },
                     items: buildDropdownItems(gs.unitOptions),
@@ -173,6 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
               // Delete downloaded maps
               InkWell(
                   onTap: () {
+                    saveSettings();
                     showDialog(
                       context: context,
                       builder: (BuildContext context) => pupUpDialog(
@@ -194,6 +198,7 @@ class _SettingsPageState extends State<SettingsPage> {
               // Delete history
               InkWell(
                   onTap: () {
+                    saveSettings();
                     showDialog(
                       context: context,
                       builder: (BuildContext context) => pupUpDialog(
