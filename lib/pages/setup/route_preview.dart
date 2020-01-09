@@ -183,6 +183,25 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                     widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
+          ),
+          Positioned(
+            top: 85,
+            left: MediaQuery.of(context).size.width * 0.5 - 70,
+              child: Opacity(
+                opacity: 0.5,
+                child: Container(
+                  width: 140,
+                  decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                  child: Column(
+                    children: <Widget>[
+                      Text("Start"),
+                      Text("Finish")
+                    ],
+                  ),
+                ),
+              )
           )
         ],
       ),
