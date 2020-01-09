@@ -9,6 +9,8 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'dart:math';
+
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
@@ -188,13 +190,9 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-
     setLatLng(LatLng(averageLat, averageLong));
-
-    double zoom = 14.5 - (route.totalLength / 5);
-    print("total " + route.totalLength.toString());
-    print("zoom" + zoom.toString());
-    //setZoom(zoom);
+    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+    setZoom(zoom);
   }
 
   void initUpdateRouteTimer() {
