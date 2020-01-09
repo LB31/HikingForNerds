@@ -33,8 +33,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   }
 
   Future<void> calculateRoutes() async {
-    List<HikingRoute> routes;
+    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
+        widget.routeParams.startingLocation.latitude,
+        widget.routeParams.startingLocation.longitude,
+        widget.routeParams.distanceKm * 1000.0,
+        10);
 
+    /*
     try {
       routes = await OsmData().calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
@@ -45,13 +50,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     } catch (err) {
       if (err == NoPOIsFoundException) {
         print("no poi found exception");
-        routes = await OsmData().calculateHikingRoutes(
-            widget.routeParams.startingLocation.latitude,
-            widget.routeParams.startingLocation.longitude,
-            widget.routeParams.distanceKm * 1000.0,
-            10);
+
       }
     }
+    */
+
     setState(() {
       _routes = routes;
       _currentRouteIndex = 0;
