@@ -8,7 +8,7 @@
 .buildlog/
 .history
 .svn/
-
+.flutter-plugins-dependencies
 # IntelliJ related
 *.iml
 *.ipr
@@ -27,6 +27,7 @@
 **/doc/api/
 .dart_tool/
 .flutter-plugins
+.flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
@@ -41,6 +42,8 @@ pubspec.lock
 **/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+**/android/**/*.jks
+**/android/**/key.properties
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -68,7 +71,7 @@ pubspec.lock
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
-
+**/IDEWorkspaceChecks.plist 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3

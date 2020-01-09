@@ -51,5 +51,8 @@
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Example: You should fill this in</string>
 
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
+
 </dict>
 </plist>
