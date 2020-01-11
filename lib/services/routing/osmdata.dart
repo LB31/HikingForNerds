@@ -355,8 +355,9 @@ class OsmData{
     var easternBorder = bottomRightBoundingBox[1];
 
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
-        '[out:json][timeout:300]'
-        ';node["tourism"="$category"](around:$radius,$aroundLat, $aroundLong);'
+        '[out:json][timeout:300];'
+        'node["tourism"="$category"](around:$radius,$aroundLat, $aroundLong);'
+        'node["amenity"="$category"](around:$radius,$aroundLat, $aroundLong);'
         'out body qt;';
 
     var response = await http.get(url);
@@ -405,6 +406,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 30000, 10, "aquarium");
+      52.510143, 13.408564, 30000, 10, "bar");
   print(route.length);
 }
