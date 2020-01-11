@@ -20,6 +20,7 @@ class OsmData{
   int _routeCalculationStartTime;
   Random _randomGenerator = Random(1);
   int maxRetries = 20;
+  double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
 
 
   OsmData(){
@@ -166,14 +167,16 @@ class OsmData{
     return routes;
   }
 
-  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter) {
-    List<HikingRoute> routes = List();
+  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM) {
+
+    //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
+    var beeLineDistance = distanceInM * beeLineToRealRatio; List<HikingRoute> routes = List();
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
       graph.edgeAlreadyUsedPenalties.clear();
       var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
-      var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
-      var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
+      var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
+      var pointC = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading + 60);
 
       var nodeA = getClosestToPoint(startLat, startLong);
       var nodeB = getClosestToPoint(pointB[0], pointB[1]);
@@ -208,6 +211,11 @@ class OsmData{
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
       var resultRoute = HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative));
+      if (resultRoute.totalLength * 1000< distanceInM * 0.8 || resultRoute.totalLength * 1000 > distanceInM * 1.2){
+        retryCount ++;
+        if(profiling) print("Route too long or to short, retrying...");
+        continue;
+      }
       routes.add(resultRoute);
       if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms. Total length: " + resultRoute.totalLength.toString());
     }
@@ -254,7 +262,7 @@ class OsmData{
       wayNodeAndPOICopy.remove(firstPoi);
       lastVisited = firstPoi;
       //start loop over all the other pois
-      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) + totalRouteLength) < distanceInMeter / 1000){
+      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
         var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
         var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
         if(routeToClosestPoi.isNotPresent){
@@ -273,8 +281,8 @@ class OsmData{
       if(wayNodeAndPOICopy.isEmpty){ //route is probably not long enough yet
         var slightDistanceModifier = 1.0;
         while(retryCount <= maxRetries){
-          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
-          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
+          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
           var c = getDistance(startNode, lastVisited);
           var cosGamma = (a*a+b*b-c*c)/(2*a*b);
           var relativeGamma = _toDegrees(acos(cosGamma));
@@ -310,6 +318,11 @@ class OsmData{
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
+      if(routeResult.totalLength * 1000 < distanceInMeter * 0.8 || routeResult.totalLength * 1000 > distanceInMeter * 1.2){
+        retryCount ++;
+        if(profiling) print("Route too long or to short, retrying...");
+        continue;
+      }
       routes.add(routeResult);
       if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString()
           + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
@@ -392,6 +405,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 30000, 10);
+      52.510143, 13.408564, 30000, 10, "aquarium");
   print(route.length);
 }
