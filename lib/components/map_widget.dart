@@ -9,12 +9,13 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'dart:math';
+
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
 
-  MapWidget({Key key, @required this.isStatic})
-      : super(key: key);
+  MapWidget({Key key, @required this.isStatic}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -123,13 +124,15 @@ class MapWidgetState extends State<MapWidget> {
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
-    LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
+    LineOptions optionsPassedRoute = LineOptions(
+        geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
+    LineOptions optionsRoute = LineOptions(
+        geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
     Line lineRoute = await mapController.addLine(optionsRoute);
+
+    centerCameraOverRoute(route);
 
     setState(() {
       _route = routeLatLng;
@@ -141,24 +144,55 @@ class MapWidgetState extends State<MapWidget> {
     if (!widget.isStatic) initUpdateRouteTimer();
   }
 
-  void drawRouteStartingPoint(HikingRoute route){
+  void drawRouteStartingPoint(HikingRoute route) {
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 12, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(
+        geometry: startingPoint,
+        circleColor: "Red",
+        circleRadius: 12,
+        circleStrokeWidth: 7,
+        circleStrokeColor: "Blue",
+        circleBlur: 0.25,
+        circleOpacity: 1);
     mapController.addCircle(optionsStartingPoint);
   }
 
   void drawHikingDirection(HikingRoute route) {
     List<LatLng> startingPointPath = route.path.sublist(0, 25);
-    List<LatLng> endingPointPath = route.path.sublist(route.path.length-25, route.path.length);
+    List<LatLng> endingPointPath =
+        route.path.sublist(route.path.length - 25, route.path.length);
 
-    LineOptions optionsHikingDirectionStart =
-    LineOptions(geometry: startingPointPath, lineColor: "Green", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
-        LineOptions optionsHikingDirectionEnd =
-    LineOptions(geometry: endingPointPath, lineColor: "Red", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
+    LineOptions optionsHikingDirectionStart = LineOptions(
+        geometry: startingPointPath,
+        lineColor: "Green",
+        lineWidth: 10.0,
+        lineBlur: 2,
+        lineOpacity: 0.5);
+    LineOptions optionsHikingDirectionEnd = LineOptions(
+        geometry: endingPointPath,
+        lineColor: "Red",
+        lineWidth: 10.0,
+        lineBlur: 2,
+        lineOpacity: 0.5);
 
     mapController.addLine(optionsHikingDirectionStart);
-    mapController.addLine(optionsHikingDirectionEnd); 
+    mapController.addLine(optionsHikingDirectionEnd);
+  }
+
+  void centerCameraOverRoute(HikingRoute route) {
+    double averageLat = 0;
+    double averageLong = 0;
+
+    for (int i = 0; i < route.path.length; i++) {
+      averageLat += route.path[i].latitude;
+      averageLong += route.path[i].longitude;
+    }
+    averageLat /= route.path.length;
+    averageLong /= route.path.length;
+    setLatLng(LatLng(averageLat, averageLong));
+    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+    setZoom(zoom);
   }
 
   void initUpdateRouteTimer() {
