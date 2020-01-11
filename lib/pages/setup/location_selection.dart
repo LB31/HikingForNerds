@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/components/mapwidget.dart';
+import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 
-class LocationSelection extends StatefulWidget {
+class LocationSelectionPage extends StatefulWidget {
+  final RouteParamsCallback onPushRoutePreferences;
+
+  LocationSelectionPage({@required this.onPushRoutePreferences});
+
   @override
-  _LocationSelectionState createState() => _LocationSelectionState();
+  _LocationSelectionPageState createState() => _LocationSelectionPageState();
 }
 
-class _LocationSelectionState extends State<LocationSelection> {
-  final GlobalKey<MapWidgetState> mapWidgetKey =
-      new GlobalKey<MapWidgetState>();
-  LatLng _location;
+class _LocationSelectionPageState extends State<LocationSelectionPage> {
+  final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
@@ -21,13 +25,13 @@ class _LocationSelectionState extends State<LocationSelection> {
   }
 
   Future<LatLng> queryToLatLng(String query) async {
-    var addresses = await Geocoder.local.findAddressesFromQuery(query);
-    var first = addresses.first;
+    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
+    Address first = addresses.first;
     return LatLng(first.coordinates.latitude, first.coordinates.longitude);
   }
 
   Future<String> queryToAddressName(String query) async {
-    var addresses = await Geocoder.local.findAddressesFromQuery(query);
+    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
     return addresses.first.addressLine;
   }
 
@@ -77,14 +81,13 @@ class _LocationSelectionState extends State<LocationSelection> {
 
         ),
         onTap: () async {
-          var query = await showSearch(
+          String query = await showSearch(
               context: context, delegate: CustomSearchDelegate());
           if (query.length > 0) {
             moveToAddress(query);
           }
         },
       ),
-      resizeToAvoidBottomPadding: false,
       body: Stack(
         children: <Widget>[
           MapWidget(
@@ -92,7 +95,7 @@ class _LocationSelectionState extends State<LocationSelection> {
             isStatic: true,
           ),
           Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 45 - 40, //-45 to adjust for its own height AND -40 to adjust vor appbar (searchbar)
+              top: MediaQuery.of(context).size.height * 0.5 - 45 - 70, 
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,
@@ -100,13 +103,14 @@ class _LocationSelectionState extends State<LocationSelection> {
                 size: 50,
               )),
           Positioned(
-            right: MediaQuery.of(context).size.width * 0.15, 
-            bottom: 15,
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
                 heroTag: "btn-gps",
+                backgroundColor: htwGrey,
                 child: Icon(Icons.gps_fixed),
                 onPressed: () {
                   moveToCurrentLocation();
@@ -121,28 +125,27 @@ class _LocationSelectionState extends State<LocationSelection> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
-                heroTag: "btn-search",
+                backgroundColor: htwGreen,
+                heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
-                  size: 40,
+                  size: 36,
                 ),
                 onPressed: () {
-                  setState(() {
-                    _location =
-                        mapWidgetKey.currentState.mapController.cameraPosition.target;
-                  });
+                  LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
+                  RouteParams routeParams = RouteParams(routeStartingLocation);
+                  widget.onPushRoutePreferences(routeParams);
                 },
               ),
             ),
           )
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
 
-class CustomSearchDelegate extends SearchDelegate {
+class CustomSearchDelegate extends SearchDelegate<String> {
   List<String> _history = List<String>();
 
   CustomSearchDelegate() {
