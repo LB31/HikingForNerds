@@ -9,11 +9,13 @@ import 'osmdata.dart';
 
 class Graph {
   Map<Node, List<Edge>> adjacencies;
-  Map<Edge, double> penalties; //factor that penalizes edges, for example when they were used already in a roundtrip
+  Map<Edge, double> roadTypePenalties; //factor that penalizes edges, for example when they were used already in a roundtrip
+  Map<Edge, double> edgeAlreadyUsedPenalties; //factor that penalizes edges, for example when they were used already in a roundtrip
 
   Graph() {
     adjacencies = Map();
-    penalties = Map();
+    roadTypePenalties = Map();
+    edgeAlreadyUsedPenalties = Map();
   }
 
   void addEdge(Node nodeA, Node nodeB, double weight, Way parentWay) {
@@ -29,8 +31,8 @@ class Graph {
     edgeAtoB.back = edgeBtoA;
     edgeBtoA.back = edgeAtoB;
 
-    penalties.putIfAbsent(edgeAtoB, () => parentWay.initialPenalty);
-    penalties.putIfAbsent(edgeBtoA, () => parentWay.initialPenalty);
+    roadTypePenalties.putIfAbsent(edgeAtoB, () => parentWay.initialPenalty);
+    roadTypePenalties.putIfAbsent(edgeBtoA, () => parentWay.initialPenalty);
   }
 
   int getNodeCount() {
@@ -39,8 +41,8 @@ class Graph {
 
   void penalizeEdgesAlongRoute(List<Edge> route, double penalty){
     for(var edge in route){
-      penalties[edge] *= penalty;
-      penalties[edge.back] *= penalty;
+      edgeAlreadyUsedPenalties.putIfAbsent(edge, () => penalty);
+      edgeAlreadyUsedPenalties.putIfAbsent(edge.back, () => penalty);
     }
   }
 
@@ -110,7 +112,7 @@ class Graph {
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
         var tentativeGScore = (gScore[current] ?? double.infinity) +
-            neighborEdge.weight * penalties[neighborEdge];
+            neighborEdge.weight * (roadTypePenalties[neighborEdge] + (edgeAlreadyUsedPenalties[neighborEdge] ?? 0.0));
         var neighbor = neighborEdge.nodeTo;
         if (tentativeGScore < (gScore[neighbor] ?? double.infinity)) {
           // This path to neighbor is better than any previous one. Record it!
