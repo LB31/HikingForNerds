@@ -170,6 +170,7 @@ class OsmData{
     List<HikingRoute> routes = List();
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
+      graph.edgeAlreadyUsedPenalties.clear();
       var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading);
       var pointC = projectCoordinate(startLat, startLong, distanceInMeter/3, initialHeading + 60);
@@ -229,6 +230,7 @@ class OsmData{
     if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount < maxRetries){
+      graph.edgeAlreadyUsedPenalties.clear();
       List<PointOfInterest> includedPois = List();
       List<Edge> route = List();
       var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
@@ -390,6 +392,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 10000, 10, "aquarium");
+      52.510143, 13.408564, 30000, 10);
   print(route.length);
 }
