@@ -8,7 +8,7 @@ import 'package:hiking4nerds/services/routing/graph.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
+//import 'package:mapbox_gl/mapbox_gl.dart';
 
 
 
@@ -206,8 +206,9 @@ class OsmData{
 
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-      routes.add(HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative)));
-      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+      var resultRoute = HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative));
+      routes.add(resultRoute);
+      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms. Total length: " + resultRoute.totalLength.toString());
     }
     if(routes.length == 0){
       throw NoRoutesFoundException;
@@ -306,8 +307,10 @@ class OsmData{
       route.addAll(routeBack);
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-      routes.add(HikingRoute(routeNodes, totalRouteLength, includedPois));
-      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+      var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
+      routes.add(routeResult);
+      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString()
+          + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
     }
     if(routes.length == 0){
       throw NoRoutesFoundException;
