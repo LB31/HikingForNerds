@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 
-class Routesetup extends StatefulWidget {
+class HistoryPage extends StatefulWidget {
   @override
-  _RoutesetupState createState() => _RoutesetupState();
+  _HistoryPageState createState() => _HistoryPageState();
 }
 
-class _RoutesetupState extends State<Routesetup> {
+class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Setup'),
+        title: Text('History'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
+      body: TextField(),
     );
   }
 }
