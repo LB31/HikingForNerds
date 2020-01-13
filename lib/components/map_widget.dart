@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/elevation_chart.dart';
+import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -31,12 +34,16 @@ class MapWidgetState extends State<MapWidget> {
   Line _lineRoute;
   Line _linePassedRoute;
 
+  //please save the passed route as our DEFINED object ffs!
+  HikingRoute _currentRoute;
+
   LocationData _currentDeviceLocation;
   Timer _timer;
 
   CameraPosition _position;
   MapboxMapController mapController;
   bool _compassEnabled = true;
+  bool _heightChartEnabled = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
@@ -134,11 +141,15 @@ class MapWidgetState extends State<MapWidget> {
 
     centerCameraOverRoute(route);
 
+    if (route.elevations == null)
+      route.elevations = await ElevationQuery.queryElevations(route);
+
     setState(() {
       _route = routeLatLng;
       _passedRoute = [];
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
+      _currentRoute = route;
     });
 
     if (!widget.isStatic) initUpdateRouteTimer();
@@ -338,6 +349,16 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
+  void heightChartMode(){
+    this.setState((){
+      _heightChartEnabled = !_heightChartEnabled;
+    });
+
+    if (_currentRoute != null) {
+
+    }
+  }
+
   //TODO find way to rebuild map?!
   void forceRebuildMap() {}
 
@@ -381,12 +402,26 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
+              onHeightChartMode: heightChartMode,
+              heightChartDisplayed: _heightChartEnabled,
             ),
+          if(_currentRoute != null && _heightChartEnabled)
+          _buildElevationChart(context)
         ],
       );
     }
     return Center(
       child: new CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildElevationChart(BuildContext context){
+    return Container(
+      width: 30,
+        height: 40,
+        child: ElevationChart(
+        _currentRoute
+        )
     );
   }
 
