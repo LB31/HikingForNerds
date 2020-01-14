@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/global_settings.dart';
 
 // TODO this was created only for testing purpose
 class CreditsPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class _CreditsPageState extends State<CreditsPage> {
         title: Text('Credits'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
+      body: Text(GlobalSettings().safeHistory.toString()), // for testing
     );
   }
 }

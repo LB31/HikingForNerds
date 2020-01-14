@@ -13,7 +13,7 @@ class _SettingsPageState extends State<SettingsPage> {
   GlobalSettings gs = GlobalSettings();
 
   // Design
-  TextStyle textStyle = TextStyle(fontSize: 20);
+  TextStyle textStyle = TextStyle(fontSize: 16);
   MainAxisAlignment axisAlignment = MainAxisAlignment.spaceEvenly;
   double spcaeBetweenRows = 10;
 
@@ -79,12 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Settings'),
-          backgroundColor: Theme.of(context).primaryColor,
-        ),
-        body: Container(
+    return new Container(
           child: Column(
             children: <Widget>[
               // Safe History (switch)
@@ -239,6 +234,6 @@ class _SettingsPageState extends State<SettingsPage> {
               // ),
             ],
           ),
-        ));
+        );
   }
 }
