@@ -92,7 +92,6 @@ class SegmentNavigator extends StatelessWidget {
       // TODO add route list
      SegmentRoutes.routeList: (context) => RouteList(
        routeParams: params["route-params"],
-       routes: params["routes"],
        onPushRoutePreview: (routeParams) => _push(context,
            SegmentRoutes.routePreview, {"route-params": routeParams}),
      ),

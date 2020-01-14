@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class RoutePreviewPage extends StatefulWidget {
-  final RouteParams routeParams;
   final SwitchToMapCallback onSwitchToMap;
+  final RouteParams routeParams;
 
   @override
   _RoutePreviewPageState createState() => _RoutePreviewPageState();
@@ -24,43 +23,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   List<HikingRoute> _routes = [];
-  int _currentRouteIndex = 0;
+  int _currentRouteIndex;
 
   @override
   void initState() {
     super.initState();
-    calculateRoutes();
-  }
-
-  Future<void> calculateRoutes() async {
-    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
-        widget.routeParams.startingLocation.latitude,
-        widget.routeParams.startingLocation.longitude,
-        widget.routeParams.distanceKm * 1000.0,
-        10);
-
-    /*
-    try {
-      routes = await OsmData().calculateHikingRoutes(
-          widget.routeParams.startingLocation.latitude,
-          widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
-          10,
-          widget.routeParams.poiCategories[0]);
-    } catch (err) {
-      if (err == NoPOIsFoundException) {
-        print("no poi found exception");
-
-      }
-    }
-    */
-
-    setState(() {
-      _routes = routes;
-      _currentRouteIndex = 0;
-    });
-
-    switchRoute(_currentRouteIndex);
+    _routes = widget.routeParams.routes;
+    _currentRouteIndex = widget.routeParams.routeIndex;
   }
 
   void switchRoute(int index) {
