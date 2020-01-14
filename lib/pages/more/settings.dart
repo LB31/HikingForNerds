@@ -17,11 +17,6 @@ class _SettingsPageState extends State<SettingsPage> {
   MainAxisAlignment axisAlignment = MainAxisAlignment.spaceEvenly;
   double spcaeBetweenRows = 10;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -69,18 +64,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  BoxDecoration addButtonDecoration() {
-    return BoxDecoration(
-      color: htwGrey,
-      borderRadius: BorderRadius.circular(4),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        // Safe History (switch)
+        // Safe History
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
@@ -116,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
             )
           ],
         ),
-        // Language TODO
+        // Language
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
@@ -178,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
               builder: (BuildContext context) => pupUpDialog(
                 context,
                 "Are you sure you want to delete your downloaded maps?",
-                null, // TODO function to delete downloaded maps
+                (){}, // TODO call function to delete downloaded maps
               ),
             );
           },
@@ -196,13 +185,12 @@ class _SettingsPageState extends State<SettingsPage> {
               builder: (BuildContext context) => pupUpDialog(
                 context,
                 "Are you sure you want to delete your history?",
-                null, // TODO function to delete history
+                (){}, // TODO call function to delete history
               ),
             );
           },
           child: createHeading("Delete history"),
         ),
-
         // Space
         SizedBox(height: spcaeBetweenRows),
         // Maximum route length

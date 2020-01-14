@@ -24,7 +24,7 @@ class MorePage extends StatefulWidget {
 Container decorateContent(String title, Widget widget) {
   return Container(
     decoration: BoxDecoration(
-      color: const Color(0xffffffff),
+      color: Colors.white,
       boxShadow: [
         BoxShadow(
           blurRadius: 1,
@@ -36,7 +36,7 @@ Container decorateContent(String title, Widget widget) {
       children: <Widget>[
         Align(
           alignment: Alignment(-0.8, -1),
-          child: Text(title, style: TextStyle(fontSize: 30, color: htwBlue)),
+          child: Text(title, style: TextStyle(fontSize: 20, color: htwBlue)),
         ),
         widget,
       ],
@@ -66,27 +66,6 @@ class _MorePageState extends State<MorePage> {
           decorateContent("Credits", CreditsPage()),
           makeHorizontalSpace(),
         ]),
-
-        // ButtonBar(
-        //   alignment: MainAxisAlignment.center,
-        //   children: <Widget>[
-        //     new RaisedButton(
-        //       onPressed: widget.onPushHelp,
-        //       child: new Icon(Icons.help),
-        //       color: Colors.green,
-        //     ),
-        //     new RaisedButton(
-        //       onPressed: widget.onPushCredit,
-        //       child: new Icon(Icons.credit_card),
-        //       color: Colors.red,
-        //     ),
-        //     new RaisedButton(
-        //       onPressed: widget.onPushSettings,
-        //       child: new Icon(Icons.settings),
-        //       color: Colors.blue,
-        //     ),
-        //   ],
-        // ),
       ),
     );
   }
