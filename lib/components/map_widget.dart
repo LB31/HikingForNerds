@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
+import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'dart:math';
@@ -25,6 +27,9 @@ class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
+
+  static const platform = const MethodChannel('app.channel.hikingfornerds.data');
+  HikingRoute sharedRoute;
 
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
@@ -72,6 +77,26 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
+    _getIntentData();
+  }
+
+  Future<void> _getIntentData() async {
+    var data = await _getSharedData();
+    if (data == null) return;
+    setState(() {
+      sharedRoute = data;
+    });
+  }
+
+  _getSharedData() async {
+    String dataPath = await platform.invokeMethod("getSharedData");
+    if (dataPath.isEmpty) return null;
+    var data;
+    if (dataPath.endsWith(".geojson"))
+      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
+    else if (dataPath.endsWith(".gpx"))
+      data = new GpxDataHandler().parseRouteFromString(dataPath);
+    return data;
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -124,12 +149,13 @@ class MapWidgetState extends State<MapWidget> {
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
-    LineOptions optionsPassedRoute = LineOptions(
-        geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
+    LineOptions optionsPassedRoute =
+        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2, lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute = LineOptions(
-        geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
+    LineOptions optionsRoute =
+        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1, lineOpacity: 0.5);
+
     Line lineRoute = await mapController.addLine(optionsRoute);
 
     centerCameraOverRoute(route);
@@ -147,14 +173,7 @@ class MapWidgetState extends State<MapWidget> {
   void drawRouteStartingPoint(HikingRoute route) {
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(
-        geometry: startingPoint,
-        circleColor: "Red",
-        circleRadius: 12,
-        circleStrokeWidth: 7,
-        circleStrokeColor: "Blue",
-        circleBlur: 0.25,
-        circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 11, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
     mapController.addCircle(optionsStartingPoint);
   }
 
@@ -420,5 +439,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
+
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
