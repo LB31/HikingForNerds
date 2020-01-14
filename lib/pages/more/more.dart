@@ -34,11 +34,13 @@ Container decorateContent(String title, Widget widget) {
     ),
     child: Column(
       children: <Widget>[
+        SizedBox(height: 10),
         Align(
-          alignment: Alignment(-0.8, -1),
+          alignment: Alignment(-0.8, 0),
           child: Text(title, style: TextStyle(fontSize: 20, color: htwBlue)),
         ),
         widget,
+        SizedBox(height: 10),
       ],
     ),
   );
