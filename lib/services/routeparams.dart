@@ -1,4 +1,5 @@
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:hiking4nerds/services/route.dart';
 
 typedef RouteParamsCallback = void Function(RouteParams routeParams);
 
@@ -32,7 +33,8 @@ class RouteParams {
   double distanceKm;
   List<String> poiCategories;
   AltitudeType altitudeType;
+  List<HikingRoute> routes;
+  int routeIndex;
 
-  RouteParams(this.startingLocation,
-      [this.distanceKm, this.poiCategories, this.altitudeType]);
+  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType]);
 }

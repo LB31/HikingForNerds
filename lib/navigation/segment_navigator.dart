@@ -7,6 +7,7 @@ import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
 import 'package:hiking4nerds/pages/setup/location_selection.dart';
 import 'package:hiking4nerds/pages/setup/route_preferences.dart';
+import 'package:hiking4nerds/pages/setup/route_list.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
 
 class SegmentRoutes {
@@ -84,17 +85,16 @@ class SegmentNavigator extends StatelessWidget {
       // TODO add route preferences
      SegmentRoutes.routePreferences: (context) => RoutePreferences(
        routeParams: params["route-params"],
-       onPushRoutePreview: (routeParams) =>
-           _push(context, SegmentRoutes.routePreview, {"route-params": routeParams}),
+       onPushRouteList: (routeParams) =>
+           _push(context, SegmentRoutes.routeList, {"route-params": routeParams}),
      ),
 
       // TODO add route list
-//      SegmentRoutes.routeList: (context) => RouteList(
-//        routeParams: params["route-params"],
-//        routes: params["routes"],
-//        onPushRoutePreferences: (routeParams) => _push(context,
-//            SegmentRoutes.routePreview, {"route-params": routeParams}));
-//      )
+     SegmentRoutes.routeList: (context) => RouteList(
+       routeParams: params["route-params"],
+       onPushRoutePreview: (routeParams) => _push(context,
+           SegmentRoutes.routePreview, {"route-params": routeParams}),
+     ),
 
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
           routeParams: params["route-params"], // TODO swap route-params with route list
