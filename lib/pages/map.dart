@@ -31,18 +31,19 @@ class MapPageState extends State<MapPage> {
         children: <Widget>[
           // TODO activate next line again. It stops me from proper debugging
           //MapWidget(key: mapWidgetKey, isStatic: false),
-//          //To test the elevation chart
-//           Positioned(
-//             top: MediaQuery.of(context).size.height - 450,
-//             left: 10,
-//             height: 200,
-//             width: MediaQuery.of(context).size.width * 0.8,
-//             child: new ElevationChart(
-//               route,
-//               onSelectionChanged: (int index) => print(index),
-//               withLabels: false,
-//                ),
-//           ),
+
+         //To test the elevation chart
+          Positioned(
+            top: MediaQuery.of(context).size.height - 450,
+            left: 10,
+            height: 200,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: new ElevationChart(
+              route,
+              onSelectionChanged: (int index) => print(index),
+              withLabels: true,
+               ),
+          ),
           //TODO: remove mock button
           Align(
             alignment: Alignment.bottomRight,

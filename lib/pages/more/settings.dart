@@ -20,7 +20,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-
   }
 
   saveSettings() async {
@@ -80,160 +79,156 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return new Container(
-          child: Column(
+      child: Column(
+        children: <Widget>[
+          // Safe History (switch)
+          Row(
+            mainAxisAlignment: axisAlignment,
             children: <Widget>[
-              // Safe History (switch)
-              Row(
-                mainAxisAlignment: axisAlignment,
-                children: <Widget>[
-                  createHeading("Safe History"),
-                  Switch(
-                    value: gs.safeHistory,
-                    onChanged: (bool value) {
-                      setState(() {
-                        gs.safeHistory = value;
-                        saveSettings();
-                      });
-                    },
-                    activeColor: htwGreen,
-                    inactiveTrackColor: htwGrey,
-                  )
-                ],
-              ),
-              // Use Location
-              Row(
-                mainAxisAlignment: axisAlignment,
-                children: <Widget>[
-                  createHeading("Use Location"),
-                  Switch(
-                    value: gs.useLocation,
-                    onChanged: (bool value) {
-                      setState(() {
-                        gs.useLocation = value;
-                        saveSettings();
-                      });
-                    },
-                    activeColor: htwGreen,
-                    inactiveTrackColor: htwGrey,
-                  )
-                ],
-              ),
-              // Language TODO
-              Row(
-                mainAxisAlignment: axisAlignment,
-                children: <Widget>[
-                  createHeading("Language"),
-                  DropdownButton<String>(
-                    value: gs.selectedLanguage,
-                    icon: Icon(Icons.arrow_drop_down),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: TextStyle(color: htwBlue),
-                    underline: Container(
-                      height: 2,
-                      color: htwBlue,
-                    ),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        gs.selectedLanguage = newValue;
-                        saveSettings();
-                      });
-                    },
-                    items: buildDropdownItems(gs.languageOptions),
-                  )
-                ],
-              ),
-              // Units
-              Row(
-                mainAxisAlignment: axisAlignment,
-                children: <Widget>[
-                  createHeading("Units"),
-                  DropdownButton<String>(
-                    value: gs.selectedUnit,
-                    icon: Icon(Icons.arrow_drop_down),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: TextStyle(color: htwBlue),
-                    underline: Container(
-                      height: 2,
-                      color: htwBlue,
-                    ),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        gs.selectedUnit = newValue;
-                        saveSettings();
-                      });
-                    },
-                    items: buildDropdownItems(gs.unitOptions),
-                  )
-                ],
-              ),
-              // Delete downloaded maps
-              InkWell(
-                  onTap: () {
+              createHeading("Safe History"),
+              Switch(
+                value: gs.safeHistory,
+                onChanged: (bool value) {
+                  setState(() {
+                    gs.safeHistory = value;
                     saveSettings();
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) => pupUpDialog(
-                        context,
-                        "Are you sure you want to delete your downloaded maps?",
-                        null,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: addButtonDecoration(),
-                    child: Padding(
-                      child: createHeading("Delete downloaded maps"),
-                      padding: EdgeInsets.all(6.0),
-                    ),
-                  )),
-              // Space
-              SizedBox(height: spcaeBetweenRows),
-              // Delete history
-              InkWell(
-                  onTap: () {
-                    saveSettings();
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) => pupUpDialog(
-                        context,
-                        "Are you sure you want to delete your history?",
-                        null,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: addButtonDecoration(),
-                    child: Padding(
-                      child: createHeading("Delete history"),
-                      padding: EdgeInsets.all(6.0),
-                    ),
-                  )),
-              // Space
-              SizedBox(height: spcaeBetweenRows), //
-              // Maximum route length
-              // Column(
-              //   mainAxisAlignment: axisAlignment,
-              //   children: <Widget>[
-              //     createHeading("Maximum route length"),
-              //     Slider(
-              //       value: gs.maximumRouteLength,
-              //       onChanged: (double value) {
-              //         setState(() {
-              //           gs.maximumRouteLength = value;
-              //           saveSettings();
-              //         });
-              //       },
-              //       min: 0,
-              //       max: 15,
-              //       divisions: 15,
-              //       label: gs.languageOptions.toString(),
-              //     )
-              //   ],
-              // ),
+                  });
+                },
+                activeColor: htwGreen,
+                inactiveTrackColor: htwGrey,
+              )
             ],
           ),
-        );
+          // Use Location
+          Row(
+            mainAxisAlignment: axisAlignment,
+            children: <Widget>[
+              createHeading("Use Location"),
+              Switch(
+                value: gs.useLocation,
+                onChanged: (bool value) {
+                  setState(() {
+                    gs.useLocation = value;
+                    saveSettings();
+                  });
+                },
+                activeColor: htwGreen,
+                inactiveTrackColor: htwGrey,
+              )
+            ],
+          ),
+          // Language TODO
+          Row(
+            mainAxisAlignment: axisAlignment,
+            children: <Widget>[
+              createHeading("Language"),
+              DropdownButton<String>(
+                value: gs.selectedLanguage,
+                icon: Icon(Icons.arrow_drop_down),
+                iconSize: 24,
+                elevation: 16,
+                style: TextStyle(color: htwBlue),
+                underline: Container(
+                  height: 2,
+                  color: htwBlue,
+                ),
+                onChanged: (String newValue) {
+                  setState(() {
+                    gs.selectedLanguage = newValue;
+                    saveSettings();
+                  });
+                },
+                items: buildDropdownItems(gs.languageOptions),
+              )
+            ],
+          ),
+          // Units
+          Row(
+            mainAxisAlignment: axisAlignment,
+            children: <Widget>[
+              createHeading("Units"),
+              DropdownButton<String>(
+                value: gs.selectedUnit,
+                icon: Icon(Icons.arrow_drop_down),
+                iconSize: 24,
+                elevation: 16,
+                style: TextStyle(color: htwBlue),
+                underline: Container(
+                  height: 2,
+                  color: htwBlue,
+                ),
+                onChanged: (String newValue) {
+                  setState(() {
+                    gs.selectedUnit = newValue;
+                    saveSettings();
+                  });
+                },
+                items: buildDropdownItems(gs.unitOptions),
+              )
+            ],
+          ),
+          // Delete downloaded maps
+          FlatButton(
+            color: htwBlue,
+            textColor: Colors.white,
+            padding: EdgeInsets.all(8.0),
+            splashColor: Colors.blueAccent,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => pupUpDialog(
+                  context,
+                  "Are you sure you want to delete your downloaded maps?",
+                  null, // TODO function to delete downloaded maps
+                ),
+              );
+            },
+            child: createHeading("Delete downloaded maps"),
+          ),
+          // Delete history
+          FlatButton(
+            color: htwBlue,
+            textColor: Colors.white,
+            padding: EdgeInsets.all(8.0),
+            splashColor: Colors.blueAccent,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => pupUpDialog(
+                  context,
+                  "Are you sure you want to delete your history?",
+                  null, // TODO function to delete history
+                ),
+              );
+            },
+            child: createHeading("Delete history"),
+          ),
+
+          
+          // Space
+          SizedBox(height: spcaeBetweenRows),
+          // Maximum route length
+          // Column(
+          //   mainAxisAlignment: axisAlignment,
+          //   children: <Widget>[
+          //     createHeading("Maximum route length"),
+          //     Slider(
+          //       value: gs.maximumRouteLength,
+          //       onChanged: (double value) {
+          //         setState(() {
+          //           gs.maximumRouteLength = value;
+          //           saveSettings();
+          //         });
+          //       },
+          //       min: 0,
+          //       max: 15,
+          //       divisions: 15,
+          //       label: gs.languageOptions.toString(),
+          //     )
+          //   ],
+          // ),
+        ],
+      ),
+    );
   }
 }
