@@ -64,13 +64,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
-  crypto:
-    dependency: transitive
-    description:
-      name: crypto
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.4"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -78,13 +71,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.3"
-  dart2_constant:
-    dependency: transitive
-    description:
-      name: dart2_constant
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2+dart2"
   esys_flutter_share:
     dependency: "direct main"
     description:
@@ -99,18 +85,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1+3"
-  fab_circular_menu:
-    dependency: "direct main"
-    description:
-      name: fab_circular_menu
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.2"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_absolute_path:
+    dependency: "direct main"
+    description:
+      name: flutter_absolute_path
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
   flutter_spinkit:
     dependency: "direct dev"
     description:
@@ -373,13 +359,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
-  synchronized:
-    dependency: transitive
-    description:
-      name: synchronized
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
   term_glyph:
     dependency: transitive
     description:
