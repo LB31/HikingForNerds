@@ -183,7 +183,52 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                     widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
-          )
+          ),
+          Positioned(
+              top: 85,
+              left: MediaQuery.of(context).size.width * 0.5 - 65,
+              child: Opacity(
+                opacity: 0.5,
+                child: Container(
+                  width: 130,
+                  decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Text("Start"),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 18),
+                              child: Container(
+                                width: 60,
+                                height: 5,
+                                color: Colors.green,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Text("Finish"),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Container(
+                                width: 60,
+                                height: 5,
+                                color: Colors.red,
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );
