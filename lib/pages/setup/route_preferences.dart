@@ -4,11 +4,11 @@ import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class RoutePreferences extends StatefulWidget {
-  final RouteParamsCallback onPushRoutePreview;
+  final RouteParamsCallback onPushRouteList;
   final RouteParams routeParams;
 
   RoutePreferences(
-      {@required this.onPushRoutePreview, @required this.routeParams});
+      {@required this.onPushRouteList, @required this.routeParams});
 
   @override
   _RoutePreferencesState createState() => _RoutePreferencesState();
@@ -189,7 +189,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                     widget.routeParams.altitudeType =
                         AltitudeTypeHelper.fromIndex(selectedAltitude);
 
-                    widget.onPushRoutePreview(widget.routeParams);
+                    widget.onPushRouteList(widget.routeParams);
                   }),
             ),
           ),
