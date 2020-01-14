@@ -17,7 +17,6 @@ environment:
   sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
-  flutter_map:
   http:
   collection: 1.14.11
   location:
@@ -30,6 +29,7 @@ dependencies:
   geocoder: ^0.2.1
   shared_preferences: ^0.5.4
   charts_flutter: ^0.8.1
+  search_widget: ^1.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -49,6 +49,8 @@ dependencies:
   geojson: ^0.7.3
 
   gpx: ^0.0.3
+
+  flutter_absolute_path: ^1.0.6
 
 dev_dependencies:
   flutter_spinkit: ^4.0.0

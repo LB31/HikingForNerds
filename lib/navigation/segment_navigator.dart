@@ -7,6 +7,7 @@ import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
 import 'package:hiking4nerds/pages/more/settings.dart';
 import 'package:hiking4nerds/pages/setup/location_selection.dart';
+import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
 
 class SegmentRoutes {
@@ -57,7 +58,7 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.setup:
         return LocationSelectionPage(
             onPushRoutePreferences: (routeParams) => _push(context,
-                SegmentRoutes.routePreview, {"route-params": routeParams}));
+                SegmentRoutes.routePreferences, {"route-params": routeParams}));
       case AppSegment.map:
         return MapPage(key: mapKey);
       case AppSegment.history:
@@ -85,11 +86,11 @@ class SegmentNavigator extends StatelessWidget {
       // SegmentRoutes.settings: (context) => SettingsPage(),
 
       // TODO add route preferences
-//      SegmentRoutes.routePreferences: (context) => RoutePreferences(
-//        routeParams: params["route-params"],
-//        onPushRouteList: (routeParams) => _push(context,
-//          SegmentRoutes.routeList, {"route-params": routeParams}),
-//      )
+     SegmentRoutes.routePreferences: (context) => RoutePreferences(
+       routeParams: params["route-params"],
+       onPushRoutePreview: (routeParams) =>
+           _push(context, SegmentRoutes.routePreview, {"route-params": routeParams}),
+     ),
 
       // TODO add route list
 //      SegmentRoutes.routeList: (context) => RouteList(
@@ -100,8 +101,7 @@ class SegmentNavigator extends StatelessWidget {
 //      )
 
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
-          routeParams: params["route-params"],
-          // TODO swap route-params with route list
+          routeParams: params["route-params"], // TODO swap route-params with route list
           onSwitchToMap: (route) {
             onChangeSegment(AppSegment.map);
             // refresh the state of the new segment by passing parameters

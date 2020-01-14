@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
@@ -14,7 +15,8 @@ class RoutePreviewPage extends StatefulWidget {
   @override
   _RoutePreviewPageState createState() => _RoutePreviewPageState();
 
-  RoutePreviewPage({Key key, @required this.onSwitchToMap, @required this.routeParams})
+  RoutePreviewPage(
+      {Key key, @required this.onSwitchToMap, @required this.routeParams})
       : super(key: key);
 }
 
@@ -34,8 +36,24 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
         widget.routeParams.startingLocation.latitude,
         widget.routeParams.startingLocation.longitude,
-        10000,
+        widget.routeParams.distanceKm * 1000.0,
         10);
+
+    /*
+    try {
+      routes = await OsmData().calculateHikingRoutes(
+          widget.routeParams.startingLocation.latitude,
+          widget.routeParams.startingLocation.longitude,
+          widget.routeParams.distanceKm * 1000.0,
+          10,
+          widget.routeParams.poiCategories[0]);
+    } catch (err) {
+      if (err == NoPOIsFoundException) {
+        print("no poi found exception");
+
+      }
+    }
+    */
 
     setState(() {
       _routes = routes;
@@ -117,12 +135,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-            left: MediaQuery.of(context).size.width * 0.15,
-            bottom: 15,
+            left: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
+                backgroundColor: htwGrey,
                 heroTag: "btn-switch-direction",
                 child: Icon(Icons.swap_horizontal_circle),
                 onPressed: () {
@@ -132,12 +151,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-            right: MediaQuery.of(context).size.width * 0.15,
-            bottom: 15,
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
+                backgroundColor: htwGrey,
                 heroTag: "btn-gps",
                 child: Icon(Icons.gps_fixed),
                 onPressed: () {
@@ -153,16 +173,62 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
+                backgroundColor: htwGreen,
                 heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
-                  size: 40,
+                  size: 36,
                 ),
-                onPressed: (() => widget
-                    .onSwitchToMap(_routes[_currentRouteIndex])),
+                onPressed: (() =>
+                    widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
-          )
+          ),
+          Positioned(
+              top: 85,
+              left: MediaQuery.of(context).size.width * 0.5 - 65,
+              child: Opacity(
+                opacity: 0.5,
+                child: Container(
+                  width: 130,
+                  decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Text("Start"),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 18),
+                              child: Container(
+                                width: 60,
+                                height: 5,
+                                color: Colors.green,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Text("Finish"),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Container(
+                                width: 60,
+                                height: 5,
+                                color: Colors.red,
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );
