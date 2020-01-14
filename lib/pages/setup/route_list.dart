@@ -15,15 +15,13 @@ class RouteList extends StatefulWidget {
 }
 
 class _RouteListState extends State<RouteList> {
-
-  List<RouteListTile> routelist = [
-    // RouteListTile(title: 'Berlin', date: '16.12.2019', distance: 12.4,),
-  ];
+  List<RouteListEntry> routeList = [];
   String summary = '';
 
-    @override
+  @override
   void initState() {
     super.initState();
+    // todo implement loading bar
     calculateRoutes();
   }
 
@@ -35,6 +33,7 @@ class _RouteListState extends State<RouteList> {
         10);
 
     /*
+    TODO perhaps this needs to be discussed w/ roman
     try {
       routes = await OsmData().calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
@@ -53,16 +52,15 @@ class _RouteListState extends State<RouteList> {
     setState(() {
       widget.routeParams.routes = routes;
       print('## ${routes.length} routes found');
-      widget.routeParams.routes.forEach((r) => routelist.add(RouteListTile(r.title, r.date, r.totalLength,)));      
+      widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
+            r.title,
+            r.date,
+            r.totalLength,
+          )));
     });
   }
 
-  void showPrev(index){
-    // reroute to prev screen
-    widget.routeParams.routeIndex = index;
-    widget.onPushRoutePreview(widget.routeParams);
-  }
-
+  // TODO add localization or remove if not needed
   void summaryText() {
     String text = 'Displaying routes for your chosen parameters\n';
     text += 'Distance: ${widget.routeParams.distanceKm}\n';
@@ -74,53 +72,55 @@ class _RouteListState extends State<RouteList> {
 
   @override
   Widget build(BuildContext context) {
-    print('build func running');
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: htwGreen,
-        title: Text('Choose a route to preview'),
-        elevation: 0,
-      ),
-      body: Stack(
-        children: <Widget>[
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          backgroundColor: htwGreen,
+          title: Text('Choose a route to preview'), // TODO add localization
+          elevation: 0,
+        ),
+        body: Stack(children: <Widget>[
           Text(
             summary,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600]),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600]),
             textAlign: TextAlign.left,
           ),
           Padding(padding: EdgeInsets.only(top: 20)),
           ListView.builder(
-          itemCount: routelist.length,
-          itemBuilder: (context, index){
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
-              child: Card(
-                child: ListTile(
-                  onTap: () {
-                    showPrev(index);
-                  },
-                  title: Text(routelist[index].title),
-                  subtitle: Text('Distance: ${routelist[index].distance.toString()}\nDate: ${routelist[index].date}'),
-                  leading: CircleAvatar(
-                    child: Icon(Icons.directions_walk, color: htwGreen,)
-                    //backgroundImage: (routelist[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
+            itemCount: routeList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
+                child: Card(
+                  child: ListTile(
+                    onTap: () {
+                      widget.routeParams.routeIndex = index;
+                      widget.onPushRoutePreview(widget.routeParams);
+                    },
+                    title: Text(routeList[index].title),
+                    subtitle: Text(
+                        'Distance: ${routeList[index].distance.toString()}\nDate: ${routeList[index].date}'),// TODO localization
+                    leading: CircleAvatar(
+                        child: Icon(
+                      Icons.directions_walk,
+                      color: htwGreen,
+                    )
+                        //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
+                        ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-        ])
-    );
+              );
+            },
+          ),
+        ]));
   }
 }
 
-class RouteListTile {
-
+class RouteListEntry {
   String title; // Route title i.e. Address, city, regio, custom
   String date; // Route date - created
   String distance; // Route length in KM
@@ -128,14 +128,14 @@ class RouteListTile {
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
-  RouteListTile(String title, String date, double distance) {
+  RouteListEntry(String title, String date, double distance) {
     this.title = title;
     this.date = date;
-    this.distance = format(distance);
+    this.distance = formatDistance(distance);
     // this.avatar = avatar;
   }
 
-  String format(double n) {
+  String formatDistance(double n) {
     return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2);
   }
 }
