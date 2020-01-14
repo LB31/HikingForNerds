@@ -64,9 +64,10 @@ class SegmentNavigator extends StatelessWidget {
         return HistoryPage();
       case AppSegment.more:
         return MorePage(
-            onPushCredit: () => _push(context, SegmentRoutes.credits),
-            onPushHelp: () => _push(context, SegmentRoutes.help),
-            onPushSettings: () => _push(context, SegmentRoutes.settings));
+            // onPushCredit: () => _push(context, SegmentRoutes.credits),
+            // onPushHelp: () => _push(context, SegmentRoutes.help),
+            // onPushSettings: () => _push(context, SegmentRoutes.settings)
+            );
     }
 
     throw new Exception(
@@ -77,11 +78,11 @@ class SegmentNavigator extends StatelessWidget {
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context,
       [Map<String, dynamic> params]) {
     return {
-      SegmentRoutes.credits: (context) => CreditsPage(),
-      SegmentRoutes.help: (context) => HelpPage(
-          onPushHistorySaveState: () => onChangeSegment(AppSegment.history),
-          onPushHistory: () => onChangeSegment(AppSegment.history, true)),
-      SegmentRoutes.settings: (context) => SettingsPage(),
+      // SegmentRoutes.credits: (context) => CreditsPage(),
+      // SegmentRoutes.help: (context) => HelpPage(
+      //     onPushHistorySaveState: () => onChangeSegment(AppSegment.history),
+      //     onPushHistory: () => onChangeSegment(AppSegment.history, true)),
+      // SegmentRoutes.settings: (context) => SettingsPage(),
 
       // TODO add route preferences
 //      SegmentRoutes.routePreferences: (context) => RoutePreferences(

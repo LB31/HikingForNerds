@@ -10,12 +10,10 @@ class CreditsPage extends StatefulWidget {
 class _CreditsPageState extends State<CreditsPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Credits'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-      body: Text(GlobalSettings().safeHistory.toString()), // for testing
+    return Column(
+      children: <Widget>[
+        Text(GlobalSettings().safeHistory.toString()), // for testing
+      ],
     );
   }
 }
