@@ -26,29 +26,24 @@ class _RouteListState extends State<RouteList> {
   }
 
   Future<void> calculateRoutes() async {
-    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
-        widget.routeParams.startingLocation.latitude,
-        widget.routeParams.startingLocation.longitude,
-        widget.routeParams.distanceKm * 1000.0,
-        10);
+    List<HikingRoute> routes;
 
-    /*
-    TODO perhaps this needs to be discussed w/ roman
     try {
       routes = await OsmData().calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
           widget.routeParams.startingLocation.longitude,
           widget.routeParams.distanceKm * 1000.0,
           10,
-          widget.routeParams.poiCategories[0]);
-    } catch (err) {
-      if (err == NoPOIsFoundException) {
-        print("no poi found exception");
-
-      }
+          widget.routeParams.poiCategories);
+    } on NoPOIsFoundException catch (err) {
+        print("no poi found exception " + err.toString());
+    } finally {
+      routes = await OsmData().calculateHikingRoutes(
+          widget.routeParams.startingLocation.latitude,
+          widget.routeParams.startingLocation.longitude,
+          widget.routeParams.distanceKm * 1000.0,
+          10);
     }
-    */
-
     setState(() {
       widget.routeParams.routes = routes;
       print('## ${routes.length} routes found');
