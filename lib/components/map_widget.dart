@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
@@ -167,7 +168,9 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic) initUpdateRouteTimer();
+    if (!widget.isStatic){
+      startRoute();
+    }
   }
 
   void drawRouteStartingPoint(HikingRoute route) {
@@ -212,6 +215,29 @@ class MapWidgetState extends State<MapWidget> {
     setLatLng(LatLng(averageLat, averageLong));
     double zoom = 14.5 - (pow(route.totalLength, 0.4));
     setZoom(zoom);
+  }
+
+  startRoute(){
+    initUpdateRouteTimer();
+
+    Flushbar(
+      messageText: Text("Your hiking trip has started!", // TODO add localization
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.check,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
   }
 
   void initUpdateRouteTimer() {
@@ -264,14 +290,24 @@ class MapWidgetState extends State<MapWidget> {
 
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
-    Fluttertoast.showToast(
-        msg: "You have finished your Hiking Trip!",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 1,
-        backgroundColor: Theme.of(context).primaryColor,
-        textColor: Colors.black,
-        fontSize: 16.0);
+    Flushbar(
+      messageText: Text("You have finished your hiking trip", // TODO add localization
+          style: TextStyle(
+              color: Colors.black,
+              fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.thumb_up,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
 
     setState(() {
       _passedRoute = [];
