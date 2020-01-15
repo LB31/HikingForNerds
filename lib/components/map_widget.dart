@@ -27,13 +27,9 @@ class MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
 
-<<<<<<< Updated upstream
   static const platform = const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
-  List<LatLng> _passedRoute = [];
-=======
->>>>>>> Stashed changes
   List<LatLng> _route = [];
   List<LatLng> _passedRoute = [];
   List<LatLng> _remainingRoute = [];
