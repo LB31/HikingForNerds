@@ -13,7 +13,6 @@ import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'dart:math';
 
-
 class MapWidget extends StatefulWidget {
   final bool isStatic;
 
@@ -28,11 +27,16 @@ class MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
   static double defaultZoom = 12.0;
 
+<<<<<<< Updated upstream
   static const platform = const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
   List<LatLng> _passedRoute = [];
+=======
+>>>>>>> Stashed changes
   List<LatLng> _route = [];
+  List<LatLng> _passedRoute = [];
+  List<LatLng> _remainingRoute = [];
   Line _lineRoute;
   Line _linePassedRoute;
 
@@ -162,6 +166,7 @@ class MapWidgetState extends State<MapWidget> {
 
     setState(() {
       _route = routeLatLng;
+      _remainingRoute = routeLatLng;
       _passedRoute = [];
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
@@ -218,7 +223,7 @@ class MapWidgetState extends State<MapWidget> {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
-  void updateRoute() async {
+  void updateRouteOLD() async {
     int currentRouteNodeIndex = 0;
     for (int index = 0; index < _route.length; index++) {
       if (isRouteNodeAtIndexAhead(index)) {
@@ -226,7 +231,7 @@ class MapWidgetState extends State<MapWidget> {
             _route[index],
             new LatLng(_currentDeviceLocation.latitude,
                 _currentDeviceLocation.longitude));
-        if (distanceToCurrentLocation < 0.05) {
+        if (distanceToCurrentLocation < 0.1) {
           currentRouteNodeIndex = index + 1;
         }
       }
@@ -251,6 +256,25 @@ class MapWidgetState extends State<MapWidget> {
 
     if (_route.length <= 1) {
       finishHikingTrip();
+    }
+  }
+
+  void updateRoute() {
+    for (int index = 0; index < _remainingRoute.length; index++) {
+      double distanceToCurrentLocation = OsmData.getDistance(
+          _route[index],
+          new LatLng(_currentDeviceLocation.latitude,
+              _currentDeviceLocation.longitude));
+      if (distanceToCurrentLocation < 0.1) {
+        print(index.toString() +
+            " / " +
+            _remainingRoute.length.toString() +
+            " close");
+      } else
+        print(index.toString() +
+            " / " +
+            _remainingRoute.length.toString() +
+            " far");
     }
   }
 
