@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/more/settings.dart';
+import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/styles.dart';
 
 import 'credits.dart';
@@ -37,7 +38,7 @@ Container decorateContent(String title, Widget widget) {
         SizedBox(height: 10),
         Align(
           alignment: Alignment(-0.8, 0),
-          child: Text(title, style: TextStyle(fontSize: 20, color: htwBlue)),
+          child: Text(title, style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.bold)),
         ),
         widget,
         SizedBox(height: 10),

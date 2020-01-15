@@ -157,10 +157,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         // Delete downloaded maps
         RaisedButton(
-          color: htwBlue,
-          textColor: Colors.white,
+          color: htwGreen,
+          textColor: Colors.black,
           padding: EdgeInsets.all(8.0),
-          splashColor: Colors.blueAccent,
+          splashColor: htwGrey,
           onPressed: () {
             showDialog(
               context: context,
@@ -175,10 +175,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         // Delete history
         RaisedButton(
-          color: htwBlue,
-          textColor: Colors.white,
+          color: htwGreen,
+          textColor: Colors.black,
           padding: EdgeInsets.all(8.0),
-          splashColor: Colors.blueAccent,
+          splashColor: htwGrey,
           onPressed: () {
             showDialog(
               context: context,
