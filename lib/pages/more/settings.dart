@@ -15,7 +15,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Design, TODO: outsource to styles.dart
   TextStyle textStyle = TextStyle(fontSize: 16);
   MainAxisAlignment axisAlignment = MainAxisAlignment.spaceEvenly;
-  double spcaeBetweenRows = 10;
+  double spaceBetweenRows = 10;
 
   saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -192,7 +192,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: createHeading("Delete history"),
         ),
         // Space
-        SizedBox(height: spcaeBetweenRows),
+        SizedBox(height: spaceBetweenRows),
         // Maximum route length
         // Column(
         //   mainAxisAlignment: axisAlignment,

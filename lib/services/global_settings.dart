@@ -12,9 +12,7 @@ class GlobalSettings {
   String selectedUnit;
   double maximumRouteLength;
 
-  GlobalSettings._internal(){
-     //loadSettings();
-  }
+  GlobalSettings._internal();
 
   Future loadSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
