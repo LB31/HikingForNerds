@@ -8,7 +8,7 @@ class ElevationChart extends StatelessWidget {
   final bool interactive;
   final bool withLabels;
 
-  final Function(int) onSelectionChanged;
+  final Function(double) onSelectionChanged;
 
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 
@@ -66,27 +66,27 @@ class ElevationChart extends StatelessWidget {
   }
 
 
-  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route) {
+  static List<charts.Series<RouteData, double>> _createData(HikingRoute route) {
 
-    final List<RouteChart> chartData = new List();
+    final List<RouteData> chartData = new List();
 
     double lastDistance = 0;
     for (int i = 0; i < route.elevations.length; i++) {
       double distance = 0;
       if (i > 0) {
-        distance = OsmData.getDistance(route.path[i - 1], route.path[i]); // * 1000; for testing with smaller routes
+        distance = OsmData.getDistance(route.path[i - 1], route.path[i]) * 1000; // * 1000; for testing with smaller routes
         distance += lastDistance;
         lastDistance = distance;
       }
-      chartData.add(new RouteChart(route.elevations[i], distance, i));
+      chartData.add(new RouteData(route.elevations[i], distance, i));
     }
 
     return [
-      new charts.Series<RouteChart, double>(
-        id: '',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        domainFn: (RouteChart sales, _) => sales.distance,
-        measureFn: (RouteChart sales, _) => sales.elevation,
+      new charts.Series<RouteData, double>(
+        id: 'route',
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        domainFn: (RouteData routeData, _) => routeData.distance,
+        measureFn: (RouteData routeData, _) => routeData.elevation,
         data: chartData,
       ),
     ];
@@ -95,17 +95,18 @@ class ElevationChart extends StatelessWidget {
   _onSelectionChanged(charts.SelectionModel<num> model) {
     final selectedDatum = model.selectedDatum;
     if (selectedDatum.isNotEmpty) {
-      selectedDatum.forEach((charts.SeriesDatum datumPair) {
-        onSelectionChanged(datumPair.datum.index);
+      selectedDatum.forEach(
+              (charts.SeriesDatum datumPair) {
+        onSelectionChanged(datumPair.datum.elevation);
       });
     }
   }
 }
 
-class RouteChart {
+class RouteData {
   final double elevation;
   final double distance;
   final int index;
 
-  RouteChart(this.elevation, this.distance, this.index);
+  RouteData(this.elevation, this.distance, this.index);
 }

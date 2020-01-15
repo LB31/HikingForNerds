@@ -416,13 +416,18 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Widget _buildElevationChart(BuildContext context){
-    return Container(
-      width: 30,
-        height: 40,
-        child: ElevationChart(
-        _currentRoute
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: 300,
+          height: 150,
+          child: ElevationChart(
+            _currentRoute,
+            onSelectionChanged: (double elevation) => print(elevation),
+          )
         )
     );
+
   }
 
   MapboxMap _buildMapBox(BuildContext context) {
