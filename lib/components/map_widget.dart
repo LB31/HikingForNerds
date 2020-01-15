@@ -35,7 +35,7 @@ class MapWidgetState extends State<MapWidget> {
   Line _linePassedRoute;
 
   //please save the passed route as our DEFINED object ffs!
-  HikingRoute _currentRoute;
+  HikingRoute _hikingRoute;
 
   LocationData _currentDeviceLocation;
   Timer _timer;
@@ -149,7 +149,7 @@ class MapWidgetState extends State<MapWidget> {
       _passedRoute = [];
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
-      _currentRoute = route;
+      _hikingRoute = route;
     });
 
     if (!widget.isStatic) initUpdateRouteTimer();
@@ -353,10 +353,6 @@ class MapWidgetState extends State<MapWidget> {
     this.setState((){
       _heightChartEnabled = !_heightChartEnabled;
     });
-
-    if (_currentRoute != null) {
-
-    }
   }
 
   //TODO find way to rebuild map?!
@@ -405,8 +401,8 @@ class MapWidgetState extends State<MapWidget> {
               onHeightChartMode: heightChartMode,
               heightChartDisplayed: _heightChartEnabled,
             ),
-          if(_currentRoute != null && _heightChartEnabled)
-          _buildElevationChart(context)
+          if(_hikingRoute != null && _heightChartEnabled)
+          _buildElevationChart()
         ],
       );
     }
@@ -415,15 +411,16 @@ class MapWidgetState extends State<MapWidget> {
     );
   }
 
-  Widget _buildElevationChart(BuildContext context){
+  Widget _buildElevationChart(){
     return Align(
         alignment: Alignment.bottomCenter,
         child: Container(
           width: 300,
           height: 150,
           child: ElevationChart(
-            _currentRoute,
-            onSelectionChanged: (double elevation) => print(elevation),
+            _hikingRoute,
+            onSelectionChanged: (int index) => print(index),
+            interactive: true,
           )
         )
     );

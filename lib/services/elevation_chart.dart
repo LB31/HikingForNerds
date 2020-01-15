@@ -8,7 +8,7 @@ class ElevationChart extends StatelessWidget {
   final bool interactive;
   final bool withLabels;
 
-  final Function(double) onSelectionChanged;
+  final Function(int) onSelectionChanged;
 
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 
@@ -41,12 +41,9 @@ class ElevationChart extends StatelessWidget {
               charts.OutsideJustification.middleDrawArea));
     }
 
-    final List<charts.Series<RouteData, double>> stuff = _createData(route);
-
     return new Container(
       child: new charts.LineChart(
-        stuff,
-        animate: false,
+        _createData(route),
         defaultRenderer:
             new charts.LineRendererConfig(includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,
@@ -100,7 +97,7 @@ class ElevationChart extends StatelessWidget {
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach(
               (charts.SeriesDatum datumPair) {
-        onSelectionChanged(datumPair.datum.elevation);
+        onSelectionChanged(datumPair.datum.index);
       });
     }
   }
