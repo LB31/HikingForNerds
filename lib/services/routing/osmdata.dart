@@ -142,13 +142,13 @@ class OsmData{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
 
     List<dynamic> poiElements;
-    if(poiCategories != null){
+    if (poiCategories != null) {
       var jsonDecoder = JsonDecoder();
       var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/2);
       if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       poiElements = jsonDecoder.convert(poisJson)['elements'];
       if(poiElements.isEmpty){
-        throw NoPOIsFoundException;
+        throw new NoPOIsFoundException();
       }
     }
 
@@ -157,7 +157,7 @@ class OsmData{
     _importJsonNodesAndWays(jsonNodesAndWays);
 
     List<HikingRoute> routes;
-    if(poiCategories.isEmpty){
+    if(poiCategories == null || poiCategories.isEmpty) {
       routes = _calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
     }
     else{
