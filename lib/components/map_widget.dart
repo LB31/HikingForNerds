@@ -13,7 +13,6 @@ import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'dart:math';
 
-
 class MapWidget extends StatefulWidget {
   final bool isStatic;
 
@@ -24,11 +23,12 @@ class MapWidget extends StatefulWidget {
 }
 
 class MapWidgetState extends State<MapWidget> {
+  static const double defaultZoom = 12.0;
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
-  static double defaultZoom = 12.0;
 
-  static const platform = const MethodChannel('app.channel.hikingfornerds.data');
+  static const platform =
+      const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
   List<LatLng> _passedRoute = [];
@@ -149,14 +149,22 @@ class MapWidgetState extends State<MapWidget> {
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
-    LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2, lineOpacity: 0.5);
+    LineOptions optionsPassedRoute = LineOptions(
+        geometry: [],
+        lineColor: "Grey",
+        lineWidth: 3.0,
+        lineBlur: 2,
+        lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1, lineOpacity: 0.5);
+    LineOptions optionsRoute = LineOptions(
+        geometry: routeLatLng,
+        lineColor: "Blue",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
 
-    Line lineRoute = await mapController.addLine(optionsRoute); 
+    Line lineRoute = await mapController.addLine(optionsRoute);
 
     centerCameraOverRoute(route);
 
@@ -173,30 +181,44 @@ class MapWidgetState extends State<MapWidget> {
   void drawRouteStartingPoint(HikingRoute route) {
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 11, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(
+        geometry: startingPoint,
+        circleColor: "Red",
+        circleRadius: 11,
+        circleStrokeWidth: 7,
+        circleStrokeColor: "Blue",
+        circleBlur: 0.25,
+        circleOpacity: 1);
     mapController.addCircle(optionsStartingPoint);
   }
 
   void drawHikingDirection(HikingRoute route) {
-    List<LatLng> startingPointPath = route.path.sublist(0, 25);
-    List<LatLng> endingPointPath =
-        route.path.sublist(route.path.length - 25, route.path.length);
+    List<LatLng> startingPointPath = new List<LatLng>();
+    List<LatLng> endingPointPath = new List<LatLng>();
+    // use a twentieth of the routes total length for start and end route
+    double routeEndingLength = route.totalLength * 0.05;
 
-    double startPathLength = 0;
-    double endPathLength = 0;
-
-    for(int i = 0; i < 24; i++){
-      if(startPathLength > 2){
-        startingPointPath = startingPointPath.sublist(0, i);
-      } else {
-        startPathLength += OsmData.getDistance(LatLng(startingPointPath[i].latitude, startingPointPath[i].longitude), LatLng(startingPointPath[i+1].latitude, startingPointPath[i+1].longitude));
+    double startPathLength = 0, endPathLength = 0;
+    int i = 0;
+    while (startingPointPath.length == 0 || endingPointPath.length == 0) {
+      if (startingPointPath.length == 0) {
+        if (startPathLength > routeEndingLength) {
+          startingPointPath = route.path.sublist(0, i + 1);
+        } else {
+          startPathLength +=
+              OsmData.getDistance(route.path[i], route.path[i + 1]);
+        }
       }
-
-      if(endPathLength > 2){
-        endingPointPath = endingPointPath.sublist(0, i);
-      } else {
-        endPathLength += OsmData.getDistance(LatLng(endingPointPath[i].latitude, endingPointPath[i].longitude), LatLng(endingPointPath[i+1].latitude, endingPointPath[i+1].longitude));
+      if (endingPointPath.length == 0) {
+        if (endPathLength > routeEndingLength) {
+          endingPointPath = route.path.sublist(route.path.length - i, route.path.length);
+        } else {
+          endPathLength += OsmData.getDistance(
+              route.path[route.path.length - i - 1],
+              route.path[route.path.length - i - 2]);
+        }
       }
+      i++;
     }
 
     LineOptions optionsHikingDirectionStart = LineOptions(
