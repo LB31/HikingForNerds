@@ -257,6 +257,8 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   startRoute(){
+    setZoom(16);
+    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
     initUpdateRouteTimer();
 
     Flushbar(
