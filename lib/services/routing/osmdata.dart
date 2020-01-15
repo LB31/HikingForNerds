@@ -138,17 +138,17 @@ class OsmData{
     return closestPoint;
   }
 
-  Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, String poiCategory='']) async{
+  Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
 
     List<dynamic> poiElements;
-    if(poiCategory.isNotEmpty){
+    if (poiCategories != null) {
       var jsonDecoder = JsonDecoder();
-      var poisJson = await _getPoisJSON(poiCategory, startLat, startLong, distanceInMeter/2);
+      var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/2);
       if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       poiElements = jsonDecoder.convert(poisJson)['elements'];
       if(poiElements.isEmpty){
-        throw NoPOIsFoundException;
+        throw new NoPOIsFoundException();
       }
     }
 
@@ -157,7 +157,7 @@ class OsmData{
     _importJsonNodesAndWays(jsonNodesAndWays);
 
     List<HikingRoute> routes;
-    if(poiCategory.isEmpty){
+    if(poiCategories == null || poiCategories.isEmpty) {
       routes = _calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
     }
     else{
@@ -346,18 +346,18 @@ class OsmData{
     if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
   }
 
-  Future<String> _getPoisJSON(String category, aroundLat, aroundLong, radius) async{
+  Future<String> _getPoisJSON(List<String> categories, aroundLat, aroundLong, radius) async{
     var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
     var northernBorder = topLeftBoundingBox[0];
     var westernBorder = topLeftBoundingBox[1];
     var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
-
+    var categoryString = categories.join('|');
     var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300];'
-        'node["tourism"="$category"](around:$radius,$aroundLat, $aroundLong);'
-        'node["amenity"="$category"](around:$radius,$aroundLat, $aroundLong);'
+        'node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
+        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
         'out body qt;';
 
     var response = await http.get(url);
@@ -406,6 +406,6 @@ void main() async {
   var osmData = OsmData();
   osmData.profiling = true;
   var route = await osmData.calculateHikingRoutes(
-      52.510143, 13.408564, 30000, 10, "bar");
+      52.510143, 13.408564, 30000, 10, ["bar"]);
   print(route.length);
 }

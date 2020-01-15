@@ -15,7 +15,7 @@ class ElevationChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO add localization
-    String bottomText = "Distance in m";
+    String bottomText = "Distance in km";
     String leftText = "Elevation in m";
     int fontSize = 12;
     charts.SelectionTrigger interaction;

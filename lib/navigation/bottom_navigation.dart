@@ -14,7 +14,7 @@ final Map<AppSegment, IconData> segmentIcons = {
   AppSegment.setup: Icons.add_location,
   AppSegment.map: Icons.map,
   AppSegment.history: Icons.history,
-  AppSegment.more: Icons.more_vert,
+  AppSegment.more: Icons.more,
 };
 
 class BottomNavigation extends StatelessWidget {
