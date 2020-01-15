@@ -1,5 +1,6 @@
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
+import 'package:intl/intl.dart';
 
 
 class HikingRoute {
@@ -8,7 +9,22 @@ class HikingRoute {
   List<PointOfInterest> pointsOfInterest;
   //todo: add height information
   List<double> elevations; // elevations of route points in m; route points and their elevations have the same index
+  String date; // date created
+  String title; // (custom) route title
 
-  HikingRoute(this.path, this.totalLength, [this.pointsOfInterest, this.elevations]);
+  // HikingRoute(this.path, this.totalLength, [this.pointsOfInterest, this.elevations]);
+  
+  HikingRoute (List<Node> path, double totalLength, [List<PointOfInterest> pointsOfInterest, List<double> elevations]) {
+    this.path = path;
+    this.totalLength = totalLength;
+    this.pointsOfInterest = pointsOfInterest;
+    this.elevations = elevations;
+    this.date = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+    this.title = 'Sample title'; // TODO get region or custom info as title
+  }
+
+  void setTitle(String title) {
+    this.title = title;
+  }
 
 }
