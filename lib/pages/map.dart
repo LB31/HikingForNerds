@@ -82,7 +82,7 @@ class MapPageState extends State<MapPage> {
 //           ),
           //TODO: remove mock button
           Align(
-            alignment: Alignment.bottomRight,
+            alignment: Alignment.centerRight,
             child: RawMaterialButton(
               onPressed: () {
                 showDialog(
