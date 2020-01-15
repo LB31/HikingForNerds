@@ -167,7 +167,9 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic) initUpdateRouteTimer();
+    if (!widget.isStatic){
+      startRoute();
+    }
   }
 
   void drawRouteStartingPoint(HikingRoute route) {
@@ -212,6 +214,18 @@ class MapWidgetState extends State<MapWidget> {
     setLatLng(LatLng(averageLat, averageLong));
     double zoom = 14.5 - (pow(route.totalLength, 0.4));
     setZoom(zoom);
+  }
+
+  startRoute(){
+    initUpdateRouteTimer();
+    Fluttertoast.showToast(
+        msg: "Your Hiking Trip has started!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        timeInSecForIos: 3,
+        backgroundColor: Theme.of(context).primaryColor,
+        textColor: Colors.black,
+        fontSize: 16.0);
   }
 
   void initUpdateRouteTimer() {
@@ -268,7 +282,7 @@ class MapWidgetState extends State<MapWidget> {
         msg: "You have finished your Hiking Trip!",
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.CENTER,
-        timeInSecForIos: 1,
+        timeInSecForIos: 3,
         backgroundColor: Theme.of(context).primaryColor,
         textColor: Colors.black,
         fontSize: 16.0);
