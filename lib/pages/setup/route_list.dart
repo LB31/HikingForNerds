@@ -30,7 +30,8 @@ class _RouteListState extends State<RouteList> {
         widget.routeParams.startingLocation.latitude,
         widget.routeParams.startingLocation.longitude,
         widget.routeParams.distanceKm * 1000.0,
-        10);
+        10,
+        widget.routeParams.poiCategories);
 
     /*
     TODO perhaps this needs to be discussed w/ roman
