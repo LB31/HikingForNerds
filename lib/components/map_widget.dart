@@ -156,7 +156,7 @@ class MapWidgetState extends State<MapWidget> {
     LineOptions optionsRoute =
         LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1, lineOpacity: 0.5);
 
-    Line lineRoute = await mapController.addLine(optionsRoute);
+    Line lineRoute = await mapController.addLine(optionsRoute); 
 
     centerCameraOverRoute(route);
 
@@ -181,6 +181,23 @@ class MapWidgetState extends State<MapWidget> {
     List<LatLng> startingPointPath = route.path.sublist(0, 25);
     List<LatLng> endingPointPath =
         route.path.sublist(route.path.length - 25, route.path.length);
+
+    double startPathLength = 0;
+    double endPathLength = 0;
+
+    for(int i = 0; i < 24; i++){
+      if(startPathLength > 2){
+        startingPointPath = startingPointPath.sublist(0, i);
+      } else {
+        startPathLength += OsmData.getDistance(LatLng(startingPointPath[i].latitude, startingPointPath[i].longitude), LatLng(startingPointPath[i+1].latitude, startingPointPath[i+1].longitude));
+      }
+
+      if(endPathLength > 2){
+        endingPointPath = endingPointPath.sublist(0, i);
+      } else {
+        endPathLength += OsmData.getDistance(LatLng(endingPointPath[i].latitude, endingPointPath[i].longitude), LatLng(endingPointPath[i+1].latitude, endingPointPath[i+1].longitude));
+      }
+    }
 
     LineOptions optionsHikingDirectionStart = LineOptions(
         geometry: startingPointPath,
