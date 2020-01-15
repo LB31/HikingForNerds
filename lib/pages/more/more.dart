@@ -25,13 +25,6 @@ class MorePage extends StatefulWidget {
 Container decorateContent(String title, Widget widget) {
   return Container(
     decoration: BoxDecoration(
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          blurRadius: 1,
-          offset: Offset(0, 1),
-        )
-      ],
     ),
     child: Column(
       children: <Widget>[
@@ -41,7 +34,12 @@ Container decorateContent(String title, Widget widget) {
           child: Text(title, style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.bold)),
         ),
         widget,
-        SizedBox(height: 10),
+        Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                child: Divider(
+                  color: htwGrey,
+                ),
+              ),
       ],
     ),
   );
