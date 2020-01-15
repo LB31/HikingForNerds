@@ -41,11 +41,14 @@ class ElevationChart extends StatelessWidget {
               charts.OutsideJustification.middleDrawArea));
     }
 
+    final List<charts.Series<RouteData, double>> stuff = _createData(route);
+
     return new Container(
       child: new charts.LineChart(
-        _createData(route),
+        stuff,
+        animate: false,
         defaultRenderer:
-            new charts.LineRendererConfig(includeArea: true, stacked: true),
+            new charts.LineRendererConfig(includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,
         selectionModels: [
           new charts.SelectionModelConfig(
