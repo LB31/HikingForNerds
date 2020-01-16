@@ -110,7 +110,7 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        'Distance: ${routeList[index].distance.toString()}\nDate: ${routeList[index].date}'),// TODO localization
+                        'Length: ${routeList[index].distance.toString()}km   Date: ${routeList[index].date}'),// TODO localization
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,

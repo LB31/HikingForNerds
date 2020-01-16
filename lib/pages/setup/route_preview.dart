@@ -121,7 +121,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       onTap: () {},
                       title: Text(_routes[_currentRouteIndex].title),
                       subtitle: Text(
-                          'Distance: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km \nDate: ${_routes[_currentRouteIndex].date}'), // TODO localization
+                          'Length: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km   Date: ${_routes[_currentRouteIndex].date}'), // TODO localization
                       leading: CircleAvatar(
                           child: Icon(
                         Icons.directions_walk,
