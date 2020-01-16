@@ -51,7 +51,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       _routes = updatedRoutes;
     });
 
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex], false);
   }
 
   Future<void> moveToCurrentLocation() async {

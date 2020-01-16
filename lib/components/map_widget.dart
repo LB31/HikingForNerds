@@ -138,7 +138,7 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  void drawRoute(HikingRoute route) async {
+  void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
@@ -167,7 +167,7 @@ class MapWidgetState extends State<MapWidget> {
 
     Line lineRoute = await mapController.addLine(optionsRoute);
 
-    centerCameraOverRoute(route);
+    if(center) centerCameraOverRoute(route);
 
     setState(() {
       _route = routeLatLng;
