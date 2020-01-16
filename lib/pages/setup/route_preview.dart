@@ -123,13 +123,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       title: Text(_routes[_currentRouteIndex].title),
                       subtitle: Text(
                           'Length: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km   Date: ${_routes[_currentRouteIndex].date}'), // TODO localization
-                      leading: CircleAvatar(
-                          child: Icon(
-                        Icons.directions_walk,
-                        color: htwGreen,
-                      )
-                          //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
-                          ),
                     ),
                   ),
                 ),
