@@ -22,7 +22,7 @@ dependencies:
   location:
   flutter:
     sdk: flutter
-  location_permissions: ^2.0.3
+  location_permissions: ^2.0.4+1
   mapbox_gl:
     path: ./packages/flutter-mapbox-gl
   outline_material_icons: ^0.1.1
