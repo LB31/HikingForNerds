@@ -70,9 +70,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Route Preview'), // TODO add localization
-        backgroundColor: Theme
-            .of(context)
-            .primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
+        elevation: 0.0,
       ),
       body: Stack(
         children: <Widget>[
@@ -84,32 +83,55 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           Container(
             color: Theme.of(context).primaryColor,
             width: MediaQuery.of(context).size.width,
-            height: 80,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            height: 135,
+            child: Column(
               children: <Widget>[
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_left,
-                      color: Colors.white,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    IconButton(
+                        iconSize: 50,
+                        icon: Icon(
+                          Icons.arrow_left,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => switchRoute(
+                            (_currentRouteIndex + (_routes.length - 1)) %
+                                _routes.length)),
+                    Text(
+                      "Route ${_currentRouteIndex + 1}",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
                     ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length - 1)) %
-                            _routes.length)),
-                Text(
-                  "Route ${_currentRouteIndex + 1}",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
+                    IconButton(
+                        iconSize: 50,
+                        icon: Icon(
+                          Icons.arrow_right,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => switchRoute(
+                            (_currentRouteIndex + (_routes.length + 1)) %
+                                _routes.length)),
+                  ],
                 ),
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_right,
-                      color: Colors.white,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 1.0, horizontal: 4.0),
+                  child: Card(
+                    child: ListTile(
+                      onTap: () {},
+                      title: Text(_routes[_currentRouteIndex].title),
+                      subtitle: Text(
+                          'Distance: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km \nDate: ${_routes[_currentRouteIndex].date}'), // TODO localization
+                      leading: CircleAvatar(
+                          child: Icon(
+                        Icons.directions_walk,
+                        color: htwGreen,
+                      )
+                          //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
+                          ),
                     ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length + 1)) %
-                            _routes.length)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -164,7 +186,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-              top: 85,
+              top: 145,
               left: MediaQuery.of(context).size.width * 0.5 - 65,
               child: Opacity(
                 opacity: 0.5,
