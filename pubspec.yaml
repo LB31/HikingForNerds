@@ -22,8 +22,9 @@ dependencies:
   location:
   flutter:
     sdk: flutter
-  location_permissions: ^2.0.3
-  mapbox_gl: ^0.0.4
+  location_permissions: ^2.0.4+1
+  mapbox_gl:
+    path: ./packages/flutter-mapbox-gl
   outline_material_icons: ^0.1.1
   geocoder: ^0.2.1
   shared_preferences: ^0.5.4

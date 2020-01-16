@@ -5,6 +5,7 @@ import 'package:hiking4nerds/styles.dart';
 import 'app.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await GlobalSettings().loadSettings();
   runApp(MaterialApp(
     title: "Hiking4Nerds",
