@@ -83,7 +83,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           Container(
             color: Theme.of(context).primaryColor,
             width: MediaQuery.of(context).size.width,
-            height: 135,
+            height: 155,
             child: Column(
               children: <Widget>[
                 Row(
@@ -186,7 +186,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-              top: 145,
+              top: 165,
               left: MediaQuery.of(context).size.width * 0.5 - 65,
               child: Opacity(
                 opacity: 0.5,
