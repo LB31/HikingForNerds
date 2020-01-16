@@ -30,6 +30,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
+
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      switchRoute(_currentRouteIndex);
+    });
   }
 
   void switchRoute(int index) {
@@ -64,6 +68,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Route Preview'), // TODO add localization
+        backgroundColor: Theme
+            .of(context)
+            .primaryColor,
+      ),
       body: Stack(
         children: <Widget>[
           MapWidget(
