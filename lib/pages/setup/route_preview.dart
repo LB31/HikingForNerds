@@ -31,6 +31,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
 
+    //TODO consider using a callback instead of a timeout 
     Future.delayed(const Duration(milliseconds: 2000), () {
       switchRoute(_currentRouteIndex);
     });
