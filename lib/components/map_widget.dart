@@ -12,6 +12,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 class MapWidget extends StatefulWidget {
@@ -32,6 +33,7 @@ class MapWidgetState extends State<MapWidget> {
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
+  HikingRoute _hikingRoute;
   int _currentRouteIndex = 0;
   List<LatLng> _route = [];
   List<LatLng> _passedRoute = [];
@@ -133,11 +135,9 @@ class MapWidgetState extends State<MapWidget> {
     drawRouteStartingPoint(route);
     drawHikingDirection(route);
 
-    List<LatLng> routeLatLng = route.path
+    List<LatLng> routePath = route.path
         .map((node) => LatLng(node.latitude, node.longitude))
         .toList();
-
-    routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
     LineOptions optionsPassedRoute = LineOptions(
         geometry: [],
@@ -148,7 +148,7 @@ class MapWidgetState extends State<MapWidget> {
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
-        geometry: routeLatLng,
+        geometry: routePath,
         lineColor: "Blue",
         lineWidth: 4.0,
         lineBlur: 1,
@@ -159,8 +159,9 @@ class MapWidgetState extends State<MapWidget> {
     centerCameraOverRoute(route);
 
     setState(() {
-      _route = routeLatLng;
-      _remainingRoute = routeLatLng;
+      _hikingRoute = route;
+      _route = routePath;
+      _remainingRoute = routePath;
       _passedRoute = [];
       _lineRemainingRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
@@ -343,6 +344,17 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearLines();
     mapController.clearCircles();
     _timer.cancel();
+
+    updateTotalHikingDistance();
+  }
+
+  updateTotalHikingDistance(){
+    SharedPreferences.getInstance().then((prefs) {
+      double totalHikingDistance =
+          prefs.getDouble("totalHikingDistance") ?? 0;
+      totalHikingDistance += _hikingRoute.totalLength;
+      prefs.setDouble("totalHikingDistance", totalHikingDistance);
+    });
   }
 
   static CameraPosition _getCameraPosition() {
