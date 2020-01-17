@@ -171,10 +171,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         Row(
                           children: <Widget>[
                             Text("Start"),
+                            new Spacer(),
                             Padding(
                               padding: const EdgeInsets.only(left: 18),
                               child: Container(
-                                width: 60,
+                                width: 55,
                                 height: 5,
                                 color: Colors.green,
                               ),
@@ -184,10 +185,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         Row(
                           children: <Widget>[
                             Text(LocalizationService().getLocalization(english: "Finish", german: "Ende")),
+                            new Spacer(),
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
                               child: Container(
-                                width: 60,
+                                width: 55,
                                 height: 5,
                                 color: Colors.red,
                               ),
