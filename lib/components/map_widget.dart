@@ -276,14 +276,6 @@ class MapWidgetState extends State<MapWidget> {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
-  bool isRouteNodeAtIndexAhead(int index) {
-    // check if the index is within one of the last 25 nodes and also the route length is less then 50
-    if (_route.length > 50 && index > _route.length - 25)
-      return false;
-    else
-      return true;
-  }
-
   void updateRoute() async {
 
     LocationData userLocation = await getCurrentLocation();
