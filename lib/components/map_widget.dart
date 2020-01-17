@@ -142,7 +142,7 @@ class MapWidgetState extends State<MapWidget> {
     LineOptions optionsPassedRoute = LineOptions(
         geometry: [],
         lineColor: "Grey",
-        lineWidth: 3.0,
+        lineWidth: 4.0,
         lineBlur: 2,
         lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
