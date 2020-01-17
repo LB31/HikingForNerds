@@ -7,6 +7,8 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 
+import '../localization_service.dart';
+
 class GeojsonDataHandler extends ImportExportHandler{
 
   static RegExp lineStringRegex = new RegExp("\\\"([Tt]ype)\\\"(\s*):(\s*)\\\"([Ll]ine)\\\"");
@@ -93,7 +95,7 @@ class GeojsonDataHandler extends ImportExportHandler{
     );
 
     return new GeoJsonPoint(
-      name: "Point of Interest",
+      name: LocalizationService().getLocalization(english: "Point of Interest", german: "Sehenswürdigkeit"),
       geoPoint: geoPoint
     );
   }

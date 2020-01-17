@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -182,7 +183,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         ),
                         Row(
                           children: <Widget>[
-                            Text("Finish"),
+                            Text(LocalizationService().getLocalization(english: "Finish", german: "Ende")),
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
                               child: Container(
