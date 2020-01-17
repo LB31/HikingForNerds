@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
@@ -23,11 +24,12 @@ class MapWidget extends StatefulWidget {
 }
 
 class MapWidgetState extends State<MapWidget> {
+  static const double defaultZoom = 12.0;
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
-  static double defaultZoom = 12.0;
 
-  static const platform = const MethodChannel('app.channel.hikingfornerds.data');
+  static const platform =
+      const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
   List<LatLng> _route = [];
@@ -149,12 +151,20 @@ class MapWidgetState extends State<MapWidget> {
 
     routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
 
-    LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2, lineOpacity: 0.5);
+    LineOptions optionsPassedRoute = LineOptions(
+        geometry: [],
+        lineColor: "Grey",
+        lineWidth: 3.0,
+        lineBlur: 2,
+        lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1, lineOpacity: 0.5);
+    LineOptions optionsRoute = LineOptions(
+        geometry: routeLatLng,
+        lineColor: "Blue",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
 
     Line lineRoute = await mapController.addLine(optionsRoute);
 
@@ -168,20 +178,53 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic) initUpdateRouteTimer();
+    if (!widget.isStatic){
+      startRoute();
+    }
   }
 
   void drawRouteStartingPoint(HikingRoute route) {
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 11, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(
+        geometry: startingPoint,
+        circleColor: "Red",
+        circleRadius: 11,
+        circleStrokeWidth: 7,
+        circleStrokeColor: "Blue",
+        circleBlur: 0.25,
+        circleOpacity: 1);
     mapController.addCircle(optionsStartingPoint);
   }
 
   void drawHikingDirection(HikingRoute route) {
-    List<LatLng> startingPointPath = route.path.sublist(0, 25);
-    List<LatLng> endingPointPath =
-        route.path.sublist(route.path.length - 25, route.path.length);
+    List<LatLng> startingPointPath = new List<LatLng>();
+    List<LatLng> endingPointPath = new List<LatLng>();
+    // use a twentieth of the routes total length for start and end route
+    double routeEndingLength = route.totalLength * 0.05;
+
+    double startPathLength = 0, endPathLength = 0;
+    int i = 0;
+    while (startingPointPath.length == 0 || endingPointPath.length == 0) {
+      if (startingPointPath.length == 0) {
+        if (startPathLength > routeEndingLength) {
+          startingPointPath = route.path.sublist(0, i + 1);
+        } else {
+          startPathLength +=
+              OsmData.getDistance(route.path[i], route.path[i + 1]);
+        }
+      }
+      if (endingPointPath.length == 0) {
+        if (endPathLength > routeEndingLength) {
+          endingPointPath = route.path.sublist(route.path.length - i, route.path.length);
+        } else {
+          endPathLength += OsmData.getDistance(
+              route.path[route.path.length - i - 1],
+              route.path[route.path.length - i - 2]);
+        }
+      }
+      i++;
+    }
 
     LineOptions optionsHikingDirectionStart = LineOptions(
         geometry: startingPointPath,
@@ -213,6 +256,31 @@ class MapWidgetState extends State<MapWidget> {
     setLatLng(LatLng(averageLat, averageLong));
     double zoom = 14.5 - (pow(route.totalLength, 0.4));
     setZoom(zoom);
+  }
+
+  startRoute(){
+    setZoom(16);
+    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+    initUpdateRouteTimer();
+
+    Flushbar(
+      messageText: Text("Your hiking trip has started!", // TODO add localization
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.check,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
   }
 
   void initUpdateRouteTimer() {
@@ -284,14 +352,24 @@ class MapWidgetState extends State<MapWidget> {
 
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
-    Fluttertoast.showToast(
-        msg: "You have finished your Hiking Trip!",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 1,
-        backgroundColor: Theme.of(context).primaryColor,
-        textColor: Colors.black,
-        fontSize: 16.0);
+    Flushbar(
+      messageText: Text("You have finished your hiking trip", // TODO add localization
+          style: TextStyle(
+              color: Colors.black,
+              fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.thumb_up,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
 
     setState(() {
       _passedRoute = [];

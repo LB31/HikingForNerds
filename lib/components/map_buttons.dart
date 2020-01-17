@@ -21,28 +21,27 @@ class MapButtons extends StatelessWidget {
   Icon getTrackingModeIcon() {
     switch (currentTrackingMode) {
       case MyLocationTrackingMode.None:
-          return Icon(OMIcons.navigation);
+        return Icon(OMIcons.navigation);
       case MyLocationTrackingMode.Tracking:
-          return Icon(Icons.navigation);
+        return Icon(Icons.navigation);
       case MyLocationTrackingMode.TrackingCompass:
-          return Icon(Icons.rotate_90_degrees_ccw);
+        return Icon(Icons.rotate_90_degrees_ccw);
       default:
-          return Icon(OMIcons.navigation);
+        return Icon(OMIcons.navigation);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-        alignment: Alignment.centerRight,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            FloatingActionButton(
-                heroTag: "btn-gps",
-                child: getTrackingModeIcon(),
-                onPressed: onCycleTrackingMode),
-            FloatingActionButton(
+    return Stack(
+      children: <Widget>[
+        Positioned(
+          left: MediaQuery.of(context).size.width * 0.05,
+          bottom: 16,
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: FloatingActionButton(
               heroTag: "btn-maptype",
               child: Icon(currentStyle == styles.keys.first
                   ? Icons.terrain
@@ -54,8 +53,22 @@ class MapButtons extends StatelessWidget {
                     : styles.keys.elementAt(0));
               },
             ),
-          ],
-        ));
+          ),
+        ),
+        Positioned(
+          right: MediaQuery.of(context).size.width * 0.05,
+          bottom: 16,
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: FloatingActionButton(
+                heroTag: "btn-gps",
+                child: getTrackingModeIcon(),
+                onPressed: onCycleTrackingMode),
+          ),
+        ),
+      ],
+    );
   }
 }
 
