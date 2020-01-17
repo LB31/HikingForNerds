@@ -290,10 +290,11 @@ class MapWidgetState extends State<MapWidget> {
     LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
     int currentRouteIndex = _currentRouteIndex;
 
-    int finalRouteNodesOffset = _remainingRoute.length < _route.length - 25 ? 0 : 25;
+    //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
+    int finalRouteNodesThreshold = _remainingRoute.length < _route.length - 25 ? 0 : 25;
 
 
-    for (int index = currentRouteIndex; index < _route.length - finalRouteNodesOffset; index++) {
+    for (int index = currentRouteIndex; index < _route.length - finalRouteNodesThreshold; index++) {
 
       double distanceToCurrentLocation = OsmData.getDistance(
           _route[index], userLatLng);
