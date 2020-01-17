@@ -126,6 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onChanged: (String newValue) {
                 setState(() {
                   gs.selectedLanguage = newValue;
+                  gs.langaugeChanged();
                   saveSettings();                
                 });
               },
