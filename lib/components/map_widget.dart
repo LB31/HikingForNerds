@@ -32,13 +32,13 @@ class MapWidgetState extends State<MapWidget> {
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
+  int _currentRouteIndex = 0;
   List<LatLng> _route = [];
   List<LatLng> _passedRoute = [];
   List<LatLng> _remainingRoute = [];
-  Line _lineRoute;
+  Line _lineRemainingRoute;
   Line _linePassedRoute;
 
-  LocationData _currentDeviceLocation;
   Timer _timer;
 
   CameraPosition _position;
@@ -124,19 +124,7 @@ class MapWidgetState extends State<MapWidget> {
     LocationData currentLocation;
     var location = new Location();
     currentLocation = await location.getLocation();
-    setState(() {
-      this._currentDeviceLocation = currentLocation;
-    });
     return currentLocation;
-  }
-
-  void updateCurrentLocationOnChange() {
-    Location location = Location();
-    location.onLocationChanged().listen((LocationData currentLocation) {
-      setState(() {
-        _currentDeviceLocation = currentLocation;
-      });
-    });
   }
 
   void drawRoute(HikingRoute route) async {
@@ -174,8 +162,9 @@ class MapWidgetState extends State<MapWidget> {
       _route = routeLatLng;
       _remainingRoute = routeLatLng;
       _passedRoute = [];
-      _lineRoute = lineRoute;
+      _lineRemainingRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
+      _currentRouteIndex = 0;
     });
 
     if (!widget.isStatic){
@@ -287,67 +276,51 @@ class MapWidgetState extends State<MapWidget> {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
-  void updateRouteOLD() async {
-    int currentRouteNodeIndex = 0;
-    for (int index = 0; index < _route.length; index++) {
-      if (isRouteNodeAtIndexAhead(index)) {
-        double distanceToCurrentLocation = OsmData.getDistance(
-            _route[index],
-            new LatLng(_currentDeviceLocation.latitude,
-                _currentDeviceLocation.longitude));
-        if (distanceToCurrentLocation < 0.1) {
-          currentRouteNodeIndex = index + 1;
-        }
-      }
-    }
-
-    List<LatLng> remainingRoute = _route.sublist(currentRouteNodeIndex);
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
-    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
-
-    List<LatLng> passedRoute = [
-      ..._passedRoute,
-      ..._route.sublist(0, currentRouteNodeIndex + 1)
-    ];
-    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
-    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
-
-    setState(() {
-      _route = remainingRoute;
-      _passedRoute = passedRoute;
-    });
-
-    if (_route.length <= 1) {
-      finishHikingTrip();
-    }
-  }
-
-  void updateRoute() {
-    for (int index = 0; index < _remainingRoute.length; index++) {
-      double distanceToCurrentLocation = OsmData.getDistance(
-          _route[index],
-          new LatLng(_currentDeviceLocation.latitude,
-              _currentDeviceLocation.longitude));
-      if (distanceToCurrentLocation < 0.1) {
-        print(index.toString() +
-            " / " +
-            _remainingRoute.length.toString() +
-            " close");
-      } else
-        print(index.toString() +
-            " / " +
-            _remainingRoute.length.toString() +
-            " far");
-    }
-  }
-
   bool isRouteNodeAtIndexAhead(int index) {
     // check if the index is within one of the last 25 nodes and also the route length is less then 50
     if (_route.length > 50 && index > _route.length - 25)
       return false;
     else
       return true;
+  }
+
+  void updateRoute() async {
+
+    LocationData userLocation = await getCurrentLocation();
+    LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
+
+    int currentRouteIndex = _currentRouteIndex;
+
+
+    for (int index = currentRouteIndex; index < _route.length - 25; index++) {
+
+      double distanceToCurrentLocation = OsmData.getDistance(
+          _route[index], userLatLng);
+
+      if (distanceToCurrentLocation < 0.1) {
+        print(index.toString() + " / " + _route.length.toString() + " close");
+        currentRouteIndex = index;
+      } else {
+        //print(index.toString() + " / " + _route.length.toString() + " far");
+      }
+
+    }
+
+    setState(() {
+      _remainingRoute = _route.sublist(currentRouteIndex);
+      _passedRoute = _route.sublist(0, currentRouteIndex + 1);
+      _currentRouteIndex = currentRouteIndex;
+    });
+
+    LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
+    await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
+    LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
+
+    if (_remainingRoute.length <= 1) {
+      finishHikingTrip();
+    }
+
   }
 
   //TODO implement nicer/prettier implementation
@@ -533,11 +506,6 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-
-    requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      updateCurrentLocationOnChange();
-    });
-
     if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
