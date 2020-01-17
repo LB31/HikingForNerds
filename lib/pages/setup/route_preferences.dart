@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/poi_category_search_bar.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
@@ -41,7 +42,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Preferences'), // TODO add localization
+        title: Text(LocalizationService().getLocalization(english: "Route Preferences", german: "Routeneinstellungen")), 
         backgroundColor: Theme
             .of(context)
             .primaryColor,
@@ -60,7 +61,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                   children: <Widget>[
                     Padding(padding: EdgeInsets.only(top: 5)),
                     Text(
-                      'Select Route Distance', // TODO add localization
+                      LocalizationService().getLocalization(english: "Select Route Distance", german: "Routendistanz wählen"),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -70,14 +71,14 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                     Padding(padding: EdgeInsets.only(top: 10)),
                     Wrap(children: <Widget>[
                       FlatButton(
-                          child: Text("Distance",
+                          child: Text(LocalizationService().getLocalization(english: "Distance", german: "Distanz"),
                               style: TextStyle(fontSize: 16)),
                           color: !distanceAsDuration ? htwGreen : htwGrey,
                           onPressed: () {
                             setState(() => distanceAsDuration = false);
                           }),
                       FlatButton(
-                          child: Text("Time",
+                          child: Text(LocalizationService().getLocalization(english: "Time", german: "Zeit"),
                               style: TextStyle(fontSize: 16)),
                           color: distanceAsDuration ? htwGreen : htwGrey,
                           onPressed: () {
@@ -126,7 +127,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Select Points of Interest', // todo add localization
+                    LocalizationService().getLocalization(english: "Select Points of Interest", german: "Wähle Sehenswürdigkeiten"),
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -146,7 +147,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Select Altitude Level', // TODO add localization
+                    LocalizationService().getLocalization(english: "Select Altitude Level", german: "Höhenlevel wählen"),
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

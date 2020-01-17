@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/global_settings.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hiking4nerds/styles.dart';
 
@@ -14,7 +15,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Design, TODO: outsource to styles.dart
   TextStyle textStyle = TextStyle(fontSize: 16);
-  MainAxisAlignment axisAlignment = MainAxisAlignment.spaceEvenly;
+  MainAxisAlignment axisAlignment = MainAxisAlignment.spaceBetween;
   double spaceBetweenRows = 10;
 
   saveSettings() async {
@@ -50,13 +51,13 @@ class _SettingsPageState extends State<SettingsPage> {
       title: createHeading(message),
       actions: [
         FlatButton(
-            child: Text("Yes"),
+            child: Text(LocalizationService().getLocalization(english: "Yes", german: "Ja")),
             onPressed: () {
               Navigator.of(context).pop();
               onConfirmation();
             }),
         FlatButton(
-            child: Text("No"),
+            child: Text(LocalizationService().getLocalization(english: "No", german: "Nein")),
             onPressed: () {
               Navigator.of(context).pop();
             }),
@@ -67,13 +68,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: Column(
       children: <Widget>[
         // Safe History
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
-            createHeading("Safe History"),
+            createHeading(LocalizationService().getLocalization(english: "Safe History", german: "Verlauf speichern")),
             Switch(
               value: gs.safeHistory,
               onChanged: (bool value) {
@@ -91,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
-            createHeading("Use Location"),
+            createHeading(LocalizationService().getLocalization(english: "Use Location", german: "Standort verwenden")),
             Switch(
               value: gs.useLocation,
               onChanged: (bool value) {
@@ -109,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
-            createHeading("Language"),
+            createHeading(LocalizationService().getLocalization(english: "Language", german: "Sprache")),
             DropdownButton<String>(
               value: gs.selectedLanguage,
               icon: Icon(Icons.arrow_drop_down),
@@ -123,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onChanged: (String newValue) {
                 setState(() {
                   gs.selectedLanguage = newValue;
-                  saveSettings();
+                  saveSettings();                
                 });
               },
               items: buildDropdownItems(gs.languageOptions),
@@ -134,7 +137,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Row(
           mainAxisAlignment: axisAlignment,
           children: <Widget>[
-            createHeading("Units"),
+            createHeading(LocalizationService().getLocalization(english: "Units", german: "Einheiten")),
             DropdownButton<String>(
               value: gs.selectedUnit,
               icon: Icon(Icons.arrow_drop_down),
@@ -166,12 +169,12 @@ class _SettingsPageState extends State<SettingsPage> {
               context: context,
               builder: (BuildContext context) => pupUpDialog(
                 context,
-                "Are you sure you want to delete your downloaded maps?",
+                LocalizationService().getLocalization(english: "Are you sure you want to delete your downloaded maps?", german: "Wollen Sie die heruntergeladenen Karten wirklich löschen?"),
                 (){}, // TODO call function to delete downloaded maps
               ),
             );
           },
-          child: createHeading("Delete downloaded maps"),
+          child: createHeading(LocalizationService().getLocalization(english: "Delete downloaded Maps", german: "Heruntergeladene Karten löschen")),
         ),
         // Delete history
         RaisedButton(
@@ -184,12 +187,12 @@ class _SettingsPageState extends State<SettingsPage> {
               context: context,
               builder: (BuildContext context) => pupUpDialog(
                 context,
-                "Are you sure you want to delete your history?",
+                LocalizationService().getLocalization(english: "Are you sure you want to delete your history?", german: "Wollen Sie wirklich Ihren Verlauf löschen?"),
                 (){}, // TODO call function to delete history
               ),
             );
           },
-          child: createHeading("Delete history"),
+          child: createHeading(LocalizationService().getLocalization(english: "Delete History", german: "Verlauf löschen")),
         ),
         // Space
         SizedBox(height: spaceBetweenRows),
@@ -214,6 +217,8 @@ class _SettingsPageState extends State<SettingsPage> {
         //   ],
         // ),
       ],
+    ),
     );
+    
   }
 }

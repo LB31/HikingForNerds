@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/styles.dart';
 
 enum AppSegment { setup, map, history, more }
 
-final Map<AppSegment, String> segmentNames = {
-  AppSegment.setup: 'Setup',
-  AppSegment.map: 'Map',
-  AppSegment.history: 'History',
-  AppSegment.more: 'More',
+Map<AppSegment, String> segmentNames = {
+  AppSegment.setup: LocalizationService()
+      .getLocalization(english: "Setup", german: "Einrichtung"),
+  AppSegment.map:
+      LocalizationService().getLocalization(english: "Map", german: "Karte"),
+  AppSegment.history: LocalizationService()
+      .getLocalization(english: "History", german: "Verlauf"),
+  AppSegment.more:
+      LocalizationService().getLocalization(english: "More", german: "Mehr"),
 };
 
 final Map<AppSegment, IconData> segmentIcons = {
@@ -17,11 +22,16 @@ final Map<AppSegment, IconData> segmentIcons = {
   AppSegment.more: Icons.more,
 };
 
-class BottomNavigation extends StatelessWidget {
+class BottomNavigation extends StatefulWidget {
   BottomNavigation({this.currentSegment, this.onSelectSegment});
   final AppSegment currentSegment;
   final ValueChanged<AppSegment> onSelectSegment;
 
+  @override
+  _BottomNavigation createState() => _BottomNavigation();
+}
+
+class _BottomNavigation extends State<BottomNavigation> {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
@@ -32,7 +42,7 @@ class BottomNavigation extends StatelessWidget {
         _buildItem(selectedSegment: AppSegment.history),
         _buildItem(selectedSegment: AppSegment.more),
       ],
-      onTap: (index) => onSelectSegment(
+      onTap: (index) => widget.onSelectSegment(
         AppSegment.values[index],
       ),
     );
@@ -43,12 +53,12 @@ class BottomNavigation extends StatelessWidget {
     return BottomNavigationBarItem(
       icon: Icon(
         segmentIcons[selectedSegment],
-        color: currentSegment == selectedSegment ? htwGreen : htwGrey,
+        color: widget.currentSegment == selectedSegment ? htwGreen : htwGrey,
       ),
       title: Text(
         text,
         style: TextStyle(
-          color: currentSegment == selectedSegment ? htwGreen : htwGrey,
+          color: widget.currentSegment == selectedSegment ? htwGreen : htwGrey,
         ),
       ),
     );
