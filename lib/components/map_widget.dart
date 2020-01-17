@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -176,7 +177,7 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic){
+    if (!widget.isStatic) {
       startRoute();
     }
   }
@@ -214,7 +215,8 @@ class MapWidgetState extends State<MapWidget> {
       }
       if (endingPointPath.length == 0) {
         if (endPathLength > routeEndingLength) {
-          endingPointPath = route.path.sublist(route.path.length - i, route.path.length);
+          endingPointPath =
+              route.path.sublist(route.path.length - i, route.path.length);
         } else {
           endPathLength += OsmData.getDistance(
               route.path[route.path.length - i - 1],
@@ -256,17 +258,17 @@ class MapWidgetState extends State<MapWidget> {
     setZoom(zoom);
   }
 
-  startRoute(){
+  startRoute() {
     setZoom(16);
     setTrackingMode(MyLocationTrackingMode.TrackingCompass);
     initUpdateRouteTimer();
 
     Flushbar(
-      messageText: Text("Your hiking trip has started!", // TODO add localization
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16.0)
-      ),
+      messageText: Text(
+          LocalizationService().getLocalization(
+              english: "Your hiking trip has started!",
+              german: "Ihre Wanderung hat begonnen!"),
+          style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.check,
         size: 28.0,
@@ -332,11 +334,11 @@ class MapWidgetState extends State<MapWidget> {
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
     Flushbar(
-      messageText: Text("You have finished your hiking trip", // TODO add localization
-          style: TextStyle(
-              color: Colors.black,
-              fontSize: 16.0)
-      ),
+      messageText:
+          Text(LocalizationService().getLocalization(
+              english: "You have finished your hiking trip",
+              german: "Sie haben Ihre Wanderung beendet"), // TODO add localization
+              style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.thumb_up,
         size: 28.0,
