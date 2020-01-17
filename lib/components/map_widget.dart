@@ -288,11 +288,12 @@ class MapWidgetState extends State<MapWidget> {
 
     LocationData userLocation = await getCurrentLocation();
     LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
-
     int currentRouteIndex = _currentRouteIndex;
 
+    int finalRouteNodesOffset = _remainingRoute.length < _route.length - 25 ? 0 : 25;
 
-    for (int index = currentRouteIndex; index < _route.length - 25; index++) {
+
+    for (int index = currentRouteIndex; index < _route.length - finalRouteNodesOffset; index++) {
 
       double distanceToCurrentLocation = OsmData.getDistance(
           _route[index], userLatLng);
@@ -300,10 +301,7 @@ class MapWidgetState extends State<MapWidget> {
       if (distanceToCurrentLocation < 0.1) {
         print(index.toString() + " / " + _route.length.toString() + " close");
         currentRouteIndex = index;
-      } else {
-        //print(index.toString() + " / " + _route.length.toString() + " far");
       }
-
     }
 
     setState(() {
