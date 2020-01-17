@@ -402,7 +402,10 @@ class MapWidgetState extends State<MapWidget> {
               heightChartDisplayed: _heightChartEnabled,
             ),
           if(_hikingRoute != null && _heightChartEnabled)
-          _buildElevationChart()
+            Builder(
+              builder: (context) =>
+              _buildElevationChart(context),
+            )
         ],
       );
     }
@@ -411,20 +414,19 @@ class MapWidgetState extends State<MapWidget> {
     );
   }
 
-  Widget _buildElevationChart(){
+  Widget _buildElevationChart(BuildContext context){
     return Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: 300,
-          height: 150,
-          child: ElevationChart(
-            _hikingRoute,
-            onSelectionChanged: (int index) => print(index),
-            interactive: true,
-          )
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: 300,
+        height: 150,
+        child: ElevationChart(
+          _hikingRoute,
+          onSelectionChanged: (int index) => print(index),
+          interactive: true,
         )
+      )
     );
-
   }
 
   MapboxMap _buildMapBox(BuildContext context) {

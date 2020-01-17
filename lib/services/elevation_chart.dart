@@ -1,72 +1,24 @@
+import 'dart:math';
+
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
-class ElevationChart extends StatelessWidget {
+class ElevationChart extends StatefulWidget {
   final HikingRoute route;
   final bool interactive;
   final bool withLabels;
 
   final Function(int) onSelectionChanged;
 
+  @override
+  State<StatefulWidget> createState() => new ElevationChartState();
+
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 
-  @override
-  Widget build(BuildContext context) {
-    // TODO add localization
-    String bottomText = "Distance in m";
-    String leftText = "Elevation in m";
-    int fontSize = 12;
-    charts.SelectionTrigger interaction;
-
-    interaction = interactive
-        ? charts.SelectionTrigger.tapAndDrag
-        : charts.SelectionTrigger.hover;
-
-    List<charts.ChartBehavior> behaviours = [
-      new charts.SelectNearest(eventTrigger: interaction)
-    ];
-
-    if (withLabels) {
-      behaviours.add(new charts.ChartTitle(bottomText,
-          behaviorPosition: charts.BehaviorPosition.bottom,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-              charts.OutsideJustification.middleDrawArea));
-      behaviours.add(new charts.ChartTitle(leftText,
-          behaviorPosition: charts.BehaviorPosition.start,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-              charts.OutsideJustification.middleDrawArea));
-    }
-
-    return new Container(
-      child: new charts.LineChart(
-        _createData(route),
-        defaultRenderer:
-            new charts.LineRendererConfig(includeArea: true, includeLine: true, stacked: true),
-        behaviors: behaviours,
-        selectionModels: [
-          new charts.SelectionModelConfig(
-            type: charts.SelectionModelType.info,
-            changedListener: _onSelectionChanged,
-          )
-        ],
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xAA7c94b6),
-        border: Border.all(
-          color: Colors.black,
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-  }
-
-
-  static List<charts.Series<RouteData, double>> _createData(HikingRoute route) {
+  List<charts.Series<RouteData, double>> createData(HikingRoute route) {
 
     final List<RouteData> chartData = new List();
 
@@ -97,9 +49,82 @@ class ElevationChart extends StatelessWidget {
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach(
               (charts.SeriesDatum datumPair) {
-        onSelectionChanged(datumPair.datum.index);
+            onSelectionChanged(datumPair.datum.index);
+          });
+    }
+  }
+}
+
+class ElevationChartState extends State<ElevationChart>{
+  num _sliderDomainValue;
+  String _sliderDragState;
+  Point<int> _sliderPosition;
+
+  _onSliderChange(Point<int> point, dynamic domain, String roleId,
+      charts.SliderListenerDragState dragState) {
+    // Request a build.
+    void rebuild(_) {
+      setState(() {
+        _sliderDomainValue = (domain * 10).round() / 10;
+        _sliderDragState = dragState.toString();
+        _sliderPosition = point;
       });
     }
+
+    widget.onSelectionChanged(((domain * 10).round() / 10).toInt());
+
+
+    SchedulerBinding.instance.addPostFrameCallback(rebuild);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO add localization
+    String bottomText = "Distance in m";
+    String leftText = "Elevation in m";
+    int fontSize = 12;
+    charts.SelectionTrigger interaction;
+
+    interaction = widget.interactive
+        ? charts.SelectionTrigger.tapAndDrag
+        : charts.SelectionTrigger.hover;
+
+    List<charts.ChartBehavior> behaviours = [
+      new charts.Slider(
+          eventTrigger: interaction, onChangeCallback: _onSliderChange)
+    ];
+
+    if (widget.withLabels) {
+      behaviours.add(new charts.ChartTitle(bottomText,
+          behaviorPosition: charts.BehaviorPosition.bottom,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+          charts.OutsideJustification.middleDrawArea));
+      behaviours.add(new charts.ChartTitle(leftText,
+          behaviorPosition: charts.BehaviorPosition.start,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+          charts.OutsideJustification.middleDrawArea));
+    }
+
+    return new Container(
+      child: new charts.LineChart(
+        widget.createData(widget.route),
+        animate: false,
+        defaultRenderer:
+        new charts.LineRendererConfig(
+            includeArea: true, includeLine: true, stacked: true),
+        behaviors: behaviours,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xAA7c94b6),
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
   }
 }
 
