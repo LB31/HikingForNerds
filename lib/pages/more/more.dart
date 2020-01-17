@@ -56,20 +56,27 @@ class _MorePageState extends State<MorePage> {
   @override
   void initState() {
     super.initState();
+    retrieveTotalHikingDistance();
+  }
 
+  retrieveTotalHikingDistance(){
     SharedPreferences.getInstance().then((prefs) {
       double totalHikingDistance =
           prefs.getDouble("totalHikingDistance") ?? 0;
-      setState(() {
-        _totalHikingDistance = totalHikingDistance;
-      });
+      if(_totalHikingDistance != totalHikingDistance){
+        setState(() {
+          _totalHikingDistance = totalHikingDistance;
+        });
+      }
     });
-
   }
 
 
   @override
   Widget build(BuildContext context) {
+
+    retrieveTotalHikingDistance();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('More'),
