@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
 
 class HistoryPage extends StatefulWidget {
   @override
@@ -11,6 +10,7 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
+    // TODO remove after review please
     List<Node> nodes = [
       Node(0, 52.5200133, 13.40498740000001),
       Node(1, 52.5199846, 13.405024200000014),
@@ -430,20 +430,10 @@ class _HistoryPageState extends State<HistoryPage> {
       Node(415, 52.5200133, 13.40498740000001),
     ];
 
-/*    OsmData().calculateHikingRoutes(52.520008, 13.404954, 5000).then((result) {
-      setState(() {
-        nodes = result[0].path;
-        String test = "";
-        for (int i = 0; i < nodes.length; i++) {
-          test += "Node(" + i.toString() + ", " + nodes[i].latitude.toString() + ", " + nodes[i].longitude.toString() + "),";
-        }
-        print(test);
-      });*/
-
     return Scaffold(
         appBar: AppBar(
             title: Text('History'),
             backgroundColor: Theme.of(context).primaryColor),
-        body: RouteCanvasWidget(300.0, 300.0, nodes, Colors.white70, Colors.blue));
+        body: RouteCanvasWidget(150.0, 150.0, nodes, strokeWidth: 1.5,));
   }
 }
