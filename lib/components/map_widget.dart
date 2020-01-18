@@ -499,9 +499,5 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     if (sharedRoute != null) drawRoute(sharedRoute);
-
-
-
-
   }
 }
