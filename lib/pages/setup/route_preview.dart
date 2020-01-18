@@ -31,7 +31,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
 
-    //TODO consider using a callback instead of a timeout 
+    //TODO consider using a callback instead of a timeout
     Future.delayed(const Duration(milliseconds: 2000), () {
       switchRoute(_currentRouteIndex);
     });
@@ -81,54 +81,76 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             isStatic: true,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
-          Container(
-            color: Theme.of(context).primaryColor,
-            width: MediaQuery.of(context).size.width,
-            height: 155,
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    IconButton(
-                        iconSize: 50,
-                        icon: Icon(
-                          Icons.arrow_left,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => switchRoute(
-                            (_currentRouteIndex + (_routes.length - 1)) %
-                                _routes.length)),
-                    Text(
-                      "Route ${_currentRouteIndex + 1}",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    IconButton(
-                        iconSize: 50,
-                        icon: Icon(
-                          Icons.arrow_right,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => switchRoute(
-                            (_currentRouteIndex + (_routes.length + 1)) %
-                                _routes.length)),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 1.0, horizontal: 4.0),
-                  child: Card(
+          Column(children: <Widget>[
+            Container(
+              color: htwGreen,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_left,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length - 1)) %
+                              _routes.length)),
+                  Expanded(
+                      child: Card(
                     child: ListTile(
                       onTap: () {},
                       title: Text(_routes[_currentRouteIndex].title),
                       subtitle: Text(
                           'Length: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km   Date: ${_routes[_currentRouteIndex].date}'), // TODO localization
                     ),
+                  )),
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_right,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length + 1)) %
+                              _routes.length)),
+                ],
+              ),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Opacity(
+                  opacity: 0.7,
+                  child: Container(
+                    decoration: new BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Text("Start"), // TODO add localization
+                              Padding(
+                                padding: const EdgeInsets.only(left: 18),
+                                child: Container(
+                                  width: 60,
+                                  height: 5,
+                                  color: Colors.green,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            ]),
+          ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
             bottom: 16,
@@ -179,51 +201,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               ),
             ),
           ),
-          Positioned(
-              top: 165,
-              left: MediaQuery.of(context).size.width * 0.5 - 65,
-              child: Opacity(
-                opacity: 0.5,
-                child: Container(
-                  width: 130,
-                  decoration: new BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Text("Start"),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 18),
-                              child: Container(
-                                width: 60,
-                                height: 5,
-                                color: Colors.green,
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Text("Finish"),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: Container(
-                                width: 60,
-                                height: 5,
-                                color: Colors.red,
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ))
         ],
       ),
     );
