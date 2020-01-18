@@ -16,7 +16,6 @@ class RouteList extends StatefulWidget {
 
 class _RouteListState extends State<RouteList> {
   List<RouteListEntry> routeList = [];
-  String summary = '';
 
   @override
   void initState() {
@@ -46,7 +45,6 @@ class _RouteListState extends State<RouteList> {
     }
     setState(() {
       widget.routeParams.routes = routes;
-      print('## ${routes.length} routes found');
       widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
             r.title,
             r.date,
@@ -56,13 +54,21 @@ class _RouteListState extends State<RouteList> {
   }
 
   // TODO add localization or remove if not needed
-  void summaryText() {
-    String text = 'Displaying routes for your chosen parameters\n';
-    text += 'Distance: ${widget.routeParams.distanceKm}/${(widget.routeParams.distanceKm*12)}\n';
-    text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: \n' : '';
-    text += 'Altitude: ${widget.routeParams.altitudeType}\n';
-    print(text);
-    summary = text;
+  headerText() {
+    String text = 'Displaying routes for your chosen parameters\n\n';
+    text += 'Distance: ${widget.routeParams.distanceKm} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN\n';
+    if(widget.routeParams.poiCategories.length > 0) {
+      text += 'POIs: ';
+      widget.routeParams.poiCategories.forEach((p) => text += '$p ');
+      text += '\n';
+    }
+
+
+    // text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: ' : '';
+    // widgetforEach((v) => text += 
+    text += 'Altitude: ${AltitudeTypeHelper.asString(widget.routeParams.altitudeType)}\n';
+    print('#### $text ####');
+    return text;
   }
 
   @override
@@ -74,43 +80,46 @@ class _RouteListState extends State<RouteList> {
           title: Text('Choose a route to preview'), // TODO add localization
           elevation: 0,
         ),
-        body: Stack(children: <Widget>[
-          Text(
-            summary,
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600]),
-            textAlign: TextAlign.left,
-          ),
-          Padding(padding: EdgeInsets.only(top: 20)),
-          ListView.builder(
-            itemCount: routeList.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
-                child: Card(
-                  child: ListTile(
-                    onTap: () {
-                      widget.routeParams.routeIndex = index;
-                      widget.onPushRoutePreview(widget.routeParams);
-                    },
-                    title: Text(routeList[index].title),
-                    subtitle: Text(
-                        'Distance: ${routeList[index].distance} KM / ${routeList[index].time} MIN\nDate: ${routeList[index].date}'),// TODO localization
-                    leading: CircleAvatar(
-                        child: Icon(
-                      Icons.directions_walk,
-                      color: htwGreen,
-                    )
-                        //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
-                        ),
-                  ),
-                ),
-              );
-            },
-          ),
+        body: Column(
+          children: <Widget>[
+            Padding(padding: EdgeInsets.only(top: 4)),
+            Text(
+              headerText(),
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[600]),
+              textAlign: TextAlign.left,
+            ),
+            Padding(padding: EdgeInsets.only(top: 4)),
+            Expanded(
+                          child: ListView.builder(
+                itemCount: routeList.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
+                    child: Card(
+                      child: ListTile(
+                        onTap: () {
+                          widget.routeParams.routeIndex = index;
+                          widget.onPushRoutePreview(widget.routeParams);
+                        },
+                        title: Text(routeList[index].title),
+                        subtitle: Text(
+                            'Distance: ${routeList[index].distance} KM / ${routeList[index].time} MIN\n'),// TODO localization
+                        leading: CircleAvatar(
+                            child: Icon(
+                          Icons.directions_walk,
+                          color: htwGreen,
+                        )
+                            //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
+                            ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
         ]));
   }
 }
