@@ -56,7 +56,7 @@ class _RouteListState extends State<RouteList> {
   // TODO add localization or remove if not needed
   headerText() {
     String text = 'Displaying routes for your chosen parameters\n\n';
-    text += 'Distance: ${widget.routeParams.distanceKm} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN\n';
+    text += 'Distance: ${widget.routeParams.distanceKm.toInt()} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN\n';
     if(widget.routeParams.poiCategories.length > 0) {
       text += 'POIs: ';
       widget.routeParams.poiCategories.forEach((p) => text += '$p ');
