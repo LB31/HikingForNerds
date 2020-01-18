@@ -402,10 +402,7 @@ class MapWidgetState extends State<MapWidget> {
               heightChartDisplayed: _heightChartEnabled,
             ),
           if(_hikingRoute != null && _heightChartEnabled)
-            Builder(
-              builder: (context) =>
               _buildElevationChart(context),
-            )
         ],
       );
     }

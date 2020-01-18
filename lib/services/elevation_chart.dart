@@ -13,14 +13,14 @@ class ElevationChart extends StatefulWidget {
 
   final Function(int) onSelectionChanged;
 
+  final List<RouteData> chartData = new List();
+
   @override
   State<StatefulWidget> createState() => new ElevationChartState();
 
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 
   List<charts.Series<RouteData, double>> createData(HikingRoute route) {
-
-    final List<RouteData> chartData = new List();
 
     double lastDistance = 0;
     for (int i = 0; i < route.elevations.length; i++) {
@@ -43,36 +43,21 @@ class ElevationChart extends StatefulWidget {
       ),
     ];
   }
-
-  _onSelectionChanged(charts.SelectionModel<num> model) {
-    final selectedDatum = model.selectedDatum;
-    if (selectedDatum.isNotEmpty) {
-      selectedDatum.forEach(
-              (charts.SeriesDatum datumPair) {
-            onSelectionChanged(datumPair.datum.index);
-          });
-    }
-  }
 }
 
 class ElevationChartState extends State<ElevationChart>{
-  num _sliderDomainValue;
-  String _sliderDragState;
-  Point<int> _sliderPosition;
+
+  static final roundingThreshold = 0.0001;
 
   _onSliderChange(Point<int> point, dynamic domain, String roleId,
       charts.SliderListenerDragState dragState) {
-    // Request a build.
+
     void rebuild(_) {
-      setState(() {
-        _sliderDomainValue = (domain * 10).round() / 10;
-        _sliderDragState = dragState.toString();
-        _sliderPosition = point;
-      });
+      RouteData foundRouteData = widget.chartData.firstWhere((routeData) => (routeData.distance - domain) > roundingThreshold, orElse: null);
+      if (foundRouteData != null) {
+        widget.onSelectionChanged(foundRouteData.index);
+      }
     }
-
-    widget.onSelectionChanged(((domain * 10).round() / 10).toInt());
-
 
     SchedulerBinding.instance.addPostFrameCallback(rebuild);
   }
@@ -91,7 +76,16 @@ class ElevationChartState extends State<ElevationChart>{
 
     List<charts.ChartBehavior> behaviours = [
       new charts.Slider(
-          eventTrigger: interaction, onChangeCallback: _onSliderChange)
+        initialDomainValue: 0,
+        eventTrigger: interaction,
+        onChangeCallback: _onSliderChange,
+        snapToDatum: true,
+        handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
+        style: charts.SliderStyle(
+            handleSize: Rectangle<int>(0, 0, 25, 30),
+            fillColor: charts.MaterialPalette.green.shadeDefault
+        ),
+      )
     ];
 
     if (widget.withLabels) {
@@ -107,12 +101,12 @@ class ElevationChartState extends State<ElevationChart>{
           charts.OutsideJustification.middleDrawArea));
     }
 
+
     return new Container(
       child: new charts.LineChart(
         widget.createData(widget.route),
         animate: false,
-        defaultRenderer:
-        new charts.LineRendererConfig(
+        defaultRenderer: new charts.LineRendererConfig(
             includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,
       ),
