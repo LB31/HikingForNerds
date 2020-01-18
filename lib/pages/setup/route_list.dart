@@ -58,7 +58,7 @@ class _RouteListState extends State<RouteList> {
   // TODO add localization or remove if not needed
   void summaryText() {
     String text = 'Displaying routes for your chosen parameters\n';
-    text += 'Distance: ${widget.routeParams.distanceKm}\n';
+    text += 'Distance: ${widget.routeParams.distanceKm}/${(widget.routeParams.distanceKm*12)}\n';
     text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: \n' : '';
     text += 'Altitude: ${widget.routeParams.altitudeType}\n';
     print(text);
@@ -98,7 +98,7 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        'Distance: ${routeList[index].distance.toString()}\nDate: ${routeList[index].date}'),// TODO localization
+                        'Distance: ${routeList[index].distance} KM / ${routeList[index].time} MIN\nDate: ${routeList[index].date}'),// TODO localization
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,
@@ -119,6 +119,7 @@ class RouteListEntry {
   String title; // Route title i.e. Address, city, regio, custom
   String date; // Route date - created
   String distance; // Route length in KM
+  String time; // Route time needed in Minutes
   CircleAvatar avatar;
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
@@ -127,6 +128,7 @@ class RouteListEntry {
     this.title = title;
     this.date = date;
     this.distance = formatDistance(distance);
+    this.time = (distance * 12).toInt().toString();
     // this.avatar = avatar;
   }
 
