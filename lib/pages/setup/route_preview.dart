@@ -118,39 +118,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ],
               ),
             ),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Opacity(
-                  opacity: 0.7,
-                  child: Container(
-                    decoration: new BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(40.0))),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Text("Start"), // TODO add localization
-                              Padding(
-                                padding: const EdgeInsets.only(left: 18),
-                                child: Container(
-                                  width: 60,
-                                  height: 5,
-                                  color: Colors.green,
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ]),
+            
           ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
