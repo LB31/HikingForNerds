@@ -6,21 +6,30 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import android.os.Bundle
 
 import io.flutter.plugin.common.MethodChannel
+import android.content.Intent
+import android.net.Uri
 
 
 class MainActivity: FlutterActivity() {
   private val CHANNEL = "app.channel.hikingfornerds.data"
 
+  var sharedData: Uri? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     GeneratedPluginRegistrant.registerWith(this)
 
-    val data: android.net.Uri? = intent?.data
+    sharedData = intent?.data
 
     MethodChannel(flutterView, CHANNEL).setMethodCallHandler{ call, result ->
       if (call.method!!.contentEquals("getSharedData")){
-        result.success(data?.toString() ?: "")
+        result.success(sharedData?.toString() ?: "")
       }
     }
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    sharedData = intent?.data
   }
 }

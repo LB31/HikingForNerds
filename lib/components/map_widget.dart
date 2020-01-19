@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flushbar/flushbar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
@@ -9,7 +10,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show MethodChannel, rootBundle;
+import 'package:flutter/services.dart' show MethodChannel, SystemChannels, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'dart:math';
@@ -82,10 +83,38 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> _getIntentData() async {
-    var data = await _getSharedData();
-    if (data == null) return;
-    setState(() {
-      sharedRoute = data;
+    SystemChannels.lifecycle.setMessageHandler((msg) {
+      if (msg.contains('resumed')) {
+        _getSharedData().then((d) {
+          if (d == null) return;
+          setState(() {
+            sharedRoute = d;
+          });
+          drawRoute(sharedRoute);
+        });
+      }
+      return;
+    });
+/*
+    WidgetsBinding.instance.addObserver(
+        new LifecycleEventHandler(resumeCallBack: doCallBack)
+    );*/
+
+    if (sharedRoute == null) {
+      var data = await _getSharedData();
+      if (data == null) return;
+      setState(() {
+        sharedRoute = data;
+      });
+    }
+  }
+
+  Future<void> doCallBack(){
+    _getSharedData().then((d) {
+      if (d == null) return;
+      setState(() {
+        sharedRoute = d;
+      });
     });
   }
 
@@ -518,5 +547,26 @@ class MapWidgetState extends State<MapWidget> {
     });
 
     if (sharedRoute != null) drawRoute(sharedRoute);
+  }
+}
+
+class LifecycleEventHandler extends WidgetsBindingObserver {
+  LifecycleEventHandler({this.resumeCallBack, this.suspendingCallBack});
+
+  final AsyncCallback resumeCallBack;
+  final AsyncCallback suspendingCallBack;
+
+  @override
+  Future<Null> didChangeAppLifecycleState(AppLifecycleState state) async {
+    switch (state) {
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        await suspendingCallBack();
+        break;
+      case AppLifecycleState.resumed:
+        await resumeCallBack();
+        break;
+    }
   }
 }
