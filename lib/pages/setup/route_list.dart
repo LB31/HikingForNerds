@@ -99,7 +99,7 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance.toString()}\nDate: ${routeList[index].date}'),
+                        LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance.toString()}\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${routeList[index].date}'),
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,

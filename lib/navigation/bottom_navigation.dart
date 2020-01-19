@@ -15,7 +15,7 @@ final Map<AppSegment, IconData> segmentIcons = {
 class BottomNavigation extends StatelessWidget {
   final Map<AppSegment, String> segmentNames = {
     AppSegment.setup: LocalizationService()
-        .getLocalization(english: "Setup", german: "Einrichtung"),
+        .getLocalization(english: "Setup", german: "Route Planen"),
     AppSegment.map:
         LocalizationService().getLocalization(english: "Map", german: "Karte"),
     AppSegment.history: LocalizationService()
