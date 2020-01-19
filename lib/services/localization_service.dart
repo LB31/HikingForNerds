@@ -1,5 +1,3 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'global_settings.dart';
 
 class LocalizationService {

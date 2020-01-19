@@ -337,7 +337,7 @@ class MapWidgetState extends State<MapWidget> {
       messageText:
           Text(LocalizationService().getLocalization(
               english: "You have finished your hiking trip",
-              german: "Sie haben Ihre Wanderung beendet"), // TODO add localization
+              german: "Sie haben Ihre Wanderung beendet"), 
               style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.thumb_up,

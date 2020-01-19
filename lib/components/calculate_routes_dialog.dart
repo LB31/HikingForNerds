@@ -15,7 +15,6 @@ class CalculatingRoutesDialog extends StatelessWidget {
             Center(child: CircularProgressIndicator()),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              // TODO add localization
               child: Center(child: Text(LocalizationService().getLocalization(
               english: "Calculating Route...",
               german: "Route wird berechnet..."),)),
