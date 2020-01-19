@@ -497,6 +497,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute);
+    if (sharedRoute != null) drawRoute(sharedRoute); 
+    requestLocationPermissionIfNotAlreadyGranted();
   }
 }
