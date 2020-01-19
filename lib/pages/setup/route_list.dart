@@ -45,15 +45,27 @@ class _RouteListState extends State<RouteList> {
           widget.routeParams.distanceKm * 1000.0,
           10);
     }
+
+    await buildRouteTitles(routes);
+
     setState(() {
       widget.routeParams.routes = routes;
       print('## ${routes.length} routes found');
+
       widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
             r.title,
             r.date,
             r.totalLength,
           )));
     });
+
+  }
+
+  Future<void> buildRouteTitles(List<HikingRoute> routes) async{
+    for(int i = 0; i < routes.length; i++){
+      String title = await routes[i].buildTitle();
+      routes[i].setTitle(title);
+    }
   }
 
   // TODO add localization or remove if not needed
