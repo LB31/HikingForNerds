@@ -51,7 +51,7 @@ SizedBox makeHorizontalSpace(){
 
 class _MorePageState extends State<MorePage> {
 
-  double _totalHikingDistance = 0;
+  double _totalHikingDistance = 0.0;
 
   @override
   void initState() {
@@ -77,6 +77,9 @@ class _MorePageState extends State<MorePage> {
 
     retrieveTotalHikingDistance();
 
+    Text totalHikingDistanceText = _totalHikingDistance > 0 ? Text("${_totalHikingDistance.toString().substring(0, _totalHikingDistance.toString().length > 5 ? 5 : 0)} km") : Text("0 km");
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('More'),
@@ -85,7 +88,7 @@ class _MorePageState extends State<MorePage> {
         child: ListView(
           //padding: const EdgeInsets.all(12),
           children: <Widget>[
-          decorateContent("Total Hiking Distance", Text("${_totalHikingDistance.toString().substring(0, 5)}km")),
+          decorateContent("Total Hiking Distance", totalHikingDistanceText),
           decorateContent("Settings", SettingsPage()),
           makeHorizontalSpace(),
           decorateContent("Help", HelpPage()),

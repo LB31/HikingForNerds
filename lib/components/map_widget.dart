@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -14,6 +15,7 @@ import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
@@ -40,6 +42,7 @@ class MapWidgetState extends State<MapWidget> {
   List<LatLng> _remainingRoute = [];
   Line _lineRemainingRoute;
   Line _linePassedRoute;
+  Line _lineStartRoute;
 
   Timer _timer;
 
@@ -129,15 +132,15 @@ class MapWidgetState extends State<MapWidget> {
     return currentLocation;
   }
 
-  void drawRoute(HikingRoute route) async {
+
+
+
+  void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
-    drawHikingDirection(route);
-
-    List<LatLng> routePath = route.path
-        .map((node) => LatLng(node.latitude, node.longitude))
-        .toList();
+    int index = calculateLastStartingPathNode(route);
+    assert(index != -1, "Error last starting node not found!");
 
     LineOptions optionsPassedRoute = LineOptions(
         geometry: [],
@@ -148,7 +151,8 @@ class MapWidgetState extends State<MapWidget> {
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
-        geometry: routePath,
+
+        geometry: route.path.sublist(index - 1),
         lineColor: "Blue",
         lineWidth: 4.0,
         lineBlur: 1,
@@ -156,14 +160,24 @@ class MapWidgetState extends State<MapWidget> {
 
     Line lineRoute = await mapController.addLine(optionsRoute);
 
-    centerCameraOverRoute(route);
+    LineOptions optionsStartRoute = LineOptions(
+        geometry: route.path.sublist(0, index),
+        lineColor: "Green",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
+
+    Line lineStartRoute = await mapController.addLine(optionsStartRoute);
+
+    if(center) centerCameraOverRoute(route);
 
     setState(() {
-      _hikingRoute = route;
-      _route = routePath;
-      _remainingRoute = routePath;
+      _hikingRoute = route; 
+      _route = route.path;
+      _remainingRoute = route.path;
       _passedRoute = [];
       _lineRemainingRoute = lineRoute;
+      _lineStartRoute = lineStartRoute;
       _linePassedRoute = linePassedRoute;
       _currentRouteIndex = 0;
     });
@@ -178,59 +192,31 @@ class MapWidgetState extends State<MapWidget> {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
-        circleColor: "Red",
-        circleRadius: 11,
-        circleStrokeWidth: 7,
-        circleStrokeColor: "Blue",
+        circleColor: "Blue",
+        circleRadius: 16,
         circleBlur: 0.25,
-        circleOpacity: 1);
+        circleOpacity: 0.5);
     mapController.addCircle(optionsStartingPoint);
   }
 
-  void drawHikingDirection(HikingRoute route) {
+  int calculateLastStartingPathNode(HikingRoute route) {
     List<LatLng> startingPointPath = new List<LatLng>();
-    List<LatLng> endingPointPath = new List<LatLng>();
     // use a twentieth of the routes total length for start and end route
     double routeEndingLength = route.totalLength * 0.05;
 
-    double startPathLength = 0, endPathLength = 0;
+    double startPathLength = 0;
     int i = 0;
-    while (startingPointPath.length == 0 || endingPointPath.length == 0) {
-      if (startingPointPath.length == 0) {
+    while (startingPointPath.length == 0) {
         if (startPathLength > routeEndingLength) {
-          startingPointPath = route.path.sublist(0, i + 1);
+          return i + 1;
         } else {
           startPathLength +=
               OsmData.getDistance(route.path[i], route.path[i + 1]);
         }
-      }
-      if (endingPointPath.length == 0) {
-        if (endPathLength > routeEndingLength) {
-          endingPointPath = route.path.sublist(route.path.length - i, route.path.length);
-        } else {
-          endPathLength += OsmData.getDistance(
-              route.path[route.path.length - i - 1],
-              route.path[route.path.length - i - 2]);
-        }
-      }
       i++;
     }
 
-    LineOptions optionsHikingDirectionStart = LineOptions(
-        geometry: startingPointPath,
-        lineColor: "Green",
-        lineWidth: 10.0,
-        lineBlur: 2,
-        lineOpacity: 0.5);
-    LineOptions optionsHikingDirectionEnd = LineOptions(
-        geometry: endingPointPath,
-        lineColor: "Red",
-        lineWidth: 10.0,
-        lineBlur: 2,
-        lineOpacity: 0.5);
-
-    mapController.addLine(optionsHikingDirectionStart);
-    mapController.addLine(optionsHikingDirectionEnd);
+    return -1;
   }
 
   void centerCameraOverRoute(HikingRoute route) {
@@ -243,8 +229,9 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-    setLatLng(LatLng(averageLat, averageLong));
     double zoom = 14.5 - (pow(route.totalLength, 0.4));
+
+    setLatLng(LatLng(averageLat, averageLong));
     setZoom(zoom);
   }
 
@@ -509,6 +496,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute);
+    if (sharedRoute != null) drawRoute(sharedRoute); 
+    requestLocationPermissionIfNotAlreadyGranted();
   }
 }
