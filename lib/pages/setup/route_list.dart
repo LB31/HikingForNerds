@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/route_canvas.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -49,6 +51,7 @@ class _RouteListState extends State<RouteList> {
             r.title,
             r.date,
             r.totalLength,
+            r.path,
           )));
     });
   }
@@ -131,10 +134,7 @@ class _RouteListState extends State<RouteList> {
                         subtitle: Text(
                             'Distance: ${routeList[index].distance} KM / ${routeList[index].time} MIN\n'),// TODO localization
                         leading: CircleAvatar(
-                            child: Icon(
-                          Icons.directions_walk,
-                          color: htwGreen,
-                        )
+                            child: routeList[index].routeCanvas,
                             //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
                             ),
                       ),
@@ -152,16 +152,16 @@ class RouteListEntry {
   String date; // Route date - created
   String distance; // Route length in KM
   String time; // Route time needed in Minutes
-  CircleAvatar avatar;
+  RouteCanvasWidget routeCanvas;
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
-  RouteListEntry(String title, String date, double distance) {
+  RouteListEntry(String title, String date, double distance, List<Node> nodes) {
     this.title = title;
     this.date = date;
     this.distance = formatDistance(distance);
     this.time = (distance * 12).toInt().toString();
-    // this.avatar = avatar;
+    this.routeCanvas = RouteCanvasWidget(40, 40, nodes);
   }
 
   String formatDistance(double n) {
