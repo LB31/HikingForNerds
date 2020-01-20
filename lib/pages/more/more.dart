@@ -6,18 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'credits.dart';
 import 'help.dart';
 
-// TODO this class shows how to navigate to another page on the same segment
-/// please modify this to your needs (remove routing in segment navigator if necessary)
 class MorePage extends StatefulWidget {
-  // final VoidCallback onPushCredit;
-  // final VoidCallback onPushHelp;
-  // final VoidCallback onPushSettings;
-
-  // MorePage(
-  //     {@required this.onPushCredit,
-  //     @required this.onPushHelp,
-  //     @required this.onPushSettings});
-
   @override
   _MorePageState createState() => _MorePageState();
 }
@@ -56,30 +45,13 @@ class _MorePageState extends State<MorePage> {
   @override
   void initState() {
     super.initState();
-    retrieveTotalHikingDistance();
-  }
-
-  retrieveTotalHikingDistance(){
-    SharedPreferences.getInstance().then((prefs) {
-      double totalHikingDistance =
-          prefs.getDouble("totalHikingDistance") ?? 0;
-      if(_totalHikingDistance != totalHikingDistance){
-        setState(() {
-          _totalHikingDistance = totalHikingDistance;
-        });
-      }
+    SharedPreferences.getInstance().then((prefs)  {
+      _totalHikingDistance = prefs.getDouble("totalHikingDistance") ?? 0.0;
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
-
-    retrieveTotalHikingDistance();
-
-    Text totalHikingDistanceText = _totalHikingDistance > 0 ? Text("${_totalHikingDistance.toString().substring(0, _totalHikingDistance.toString().length > 5 ? 5 : 0)} km") : Text("0 km");
-
-
     return Scaffold(
       appBar: AppBar(
         title: Text('More'),
@@ -88,7 +60,7 @@ class _MorePageState extends State<MorePage> {
         child: ListView(
           //padding: const EdgeInsets.all(12),
           children: <Widget>[
-          decorateContent("Total Hiking Distance", totalHikingDistanceText),
+          decorateContent("Total Hiking Distance", Text("${_totalHikingDistance.toStringAsFixed(2)} km")),
           decorateContent("Settings", SettingsPage()),
           makeHorizontalSpace(),
           decorateContent("Help", HelpPage()),
