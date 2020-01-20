@@ -29,7 +29,7 @@ class OsmData{
   bool profiling = false;
   int _routeCalculationStartTime;
   Random _randomGenerator = Random(1);
-  int maxRetries = 20;
+  int maxRetries = 10;
   double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
 
 
@@ -165,7 +165,7 @@ class OsmData{
         try {
           return data.osmRef._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements, retryCount);
         }
-        catch(e) {
+        catch (_) {
           retryCount++;
         }
       }
@@ -175,12 +175,13 @@ class OsmData{
           var initialHeading = randomGenerator.nextInt(360).floorToDouble();
           return data.osmRef._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter, initialHeading);
         }
-        catch(e) {
+        catch (_) {
           retryCount++;
         }
       }
     }
-    throw NoRoutesFoundException;
+    //throw new NoRoutesFoundException();
+    return null;
   }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
@@ -222,9 +223,6 @@ class OsmData{
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
     var beeLineDistance = distanceInM * beeLineToRealRatio;
     graph.edgeAlreadyUsedPenalties.clear();
-    //var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
-
-    print(initialHeading.toString());
 
     var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
     var pointC = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading + 60);
@@ -425,7 +423,7 @@ class OsmData{
   }
 }
 
-class NoPOIsFoundException {
+class NoPOIsFoundException implements Exception {
   @override
   String toString() {
     return "No points of interest found to given categories.";

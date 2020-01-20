@@ -18,10 +18,11 @@ class _RouteListState extends State<RouteList> {
   List<RouteListEntry> routeList = [];
   String summary = '';
 
+  bool _routesCalculated = false;
+
   @override
   void initState() {
     super.initState();
-    // todo implement loading bar
     calculateRoutes();
   }
 
@@ -36,14 +37,16 @@ class _RouteListState extends State<RouteList> {
           10,
           widget.routeParams.poiCategories);
     } on NoPOIsFoundException catch (err) {
-        print("no poi found exception " + err.toString());
-    } finally {
+      print("no poi found exception " + err.toString());
       routes = await OsmData().calculateHikingRoutes(
-          widget.routeParams.startingLocation.latitude,
-          widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
-          10);
+        widget.routeParams.startingLocation.latitude,
+        widget.routeParams.startingLocation.longitude,
+        widget.routeParams.distanceKm * 1000.0,
+        10);
     }
+
+    routes = routes.toList(growable: true);
+    routes.removeWhere((elem) => elem == null);
 
     await buildRouteTitles(routes);
 
@@ -56,6 +59,8 @@ class _RouteListState extends State<RouteList> {
             r.date,
             r.totalLength,
           )));
+      
+      this._routesCalculated = true;
     });
 
   }
@@ -79,14 +84,9 @@ class _RouteListState extends State<RouteList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.grey[200],
-        appBar: AppBar(
-          backgroundColor: htwGreen,
-          title: Text('Choose a route to preview'), // TODO add localization
-          elevation: 0,
-        ),
-        body: Stack(children: <Widget>[
+    Widget body;
+    if(_routesCalculated) {
+      body = Stack(children: <Widget>[
           Text(
             summary,
             style: TextStyle(
@@ -123,7 +123,22 @@ class _RouteListState extends State<RouteList> {
               );
             },
           ),
-        ]));
+        ]);
+    }
+    else {
+      body = Center(
+        child: new CircularProgressIndicator(),
+      );
+    }
+    return Scaffold(
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          backgroundColor: htwGreen,
+          title: Text('Choose a route to preview'), // TODO add localization
+          elevation: 0,
+        ),
+        body: body
+      );
   }
 }
 
