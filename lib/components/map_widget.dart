@@ -1,34 +1,44 @@
 import 'dart:async';
 
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
+import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'dart:math';
+
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
 
-  MapWidget({Key key, @required this.isStatic})
-      : super(key: key);
+  MapWidget({Key key, @required this.isStatic}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
 }
 
 class MapWidgetState extends State<MapWidget> {
+  static const double defaultZoom = 12.0;
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
-  static double defaultZoom = 12.0;
+
+  static const platform =
+      const MethodChannel('app.channel.hikingfornerds.data');
+  HikingRoute sharedRoute;
 
   List<LatLng> _passedRoute = [];
   List<LatLng> _route = [];
   Line _lineRoute;
   Line _linePassedRoute;
+  Line _lineStartRoute;
 
   LocationData _currentDeviceLocation;
   Timer _timer;
@@ -71,6 +81,26 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
+    _getIntentData();
+  }
+
+  Future<void> _getIntentData() async {
+    var data = await _getSharedData();
+    if (data == null) return;
+    setState(() {
+      sharedRoute = data;
+    });
+  }
+
+  _getSharedData() async {
+    String dataPath = await platform.invokeMethod("getSharedData");
+    if (dataPath.isEmpty) return null;
+    var data;
+    if (dataPath.endsWith(".geojson"))
+      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
+    else if (dataPath.endsWith(".gpx"))
+      data = new GpxDataHandler().parseRouteFromString(dataPath);
+    return data;
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -111,54 +141,125 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  void drawRoute(HikingRoute route) async {
+  void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
-    drawHikingDirection(route);
+    int index = calculateLastStartingPathNode(route);
+    assert(index != -1, "Error last starting node not found!");
 
-    List<LatLng> routeLatLng = route.path
-        .map((node) => LatLng(node.latitude, node.longitude))
-        .toList();
-
-    routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
-
-    LineOptions optionsPassedRoute =
-        LineOptions(geometry: [], lineColor: "Grey", lineWidth: 3.0, lineBlur: 2);
+    LineOptions optionsPassedRoute = LineOptions(
+        geometry: [],
+        lineColor: "Grey",
+        lineWidth: 3.0,
+        lineBlur: 2,
+        lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
-    LineOptions optionsRoute =
-        LineOptions(geometry: routeLatLng, lineColor: "Blue", lineWidth: 4.0, lineBlur: 1);
+    LineOptions optionsStartRoute = LineOptions(
+        geometry: route.path.sublist(0, index),
+        lineColor: "Green",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
+
+    Line lineStartRoute = await mapController.addLine(optionsStartRoute);
+
+    LineOptions optionsRoute = LineOptions(
+        geometry: route.path.sublist(index - 1),
+        lineColor: "Blue",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
+
     Line lineRoute = await mapController.addLine(optionsRoute);
 
+    if(center) centerCameraOverRoute(route);
+
     setState(() {
-      _route = routeLatLng;
+      _route = route.path;
       _passedRoute = [];
       _lineRoute = lineRoute;
+      _lineStartRoute = lineStartRoute;
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic) initUpdateRouteTimer();
+    if (!widget.isStatic){
+      startRoute();
+    }
   }
 
-  void drawRouteStartingPoint(HikingRoute route){
+  void drawRouteStartingPoint(HikingRoute route) {
     mapController.clearCircles();
     LatLng startingPoint = route.path[0];
-    CircleOptions optionsStartingPoint = CircleOptions(geometry: startingPoint, circleColor: "Red", circleRadius: 12, circleStrokeWidth: 7, circleStrokeColor: "Blue", circleBlur: 0.25, circleOpacity: 1);
+    CircleOptions optionsStartingPoint = CircleOptions(
+        geometry: startingPoint,
+        circleColor: "Blue",
+        circleRadius: 16,
+        circleBlur: 0.25,
+        circleOpacity: 0.5);
     mapController.addCircle(optionsStartingPoint);
   }
 
-  void drawHikingDirection(HikingRoute route) {
-    List<LatLng> startingPointPath = route.path.sublist(0, 25);
-    List<LatLng> endingPointPath = route.path.sublist(route.path.length-25, route.path.length);
+  int calculateLastStartingPathNode(HikingRoute route) {
+    List<LatLng> startingPointPath = new List<LatLng>();
+    // use a twentieth of the routes total length for start and end route
+    double routeEndingLength = route.totalLength * 0.05;
 
-    LineOptions optionsHikingDirectionStart =
-    LineOptions(geometry: startingPointPath, lineColor: "Green", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
-        LineOptions optionsHikingDirectionEnd =
-    LineOptions(geometry: endingPointPath, lineColor: "Red", lineWidth: 10.0, lineBlur: 2, lineOpacity: 0.5);
+    double startPathLength = 0;
+    int i = 0;
+    while (startingPointPath.length == 0) {
+        if (startPathLength > routeEndingLength) {
+          return i + 1;
+        } else {
+          startPathLength +=
+              OsmData.getDistance(route.path[i], route.path[i + 1]);
+        }
+      i++;
+    }
 
-    mapController.addLine(optionsHikingDirectionStart);
-    mapController.addLine(optionsHikingDirectionEnd); 
+    return -1;
+  }
+
+  void centerCameraOverRoute(HikingRoute route) {
+    double averageLat = 0;
+    double averageLong = 0;
+
+    for (int i = 0; i < route.path.length; i++) {
+      averageLat += route.path[i].latitude;
+      averageLong += route.path[i].longitude;
+    }
+    averageLat /= route.path.length;
+    averageLong /= route.path.length;
+    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+
+    setLatLng(LatLng(averageLat, averageLong));
+    setZoom(zoom);
+  }
+
+  startRoute(){
+    setZoom(16);
+    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+    initUpdateRouteTimer();
+
+    Flushbar(
+      messageText: Text("Your hiking trip has started!", // TODO add localization
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.check,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
   }
 
   void initUpdateRouteTimer() {
@@ -211,14 +312,24 @@ class MapWidgetState extends State<MapWidget> {
 
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
-    Fluttertoast.showToast(
-        msg: "You have finished your Hiking Trip!",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 1,
-        backgroundColor: Theme.of(context).primaryColor,
-        textColor: Colors.black,
-        fontSize: 16.0);
+    Flushbar(
+      messageText: Text("You have finished your hiking trip", // TODO add localization
+          style: TextStyle(
+              color: Colors.black,
+              fontSize: 16.0)
+      ),
+      icon: Icon(
+        Icons.thumb_up,
+        size: 28.0,
+        color: Colors.black,
+      ),
+      duration: Duration(seconds: 5),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      margin: EdgeInsets.all(8),
+      borderRadius: 4,
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: htwGreen,
+    ).show(context);
 
     setState(() {
       _passedRoute = [];
@@ -386,5 +497,7 @@ class MapWidgetState extends State<MapWidget> {
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
+
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }

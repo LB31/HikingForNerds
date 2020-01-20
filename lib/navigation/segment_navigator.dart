@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/navigation/bottom_navigation.dart';
 import 'package:hiking4nerds/pages/history.dart';
 import 'package:hiking4nerds/pages/map.dart';
-import 'package:hiking4nerds/pages/more/credits.dart';
-import 'package:hiking4nerds/pages/more/help.dart';
 import 'package:hiking4nerds/pages/more/more.dart';
 import 'package:hiking4nerds/pages/setup/location_selection.dart';
+import 'package:hiking4nerds/pages/setup/route_preferences.dart';
+import 'package:hiking4nerds/pages/setup/route_list.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
 
 class SegmentRoutes {
@@ -14,8 +14,7 @@ class SegmentRoutes {
   static const String routePreferences = '/setup/routepreferences';
   static const String routeList = '/setup/routelist';
   static const String routePreview = '/setup/routepreview';
-  static const String help = '/more/help';
-  static const String credits = '/more/credits';
+  static const String more = '/more';
 }
 
 /// There are two options for navigation between pages.
@@ -55,15 +54,13 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.setup:
         return LocationSelectionPage(
             onPushRoutePreferences: (routeParams) => _push(context,
-                SegmentRoutes.routePreview, {"route-params": routeParams}));
+                SegmentRoutes.routePreferences, {"route-params": routeParams}));
       case AppSegment.map:
         return MapPage(key: mapKey);
       case AppSegment.history:
         return HistoryPage();
       case AppSegment.more:
-        return MorePage(
-            onPushCredit: () => _push(context, SegmentRoutes.credits),
-            onPushHelp: () => _push(context, SegmentRoutes.help));
+        return MorePage();
     }
 
     throw new Exception(
@@ -74,30 +71,20 @@ class SegmentNavigator extends StatelessWidget {
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context,
       [Map<String, dynamic> params]) {
     return {
-      SegmentRoutes.credits: (context) => CreditsPage(),
+     SegmentRoutes.routePreferences: (context) => RoutePreferences(
+       routeParams: params["route-params"],
+       onPushRouteList: (routeParams) =>
+           _push(context, SegmentRoutes.routeList, {"route-params": routeParams}),
+     ),
 
-      SegmentRoutes.help: (context) => HelpPage(
-          onPushHistorySaveState: () => onChangeSegment(AppSegment.history),
-          onPushHistory: () => onChangeSegment(AppSegment.history, true)),
-
-      // TODO add route preferences
-//      SegmentRoutes.routePreferences: (context) => RoutePreferences(
-//        routeParams: params["route-params"],
-//        onPushRouteList: (routeParams) => _push(context,
-//          SegmentRoutes.routeList, {"route-params": routeParams}),
-//      )
-
-      // TODO add route list
-//      SegmentRoutes.routeList: (context) => RouteList(
-//        routeParams: params["route-params"],
-//        routes: params["routes"],
-//        onPushRoutePreferences: (routeParams) => _push(context,
-//            SegmentRoutes.routePreview, {"route-params": routeParams}));
-//      )
+     SegmentRoutes.routeList: (context) => RouteList(
+       routeParams: params["route-params"],
+       onPushRoutePreview: (routeParams) => _push(context,
+           SegmentRoutes.routePreview, {"route-params": routeParams}),
+     ),
 
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
           routeParams: params["route-params"],
-          // TODO swap route-params with route list
           onSwitchToMap: (route) {
             onChangeSegment(AppSegment.map);
             // refresh the state of the new segment by passing parameters

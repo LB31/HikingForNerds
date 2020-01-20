@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
 class RoutePreviewPage extends StatefulWidget {
-  final RouteParams routeParams;
   final SwitchToMapCallback onSwitchToMap;
+  final RouteParams routeParams;
 
   @override
   _RoutePreviewPageState createState() => _RoutePreviewPageState();
 
-  RoutePreviewPage({Key key, @required this.onSwitchToMap, @required this.routeParams})
+  RoutePreviewPage(
+      {Key key, @required this.onSwitchToMap, @required this.routeParams})
       : super(key: key);
 }
 
@@ -22,27 +23,18 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   List<HikingRoute> _routes = [];
-  int _currentRouteIndex = 0;
+  int _currentRouteIndex;
 
   @override
   void initState() {
     super.initState();
-    calculateRoutes();
-  }
+    _routes = widget.routeParams.routes;
+    _currentRouteIndex = widget.routeParams.routeIndex;
 
-  Future<void> calculateRoutes() async {
-    List<HikingRoute> routes = await OsmData().calculateHikingRoutes(
-        widget.routeParams.startingLocation.latitude,
-        widget.routeParams.startingLocation.longitude,
-        10000,
-        10);
-
-    setState(() {
-      _routes = routes;
-      _currentRouteIndex = 0;
+    //TODO consider using a callback instead of a timeout
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      switchRoute(_currentRouteIndex);
     });
-
-    switchRoute(_currentRouteIndex);
   }
 
   void switchRoute(int index) {
@@ -60,7 +52,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       _routes = updatedRoutes;
     });
 
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex], false);
   }
 
   Future<void> moveToCurrentLocation() async {
@@ -77,6 +69,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Route Preview'), // TODO add localization
+        backgroundColor: Theme.of(context).primaryColor,
+        elevation: 0.0,
+      ),
       body: Stack(
         children: <Widget>[
           MapWidget(
@@ -84,45 +81,84 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             isStatic: true,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
-          Container(
-            color: Theme.of(context).primaryColor,
-            width: MediaQuery.of(context).size.width,
-            height: 80,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_left,
-                      color: Colors.white,
+          Column(children: <Widget>[
+            Container(
+              color: htwGreen,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_left,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length - 1)) %
+                              _routes.length)),
+                  Expanded(
+                      child: Card(
+                    child: ListTile(
+                      onTap: () {},
+                      title: Text(_routes[_currentRouteIndex].title),
+                      subtitle: Text(
+                          'Length: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km   Date: ${_routes[_currentRouteIndex].date}'), // TODO localization
                     ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length - 1)) %
-                            _routes.length)),
-                Text(
-                  "Route ${_currentRouteIndex + 1}",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_right,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length + 1)) %
-                            _routes.length)),
-              ],
+                  )),
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_right,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length + 1)) %
+                              _routes.length)),
+                ],
+              ),
             ),
-          ),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Opacity(
+                  opacity: 0.7,
+                  child: Container(
+                    decoration: new BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Text("Start"), // TODO add localization
+                              Padding(
+                                padding: const EdgeInsets.only(left: 18),
+                                child: Container(
+                                  width: 60,
+                                  height: 5,
+                                  color: Colors.green,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+          ]),
           Positioned(
-            left: MediaQuery.of(context).size.width * 0.15,
-            bottom: 15,
+            left: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
+                backgroundColor: htwGrey,
                 heroTag: "btn-switch-direction",
                 child: Icon(Icons.swap_horizontal_circle),
                 onPressed: () {
@@ -132,12 +168,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-            right: MediaQuery.of(context).size.width * 0.15,
-            bottom: 15,
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 16,
             child: SizedBox(
               width: 50,
               height: 50,
               child: FloatingActionButton(
+                backgroundColor: htwGrey,
                 heroTag: "btn-gps",
                 child: Icon(Icons.gps_fixed),
                 onPressed: () {
@@ -153,16 +190,17 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               width: 70,
               height: 70,
               child: FloatingActionButton(
+                backgroundColor: htwGreen,
                 heroTag: "btn-go",
                 child: Icon(
                   Icons.directions_walk,
-                  size: 40,
+                  size: 36,
                 ),
-                onPressed: (() => widget
-                    .onSwitchToMap(_routes[_currentRouteIndex])),
+                onPressed: (() =>
+                    widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
