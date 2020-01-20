@@ -75,22 +75,22 @@ class _RouteListState extends State<RouteList> {
       child: Row(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0),
             child:
               Text(paramTitles,
                 style: TextStyle(
-                fontSize: 18,
+                // fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[600]),
                 textAlign: TextAlign.left,
               ),
           ),
           Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(12.0),
             child:
               Text(params,
                 style: TextStyle(
-                fontSize: 18,
+                // fontSize: 14,
                 color: Colors.grey[600]),
                 textAlign: TextAlign.left,
               ),
