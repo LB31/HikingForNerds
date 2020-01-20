@@ -14,21 +14,28 @@ class PoiCategorySearchBar extends StatefulWidget {
   _PoiCategorySearchBarState createState() => _PoiCategorySearchBarState();
 }
 
+// TODO Get full list of categories
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
   List<String> categories = <String>[
     'architecture',
     'bar',
     'basilica',
+    'bus',
+    'bus station',
     'cathedral',
     'church',
     'exhibition',
     'gas station',
-    'lake, ' 'monuments',
+    'lake',
+    'monuments',
     'museum',
     'park',
     'river',
     'romanic',
     'school',
+    'train',
+    'train station',
+    'viewpoint',
     'zoo',
   ];
 
