@@ -13,6 +13,7 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 
@@ -34,6 +35,7 @@ class MapWidgetState extends State<MapWidget> {
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
+  HikingRoute _hikingRoute;
   int _currentRouteIndex = 0;
   List<LatLng> _route = [];
   List<LatLng> _passedRoute = [];
@@ -131,7 +133,6 @@ class MapWidgetState extends State<MapWidget> {
   }
 
 
-
   void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
@@ -168,6 +169,7 @@ class MapWidgetState extends State<MapWidget> {
     if(center) centerCameraOverRoute(route);
 
     setState(() {
+      _hikingRoute = route; 
       _route = route.path;
       _remainingRoute = route.path;
       _passedRoute = [];
@@ -326,6 +328,17 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearLines();
     mapController.clearCircles();
     _timer.cancel();
+
+    updateTotalHikingDistance();
+  }
+
+  updateTotalHikingDistance(){
+    SharedPreferences.getInstance().then((prefs) {
+      double totalHikingDistance =
+          prefs.getDouble("totalHikingDistance") ?? 0;
+      totalHikingDistance += _hikingRoute.totalLength;
+      prefs.setDouble("totalHikingDistance", totalHikingDistance);
+    });
   }
 
   static CameraPosition _getCameraPosition() {

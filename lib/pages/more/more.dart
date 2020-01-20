@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/more/settings.dart';
-import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'credits.dart';
 import 'help.dart';
 
-// TODO this class shows how to navigate to another page on the same segment
-/// please modify this to your needs (remove routing in segment navigator if necessary)
 class MorePage extends StatefulWidget {
-  // final VoidCallback onPushCredit;
-  // final VoidCallback onPushHelp;
-  // final VoidCallback onPushSettings;
-
-  // MorePage(
-  //     {@required this.onPushCredit,
-  //     @required this.onPushHelp,
-  //     @required this.onPushSettings});
-
   @override
   _MorePageState createState() => _MorePageState();
 }
@@ -50,6 +39,17 @@ SizedBox makeHorizontalSpace(){
 }
 
 class _MorePageState extends State<MorePage> {
+
+  double _totalHikingDistance = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs)  {
+      _totalHikingDistance = prefs.getDouble("totalHikingDistance") ?? 0.0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,6 +60,7 @@ class _MorePageState extends State<MorePage> {
         child: ListView(
           //padding: const EdgeInsets.all(12),
           children: <Widget>[
+          decorateContent("Total Hiking Distance", Text("${_totalHikingDistance.toStringAsFixed(2)} km")),
           decorateContent("Settings", SettingsPage()),
           makeHorizontalSpace(),
           decorateContent("Help", HelpPage()),
