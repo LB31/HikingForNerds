@@ -68,6 +68,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    HikingRoute currentRoute = _routes[_currentRouteIndex];
+    double routeLength = currentRoute.totalLength;
+    int avgHikingSpeed = 12; // 12 min per km
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Route Preview'), // TODO add localization
@@ -98,13 +102,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                               _routes.length)),
                   Expanded(
                       child: Card(
-                    child: ListTile(
-                      onTap: () {},
-                      title: Text(_routes[_currentRouteIndex].title),
-                      subtitle: Text(
-                          'Length: ${_routes[_currentRouteIndex].totalLength.toString().substring(0, 3)}km   Date: ${_routes[_currentRouteIndex].date}'), // TODO localization
-                    ),
-                  )),
+                          child: ListTile(
+                              onTap: () {},
+                              title: Text(currentRoute.title),
+                              subtitle: Text(
+                                  "Length: ${routeLength.toStringAsFixed(2)} km - "
+                                  "${(routeLength * avgHikingSpeed).toStringAsFixed(0)} min")))),
                   IconButton(
                       iconSize: 50,
                       icon: Icon(
