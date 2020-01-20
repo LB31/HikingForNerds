@@ -176,7 +176,7 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
     });
 
-    if (!widget.isStatic){
+    if (!widget.isStatic) {
       startRoute();
     }
   }
