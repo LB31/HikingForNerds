@@ -55,20 +55,49 @@ class _RouteListState extends State<RouteList> {
 
   // TODO add localization or remove if not needed
   headerText() {
-    String text = 'Displaying routes for your chosen parameters\n\n';
-    text += 'Distance: ${widget.routeParams.distanceKm.toInt()} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN\n';
+
+    String paramTitles = 'Distance: ';
     if(widget.routeParams.poiCategories.length > 0) {
-      text += 'POIs: ';
-      widget.routeParams.poiCategories.forEach((p) => text += '$p ');
-      text += '\n';
+      paramTitles += '\nPOIs: ';
+      for(var i = 1; i < widget.routeParams.poiCategories.length; i++) paramTitles += '\n';
+      // widget.routeParams.poiCategories.forEach((p) => paramTitles += '\n');
     }
+    paramTitles += '\nAltitude differences: ';
 
+    String params = '${widget.routeParams.distanceKm.toInt()} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN';
+    if(widget.routeParams.poiCategories.length > 0) {
+      widget.routeParams.poiCategories.forEach((p) => params += '\n$p ');
+    }
+    params += '\n${AltitudeTypeHelper.asString(widget.routeParams.altitudeType)}';
 
-    // text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: ' : '';
-    // widgetforEach((v) => text += 
-    text += 'Altitude: ${AltitudeTypeHelper.asString(widget.routeParams.altitudeType)}\n';
-    print('#### $text ####');
-    return text;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      child: Row(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child:
+              Text(paramTitles,
+                style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600]),
+                textAlign: TextAlign.left,
+              ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16.0),
+            child:
+              Text(params,
+                style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600]),
+                textAlign: TextAlign.left,
+              ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -83,13 +112,7 @@ class _RouteListState extends State<RouteList> {
         body: Column(
           children: <Widget>[
             Padding(padding: EdgeInsets.only(top: 4)),
-            Text(
-              headerText(),
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600]),
-              textAlign: TextAlign.left,
-            ),
+            headerText(),
             Padding(padding: EdgeInsets.only(top: 4)),
             Expanded(
                           child: ListView.builder(
