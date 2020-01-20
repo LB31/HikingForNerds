@@ -177,7 +177,7 @@ class MapWidgetState extends State<MapWidget> {
       _currentRouteIndex = 0;
     });
 
-    if (!widget.isStatic){
+    if (!widget.isStatic) {
       startRoute();
     }
   }
