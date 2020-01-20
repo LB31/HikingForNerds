@@ -14,7 +14,7 @@ class _HistoryPageState extends State<HistoryPage> {
         title: Text(LocalizationService().getLocalization(english: "History", german: "Verlauf")), 
         backgroundColor: Theme.of(context).primaryColor,
       ),
-      body: TextField(),
+      body: Text("History will be here soon."),
     );
   }
 }
