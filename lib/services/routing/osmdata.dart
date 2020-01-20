@@ -156,6 +156,8 @@ class OsmData{
     var distanceInMeter = data.distanceInMeter;
     var poiElements = data.poiElements;
 
+    Random randomGenerator = Random();
+
     var retryCount = 0;
     while(retryCount < data.osmRef.maxRetries) {
       if(usePOIFunc)
@@ -163,16 +165,17 @@ class OsmData{
         try {
           return data.osmRef._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements, retryCount);
         }
-        on NoRoutesFoundException catch(e) {
+        catch(e) {
           retryCount++;
         }
       }
       else
       {
         try {
-          return data.osmRef._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+          var initialHeading = randomGenerator.nextInt(360).floorToDouble();
+          return data.osmRef._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter, initialHeading);
         }
-        on NoRoutesFoundException catch(e) {
+        catch(e) {
           retryCount++;
         }
       }
@@ -184,7 +187,7 @@ class OsmData{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
 
     List<dynamic> poiElements;
-    if (poiCategories != null) {
+    if (poiCategories != null && poiCategories.isNotEmpty) {
       var jsonDecoder = JsonDecoder();
       var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/2);
       if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
@@ -197,8 +200,6 @@ class OsmData{
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     _importJsonNodesAndWays(jsonNodesAndWays);
-
-    List<HikingRoute> routes = List();
 
     RouteThreadData data = RouteThreadData();
     data.alternativeRouteCount = alternativeRouteCount;
@@ -217,11 +218,14 @@ class OsmData{
     return Future.wait(computeFutures);
   }
 
-  HikingRoute _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM) {
+  HikingRoute _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM, double initialHeading) {
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
     var beeLineDistance = distanceInM * beeLineToRealRatio;
     graph.edgeAlreadyUsedPenalties.clear();
-    var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
+    //var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
+
+    print(initialHeading.toString());
+
     var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
     var pointC = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading + 60);
 
