@@ -133,8 +133,6 @@ class MapWidgetState extends State<MapWidget> {
   }
 
 
-
-
   void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
@@ -151,7 +149,6 @@ class MapWidgetState extends State<MapWidget> {
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
-
         geometry: route.path.sublist(index - 1),
         lineColor: "Blue",
         lineWidth: 4.0,
