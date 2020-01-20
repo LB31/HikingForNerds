@@ -354,7 +354,7 @@ class OsmData{
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
     var categoryString = categories.join('|');
-    var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
+    var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300];'
         'node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
         'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
@@ -375,7 +375,7 @@ class OsmData{
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
 
-    var url = 'http://overpass-api.de/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
+    var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
         ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
