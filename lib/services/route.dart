@@ -20,11 +20,12 @@ class HikingRoute {
     this.pointsOfInterest = pointsOfInterest;
     this.elevations = elevations;
     this.date = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-    this.title = 'Sample title'; // TODO get region or custom info as title
+    setTitle(''); // TODO get region or custom info as title
   }
 
   void setTitle(String title) {
-    this.title = title;
+    if(title == '') this.title = 'Sample Title'; // get Adress from GeoData
+    else this.title = title;
   }
 
 }
