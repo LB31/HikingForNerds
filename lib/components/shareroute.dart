@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -53,7 +54,7 @@ class ShareRoute extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      ShareConsts.widgetTitle,
+                      ShareConsts().widgetTitle,
                       style: TextStyle(
                         fontSize: 24.0,
                         fontWeight: FontWeight.w700,
@@ -73,7 +74,7 @@ class ShareRoute extends StatelessWidget {
                 height: 16.0,
               ),
               Text(
-                ShareConsts.widgetDescription,
+                ShareConsts().widgetDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18.0,
@@ -156,17 +157,17 @@ class ShareRoute extends StatelessWidget {
   }
 }
 
-//TODO: add to localization
-class ShareConsts {
-  ShareConsts._();
 
-  static const String sharedFileName = "route";
+class ShareConsts {
+  ShareConsts();
+
+  static const String sharedFileName = "Route";
 
   static const double padding = 16.0;
   static const double blurRadius = 10.0;
 
-  static const String widgetTitle = "Share";
-  static const String widgetDescription = "your personal route as...";
+  String widgetTitle = LocalizationService().getLocalization(english: "Share", german: "Teilen");
+  String widgetDescription = LocalizationService().getLocalization(english: "your personal route as...", german: "Ihre persönliche Route als...");
   static const String exportButtonGeojson = "GeoJson";
   static const String exportButtonGpx = "GPX";
 }

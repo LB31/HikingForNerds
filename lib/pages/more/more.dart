@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/pages/more/settings.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
+
 import 'package:hiking4nerds/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,11 +15,9 @@ class MorePage extends StatefulWidget {
 
 Container decorateContent(String title, Widget widget) {
   return Container(
-    decoration: BoxDecoration(
-    ),
     child: Column(
       children: <Widget>[
-        SizedBox(height: 10),
+        makeHorizontalSpace(),
         Align(
           alignment: Alignment(-0.8, 0),
           child: Text(title, style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.bold)),
@@ -54,18 +54,18 @@ class _MorePageState extends State<MorePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('More'),
+        title: Text(LocalizationService().getLocalization(english: "More", german: "Mehr")), 
       ),
       body: Center(
         child: ListView(
           //padding: const EdgeInsets.all(12),
           children: <Widget>[
           decorateContent("Total Hiking Distance", Text("${_totalHikingDistance.toStringAsFixed(2)} km")),
-          decorateContent("Settings", SettingsPage()),
+          decorateContent(LocalizationService().getLocalization(english: "Settings", german: "Einstellungen"), SettingsPage()),
           makeHorizontalSpace(),
-          decorateContent("Help", HelpPage()),
+          decorateContent(LocalizationService().getLocalization(english: "Help", german: "Hilfe"), HelpPage()),
           makeHorizontalSpace(),
-          decorateContent("Credits", CreditsPage()),
+          decorateContent(LocalizationService().getLocalization(english: "Credits", german: "Über"), CreditsPage()), // how would you translate credits?
           makeHorizontalSpace(),
         ]),
       ),

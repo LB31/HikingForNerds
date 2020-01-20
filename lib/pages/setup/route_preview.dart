@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -120,39 +121,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ],
               ),
             ),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Opacity(
-                  opacity: 0.7,
-                  child: Container(
-                    decoration: new BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(40.0))),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Text("Start"), // TODO add localization
-                              Padding(
-                                padding: const EdgeInsets.only(left: 18),
-                                child: Container(
-                                  width: 60,
-                                  height: 5,
-                                  color: Colors.green,
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ]),
+            
           ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
@@ -204,6 +173,53 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               ),
             ),
           ),
+          Positioned(
+              top: 85,
+              left: MediaQuery.of(context).size.width * 0.5 - 65,
+              child: Opacity(
+                opacity: 0.5,
+                child: Container(
+                  width: 130,
+                  decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Text("Start"),
+                            new Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 18),
+                              child: Container(
+                                width: 55,
+                                height: 5,
+                                color: Colors.green,
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Text(LocalizationService().getLocalization(english: "Finish", german: "Ende")),
+                            new Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Container(
+                                width: 55,
+                                height: 5,
+                                color: Colors.red,
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );

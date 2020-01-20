@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalSettings {
   static final GlobalSettings _instance = GlobalSettings._internal();
   factory GlobalSettings() => _instance;
+
+  VoidCallback langaugeChanged;
 
   bool safeHistory = true;
   bool useLocation = true;
@@ -22,6 +25,7 @@ class GlobalSettings {
     selectedUnit = (prefs.getString('selectedUnit') ?? 'km');
     maximumRouteLength = (prefs.getDouble('maximumRouteLength') ?? 5);
   }
+
 
 
 }
