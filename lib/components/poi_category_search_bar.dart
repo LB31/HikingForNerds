@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:search_widget/search_widget.dart';
 
 import '../styles.dart';
@@ -135,7 +136,7 @@ class SearchTextField extends StatelessWidget {
           ),
           suffixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          hintText: "Search categories here (max. 3) ...",
+          hintText: LocalizationService().getLocalization(english: "Search categories here (max. 3) ...", german: "Suche Kategorien hier (max. 3)"),
           contentPadding: EdgeInsets.only(
             left: 16,
             right: 20,
@@ -162,7 +163,7 @@ class NoItemsFound extends StatelessWidget {
           ),
           SizedBox(width: 10.0),
           Text(
-            "No Items Found",
+            LocalizationService().getLocalization(english: "No Items Found", german: "Keine Elemente gefunden"),
             style: TextStyle(
               fontSize: 16.0,
               color: Colors.grey[900].withOpacity(0.7),

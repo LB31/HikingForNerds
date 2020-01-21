@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
@@ -19,10 +20,11 @@ class RouteList extends StatefulWidget {
 class _RouteListState extends State<RouteList> {
   List<RouteListEntry> routeList = [];
 
+  bool _routesCalculated = false;
+
   @override
   void initState() {
     super.initState();
-    // todo implement loading bar
     calculateRoutes();
   }
 
@@ -37,14 +39,19 @@ class _RouteListState extends State<RouteList> {
           10,
           widget.routeParams.poiCategories);
     } on NoPOIsFoundException catch (err) {
-        print("no poi found exception " + err.toString());
-    } finally {
+      print("no poi found exception " + err.toString());
       routes = await OsmData().calculateHikingRoutes(
-          widget.routeParams.startingLocation.latitude,
-          widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
-          10);
+        widget.routeParams.startingLocation.latitude,
+        widget.routeParams.startingLocation.longitude,
+        widget.routeParams.distanceKm * 1000.0,
+        10);
     }
+
+    routes = routes.toList(growable: true);
+    routes.removeWhere((elem) => elem == null);
+
+    await buildRouteTitles(routes);
+
     setState(() {
       widget.routeParams.routes = routes;
       widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
@@ -53,7 +60,17 @@ class _RouteListState extends State<RouteList> {
             r.totalLength,
             r.path,
           )));
+      
+      this._routesCalculated = true;
     });
+
+  }
+
+  Future<void> buildRouteTitles(List<HikingRoute> routes) async{
+    for(int i = 0; i < routes.length; i++){
+      String title = await routes[i].buildTitle();
+      routes[i].setTitle(title);
+    }
   }
 
   // TODO add localization or remove if not needed
@@ -105,45 +122,55 @@ class _RouteListState extends State<RouteList> {
 
   @override
   Widget build(BuildContext context) {
+    Widget body;
+    if(_routesCalculated) {
+      body = 
+        Column(
+        children: <Widget>[
+        Padding(padding: EdgeInsets.only(top: 4)),
+          headerText(),
+        Padding(padding: EdgeInsets.only(top: 4)),
+        Expanded(
+          child: ListView.builder(
+            itemCount: routeList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding:
+                  const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
+                child: Card(
+                  child: ListTile(
+                    onTap: () {
+                      widget.routeParams.routeIndex = index;
+                      widget.onPushRoutePreview(widget.routeParams);
+                    },
+                    title: Text(routeList[index].title),
+                    subtitle: Text(
+                      LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance} KM / ${routeList[index].time} MIN\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${routeList[index].date}'),
+                    leading: CircleAvatar(
+                      child: routeList[index].routeCanvas,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        )]);
+    }
+    else {
+      body = Center(
+        child: new CircularProgressIndicator(),
+      );
+    }
+
     return Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: htwGreen,
-          title: Text('Choose a route to preview'), // TODO add localization
+          title: Text(LocalizationService().getLocalization(english: "Choose a route to preview", german: "Route für Vorschau wählen")),
           elevation: 0,
         ),
-        body: Column(
-          children: <Widget>[
-            Padding(padding: EdgeInsets.only(top: 4)),
-            headerText(),
-            Padding(padding: EdgeInsets.only(top: 4)),
-            Expanded(
-                          child: ListView.builder(
-                itemCount: routeList.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
-                    child: Card(
-                      child: ListTile(
-                        onTap: () {
-                          widget.routeParams.routeIndex = index;
-                          widget.onPushRoutePreview(widget.routeParams);
-                        },
-                        title: Text(routeList[index].title),
-                        subtitle: Text(
-                            'Distance: ${routeList[index].distance} KM / ${routeList[index].time} MIN\n'),// TODO localization
-                        leading: CircleAvatar(
-                            child: routeList[index].routeCanvas,
-                            //backgroundImage: (routeList[index].avatar == null) ? AssetImage('assets/img/h4n-icon2.png') : AssetImage('assets/img/h4n-icon2.png'),
-                            ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-        ]));
+        body: body
+      );
   }
 }
 

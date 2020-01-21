@@ -1,6 +1,8 @@
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:intl/intl.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 
 class HikingRoute {
@@ -23,9 +25,15 @@ class HikingRoute {
     setTitle(''); // TODO get region or custom info as title
   }
 
+  Future<String> buildTitle() async{
+   List<Address> results = await Geocoder.local.findAddressesFromCoordinates(Coordinates(path[0].latitude, path[0].longitude));
+   return results[0].addressLine;
+  }
+
   void setTitle(String title) {
     if(title == '') this.title = 'Sample Title'; // get Adress from GeoData
     else this.title = title;
   }
+
 
 }

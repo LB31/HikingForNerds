@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -30,6 +31,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
+
+    //TODO consider using a callback instead of a timeout
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      switchRoute(_currentRouteIndex);
+    });
   }
 
   void switchRoute(int index) {
@@ -47,7 +53,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       _routes = updatedRoutes;
     });
 
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex], false);
   }
 
   Future<void> moveToCurrentLocation() async {
@@ -63,7 +69,16 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    HikingRoute currentRoute = _routes[_currentRouteIndex];
+    double routeLength = currentRoute.totalLength;
+    int avgHikingSpeed = 12; // 12 min per km
+
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Route Preview'), // TODO add localization
+        backgroundColor: Theme.of(context).primaryColor,
+        elevation: 0.0,
+      ),
       body: Stack(
         children: <Widget>[
           MapWidget(
@@ -71,38 +86,43 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             isStatic: true,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
-          Container(
-            color: Theme.of(context).primaryColor,
-            width: MediaQuery.of(context).size.width,
-            height: 80,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_left,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length - 1)) %
-                            _routes.length)),
-                Text(
-                  "Route ${_currentRouteIndex + 1}",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                IconButton(
-                    iconSize: 50,
-                    icon: Icon(
-                      Icons.arrow_right,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => switchRoute(
-                        (_currentRouteIndex + (_routes.length + 1)) %
-                            _routes.length)),
-              ],
+          Column(children: <Widget>[
+            Container(
+              color: htwGreen,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_left,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length - 1)) %
+                              _routes.length)),
+                  Expanded(
+                      child: Card(
+                          child: ListTile(
+                              onTap: () {},
+                              title: Text(currentRoute.title),
+                              subtitle: Text(
+                                  "Length: ${routeLength.toStringAsFixed(2)} km - "
+                                  "${(routeLength * avgHikingSpeed).toStringAsFixed(0)} min")))),
+                  IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        Icons.arrow_right,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => switchRoute(
+                          (_currentRouteIndex + (_routes.length + 1)) %
+                              _routes.length)),
+                ],
+              ),
             ),
-          ),
+            
+          ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
             bottom: 16,
@@ -170,10 +190,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         Row(
                           children: <Widget>[
                             Text("Start"),
+                            new Spacer(),
                             Padding(
                               padding: const EdgeInsets.only(left: 18),
                               child: Container(
-                                width: 60,
+                                width: 55,
                                 height: 5,
                                 color: Colors.green,
                               ),
@@ -182,11 +203,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         ),
                         Row(
                           children: <Widget>[
-                            Text("Finish"),
+                            Text(LocalizationService().getLocalization(english: "Finish", german: "Ende")),
+                            new Spacer(),
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
                               child: Container(
-                                width: 60,
+                                width: 55,
                                 height: 5,
                                 color: Colors.red,
                               ),
