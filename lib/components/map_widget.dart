@@ -499,11 +499,10 @@ class MapWidgetState extends State<MapWidget> {
         });
   }
 
-  void onMapCreated(MapboxMapController controller) async {
+  void onMapCreated(MapboxMapController controller) {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute); 
-    //await requestLocationPermissionIfNotAlreadyGranted();
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
