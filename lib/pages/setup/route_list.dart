@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
+import 'package:hiking4nerds/services/elevation_chart.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -54,16 +55,22 @@ class _RouteListState extends State<RouteList> {
 
     setState(() {
       widget.routeParams.routes = routes;
-      widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
-            r.title,
-            r.date,
-            r.totalLength,
-            r.path,
-          )));
+      widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(r)));
       
       this._routesCalculated = true;
     });
 
+  }
+
+  buildSub(RouteListEntry r) {
+
+    Text text = Text(
+      LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${r.distance} KM / ${r.time} MIN\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${r.date}');
+
+    return Column(children: <Widget>[
+      text,
+      if (r.chart != null) r.chart,
+    ]);
   }
 
   Future<void> buildRouteTitles(List<HikingRoute> routes) async{
@@ -75,7 +82,6 @@ class _RouteListState extends State<RouteList> {
 
   // TODO add localization or remove if not needed
   headerText() {
-
     String paramTitles = 'Distance: ';
     if(widget.routeParams.poiCategories.length > 0) {
       paramTitles += '\nPOIs: ';
@@ -144,8 +150,7 @@ class _RouteListState extends State<RouteList> {
                       widget.onPushRoutePreview(widget.routeParams);
                     },
                     title: Text(routeList[index].title),
-                    subtitle: Text(
-                      LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance} KM / ${routeList[index].time} MIN\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${routeList[index].date}'),
+                    subtitle: buildSub(routeList[index]),
                     leading: CircleAvatar(
                       child: routeList[index].routeCanvas,
                     ),
@@ -180,15 +185,17 @@ class RouteListEntry {
   String distance; // Route length in KM
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
+  ElevationChart chart;
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
-  RouteListEntry(String title, String date, double distance, List<Node> nodes) {
-    this.title = title;
-    this.date = date;
-    this.distance = formatDistance(distance);
-    this.time = (distance * 12).toInt().toString();
-    this.routeCanvas = RouteCanvasWidget(40, 40, nodes);
+  RouteListEntry(HikingRoute r) {
+    this.title = r.title;
+    this.date = r.date;
+    this.distance = formatDistance(r.totalLength);
+    this.time = (r.totalLength * 12).toInt().toString();
+    this.routeCanvas = RouteCanvasWidget(40, 40, r.path);
+    (r.elevations != null) ? this.chart = ElevationChart(r, interactive: false, withLabels: false,) : print('NO ALTITUDE INFORMATION AVAILABLE');
   }
 
   String formatDistance(double n) {
