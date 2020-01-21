@@ -32,6 +32,8 @@ class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
 
+  static bool _isCurrentlyGranting = false;
+
   static const platform =
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
@@ -86,6 +88,7 @@ class MapWidgetState extends State<MapWidget> {
     super.initState();
     _loadOfflineTiles();
     _getIntentData();
+    _requestPermissions();
   }
 
   Future<void> _getIntentData() async {
@@ -105,6 +108,10 @@ class MapWidgetState extends State<MapWidget> {
     else if (dataPath.endsWith(".gpx"))
       data = new GpxDataHandler().parseRouteFromString(dataPath);
     return data;
+  }
+
+  void _requestPermissions() async {
+    await requestLocationPermissionIfNotAlreadyGranted();
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -372,8 +379,10 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     bool granted = await isLocationPermissionGranted();
-    if (!granted) {
+    if (!granted && !_isCurrentlyGranting) {
+      _isCurrentlyGranting = true;
       await LocationPermissions().requestPermissions();
+      _isCurrentlyGranting = false;
       granted = await isLocationPermissionGranted();
       if (granted) forceRebuildMap();
     }
@@ -494,7 +503,6 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute); 
-    requestLocationPermissionIfNotAlreadyGranted();
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
