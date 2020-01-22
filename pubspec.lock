@@ -137,6 +137,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  font_awesome_flutter:
+    dependency: "direct main"
+    description:
+      name: font_awesome_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "8.5.0"
   geocoder:
     dependency: "direct main"
     description:
@@ -245,7 +252,7 @@ packages:
   mapbox_gl:
     dependency: "direct main"
     description:
-      path: "packages\\flutter-mapbox-gl"
+      path: "packages/flutter-mapbox-gl"
       relative: true
     source: path
     version: "0.0.5"

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/poi_category_search_bar.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -180,10 +181,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
               child: FloatingActionButton(
                   backgroundColor: htwGreen,
                   heroTag: "btn-go",
-                  child: Icon(
-                    Icons.directions_walk,
-                    size: 36,
-                  ),
+                  child: Icon(FontAwesomeIcons.check, size: 32),
                   onPressed: () {
                     widget.routeParams.distanceKm = distance;
                     widget.routeParams.poiCategories = selectedPoiCategories;
