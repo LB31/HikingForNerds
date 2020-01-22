@@ -16,4 +16,71 @@ class PointOfInterest extends Node{
     }
     return category;
   }
+
+  String getColorFromCategory(){
+    String category = getCategory();
+
+    switch(category) {
+      case "architecture": {
+        return "White";
+      }
+      break;
+      case "bar": {
+        return "Red";
+      }
+      break;
+      case "basilica": {
+        return "Green";
+      }
+      break;
+      case "cathedral": {
+        return "Yellow";
+      }
+      break;
+      case "chruch": {
+        return "Yellow";
+      }
+      break;
+      case "exhibition": {
+        return "Brown";
+      }
+      break;
+      case "gas station": {
+        return "Black";
+      }
+      break;
+      case "lake, monuments": {
+        return "Blue";
+      }
+      break;
+      case "museum": {
+        return "Brown";
+      }
+      break;
+      case "park": {
+        return "Green";
+      }
+      break;
+      case "river": {
+        return "Blue";
+      }
+      break;
+      case "romanic": {
+        return "Red";
+      }
+      break;
+      case "school": {
+        return "Blue";
+      }
+      break;
+      case "zoo": {
+        return "Pink";
+      }
+      break;
+      default: {
+        return "Green";
+      }
+      break;
+    }
+  }
 }

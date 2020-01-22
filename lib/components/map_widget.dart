@@ -15,6 +15,7 @@ import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+import 'package:hiking4nerds/services/pointofinterest.dart';
 
 
 class MapWidget extends StatefulWidget {
@@ -144,6 +145,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
+    drawPOIs(route);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
 
@@ -221,6 +223,21 @@ class MapWidgetState extends State<MapWidget> {
     }
 
     return -1;
+  }
+
+  void drawPOIs(HikingRoute route){
+    List<PointOfInterest> pois = route.pointsOfInterest;
+    if(pois !=null){
+      pois.forEach((poi){
+        CircleOptions poiOptions = CircleOptions(
+            geometry: LatLng(poi.latitude, poi.longitude),
+            circleColor: poi.getColorFromCategory(),
+            circleRadius: 3,
+            circleBlur: 0.25,
+            circleOpacity: 0.8); 
+        mapController.addCircle(poiOptions);
+      });
+    }
   }
 
   void centerCameraOverRoute(HikingRoute route) {
