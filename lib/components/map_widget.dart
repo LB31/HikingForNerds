@@ -450,9 +450,6 @@ class MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
-
-    print("DOOO");
-
     if (this._tilesLoaded) {
       return Stack(
         children: <Widget>[
