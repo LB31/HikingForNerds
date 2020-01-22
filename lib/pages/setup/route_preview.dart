@@ -174,7 +174,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
-              top: 85,
+              top: 95,
               left: MediaQuery.of(context).size.width * 0.5 - 65,
               child: Opacity(
                 opacity: 0.5,
@@ -197,20 +197,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                                 width: 55,
                                 height: 5,
                                 color: Colors.green,
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Text(LocalizationService().getLocalization(english: "Finish", german: "Ende")),
-                            new Spacer(),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: Container(
-                                width: 55,
-                                height: 5,
-                                color: Colors.red,
                               ),
                             )
                           ],
