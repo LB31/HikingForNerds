@@ -4,7 +4,6 @@ import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
-import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -352,9 +351,9 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _onMapChanged() {
-    setState(() {
+/*    setState(() {
       _extractMapInfo();
-    });
+    });*/
   }
 
   @override
