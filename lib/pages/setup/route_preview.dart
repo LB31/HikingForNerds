@@ -195,7 +195,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                               child: Container(
                                 width: 55,
                                 height: 5,
-                                color: Colors.green,
+                                color: Color.fromARGB(255, 0, 153, 51),
                               ),
                             )
                           ],

@@ -164,7 +164,7 @@ class MapWidgetState extends State<MapWidget> {
 
     LineOptions optionsStartRoute = LineOptions(
         geometry: route.path.sublist(0, index),
-        lineColor: "#00FF00",
+        lineColor: "#009933",
         lineWidth: 4.0,
         lineBlur: 1,
         lineOpacity: 0.5);
