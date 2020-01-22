@@ -25,7 +25,10 @@ class HikingRoute {
 
   Future<String> buildTitle() async{
    List<Address> results = await Geocoder.local.findAddressesFromCoordinates(Coordinates(path[0].latitude, path[0].longitude));
-   return '${results[0].thoroughfare}, ${results[0].locality}';
+   String street = (results[0].thoroughfare != null) ? results[0].thoroughfare : '';
+   String city = (results[0].locality.length + results[0].thoroughfare.length > 20) ? '\n' : ', ';
+   city += (results[0].locality != null) ? results[0].locality : '';
+   return '$street$city';
   }
 
   void setTitle(String title) {

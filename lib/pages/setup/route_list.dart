@@ -64,7 +64,7 @@ class _RouteListState extends State<RouteList> {
   // TODO add localization or remove if not needed
   headerText() {
     String paramTitles = 'Start: ';
-    paramTitles += '\nDistance: ';
+    (_title.length > 20) ? paramTitles += '\n\nDistance: ' : paramTitles += '\nDistance: ';
     if(widget.routeParams.poiCategories.length > 0) {
       paramTitles += '\nPOIs: ';
       for(var i = 1; i < widget.routeParams.poiCategories.length; i++) paramTitles += '\n';
