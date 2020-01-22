@@ -272,10 +272,9 @@ class MapWidgetState extends State<MapWidget> {
 
   bool userLocationChanged(LatLng currentLocation){
     if(_lastUserLocation == null) return true;
-    else {
-      double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
-      return distance > 0.001;
-    }
+    
+    double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
+    return distance > 0.001;
   }
 
   void updateRoute() async {
