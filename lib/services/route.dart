@@ -27,13 +27,11 @@ class HikingRoute {
 
   Future<String> buildTitle() async{
    List<Address> results = await Geocoder.local.findAddressesFromCoordinates(Coordinates(path[0].latitude, path[0].longitude));
-   return results[0].addressLine;
+   return '${results[0].thoroughfare}, ${results[0].locality}';
   }
 
   void setTitle(String title) {
     if(title == '') this.title = 'Sample Title'; // get Adress from GeoData
     else this.title = title;
   }
-
-
 }
