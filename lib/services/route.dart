@@ -2,8 +2,6 @@ import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:intl/intl.dart';
 import 'package:geocoder/geocoder.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
-
 
 class HikingRoute {
   List<Node> path; //path of route
@@ -22,7 +20,7 @@ class HikingRoute {
     this.pointsOfInterest = pointsOfInterest;
     this.elevations = elevations;
     this.date = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-    setTitle(''); // TODO get region or custom info as title
+    setTitle('');
   }
 
   Future<String> buildTitle() async{
