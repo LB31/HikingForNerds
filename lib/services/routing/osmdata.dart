@@ -148,7 +148,7 @@ class OsmData{
     return closestPoint;
   }
   
-  static HikingRoute doRouteCalculationsThreaded(RouteThreadData data) {
+  static HikingRoute _doRouteCalculationsThreaded(RouteThreadData data) {
     var usePOIFunc = data.poiElements != null;
     var alternativeRouteCount = data.alternativeRouteCount;
     var startLat = data.startLat;
@@ -184,6 +184,14 @@ class OsmData{
     return null;
   }
 
+  static List<Future<HikingRoute>> _spawnThreads(RouteThreadData data) {
+    List<Future<HikingRoute>> computeFutures = List();
+    for(int i = 0; i < data.alternativeRouteCount; ++i) {
+        computeFutures.add(compute(_doRouteCalculationsThreaded, data, debugLabel: "Route Thread #$i"));
+    }
+    return computeFutures;
+  }
+
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
 
@@ -211,10 +219,8 @@ class OsmData{
     data.osmRef = this;
     data.poiElements = poiElements;
 
-    List<Future<HikingRoute>> computeFutures = List();
-    for(int i = 0; i < alternativeRouteCount; ++i) {
-        computeFutures.add(compute(doRouteCalculationsThreaded, data, debugLabel: "Route Thread #$i"));
-    }
+    var computeFutures = await compute(_spawnThreads, data);
+
     if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     return Future.wait(computeFutures);
   }
