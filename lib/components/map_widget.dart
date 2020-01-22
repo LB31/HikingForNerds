@@ -1,12 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
-import 'package:hiking4nerds/services/elevation_chart.dart';
 import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -34,16 +33,12 @@ class MapWidgetState extends State<MapWidget> {
   Line _lineRoute;
   Line _linePassedRoute;
 
-  //please save the passed route as our DEFINED object ffs!
-  HikingRoute _hikingRoute;
-
   LocationData _currentDeviceLocation;
   Timer _timer;
 
   CameraPosition _position;
   MapboxMapController mapController;
   bool _compassEnabled = true;
-  bool _heightChartEnabled = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
@@ -150,8 +145,9 @@ class MapWidgetState extends State<MapWidget> {
       _passedRoute = [];
       _lineRoute = lineRoute;
       _linePassedRoute = linePassedRoute;
-      _hikingRoute = route;
     });
+
+    removeSelectedElevation();
 
     if (!widget.isStatic) initUpdateRouteTimer();
   }
@@ -284,20 +280,6 @@ class MapWidgetState extends State<MapWidget> {
     );
   }
 
-  void _onMapChanged() {
-    setState(() {
-      _extractMapInfo();
-    });
-  }
-
-  @override
-  void dispose() {
-    if (mapController != null) {
-      mapController.removeListener(_onMapChanged);
-    }
-    super.dispose();
-  }
-
   Future<bool> isLocationPermissionGranted() async {
     PermissionStatus permission =
         await LocationPermissions().checkPermissionStatus();
@@ -350,12 +332,6 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  void heightChartMode(){
-    this.setState((){
-      _heightChartEnabled = !_heightChartEnabled;
-    });
-  }
-
   //TODO find way to rebuild map?!
   void forceRebuildMap() {}
 
@@ -399,31 +375,12 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
-              onHeightChartMode: heightChartMode,
-              heightChartDisplayed: _heightChartEnabled,
             ),
-          if(_hikingRoute != null && _heightChartEnabled)
-            _buildElevationChart(context),
         ],
       );
     }
     return Center(
       child: new CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildElevationChart(BuildContext context){
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        width: 300,
-        height: 150,
-        child: ElevationChart(
-          _hikingRoute,
-          onSelectionChanged: _markElevation,
-          interactive: true,
-        )
-      )
     );
   }
 
@@ -451,15 +408,13 @@ class MapWidgetState extends State<MapWidget> {
 
   void onMapCreated(MapboxMapController controller) {
     mapController = controller;
-    mapController.addListener(_onMapChanged);
-    _extractMapInfo();
 
     requestLocationPermissionIfNotAlreadyGranted().then((result) {
       updateCurrentLocationOnChange();
     });
   }
 
-  Future _markElevation(int index) async {
+  Future markElevation(int index) async {
     LatLng latLngPosition = _route[index];
     CircleOptions optionsElevationPoint = CircleOptions(
         geometry: latLngPosition,
@@ -473,5 +428,12 @@ class MapWidgetState extends State<MapWidget> {
       selectedElevationCircle = await mapController.addCircle(optionsElevationPoint);
     else
       mapController.updateCircle(selectedElevationCircle, optionsElevationPoint);
+  }
+
+  void removeSelectedElevation(){
+    if (selectedElevationCircle != null) {
+      mapController.removeCircle(selectedElevationCircle);
+      selectedElevationCircle = null;
+    }
   }
 }

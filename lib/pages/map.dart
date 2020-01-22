@@ -17,6 +17,9 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
+  bool _heightChartEnabled = false;
+  HikingRoute _currentRoute;
+
   @override
   Widget build(BuildContext context) {
     HikingRoute route = new HikingRoute([
@@ -52,13 +55,44 @@ class MapPageState extends State<MapPage> {
               padding: const EdgeInsets.all(5.0),
             ),
           ),
+          FloatingActionButton(
+            heroTag: "btn-heightchart",
+            child: Icon(Icons.photo),
+            onPressed: setHeightChartMode,
+          ),
+          if(_currentRoute != null && _heightChartEnabled)
+            _buildElevationChart(context),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
+  Widget _buildElevationChart(BuildContext context){
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+            width: 300,
+            height: 150,
+            child: ElevationChart(
+              _currentRoute,
+              onSelectionChanged: mapWidgetKey.currentState.markElevation,
+              interactive: true,
+            )
+        )
+    );
+  }
+
+  void setHeightChartMode(){
+    this.setState((){
+      _heightChartEnabled = !_heightChartEnabled;
+    });
+    mapWidgetKey.currentState.removeSelectedElevation();
+  }
+
   void updateState(HikingRoute route) {
+    _currentRoute = route;
+    _heightChartEnabled = false;
     mapWidgetKey.currentState.drawRoute(route);
   }
 }

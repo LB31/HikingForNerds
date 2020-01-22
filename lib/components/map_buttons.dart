@@ -9,9 +9,7 @@ class MapButtons extends StatelessWidget {
       this.styles,
       this.currentStyle,
       this.onCycleTrackingMode,
-      this.setMapStyle,
-      this.onHeightChartMode,
-      this.heightChartDisplayed});
+      this.setMapStyle});
 
   final MyLocationTrackingMode currentTrackingMode;
   final VoidCallback onCycleTrackingMode;
@@ -19,9 +17,6 @@ class MapButtons extends StatelessWidget {
   final String currentStyle;
   final Map<String, String> styles;
   final SetMapStyleCallback setMapStyle;
-
-  final VoidCallback onHeightChartMode;
-  final bool heightChartDisplayed;
 
   Icon getTrackingModeIcon() {
     switch (currentTrackingMode) {
@@ -59,11 +54,6 @@ class MapButtons extends StatelessWidget {
                     : styles.keys.elementAt(0));
               },
             ),
-            FloatingActionButton(
-              heroTag: "btn-heightchart",
-              child: Icon(Icons.photo),
-              onPressed: onHeightChartMode,
-            )
           ],
         ));
   }

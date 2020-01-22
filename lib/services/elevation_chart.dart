@@ -15,6 +15,7 @@ class ElevationChart extends StatefulWidget {
 
   final List<RouteData> chartData = new List();
 
+
   @override
   State<StatefulWidget> createState() => new ElevationChartState();
 
@@ -82,7 +83,8 @@ class ElevationChartState extends State<ElevationChart>{
         snapToDatum: true,
         handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
         style: charts.SliderStyle(
-            handleSize: Rectangle<int>(0, 0, 25, 30),
+            handleOffset: Point(0, 40),
+            handleSize: Rectangle<int>(0, 0, 13, 100),
             fillColor: charts.MaterialPalette.green.shadeDefault
         ),
       )
@@ -100,7 +102,6 @@ class ElevationChartState extends State<ElevationChart>{
           titleOutsideJustification:
           charts.OutsideJustification.middleDrawArea));
     }
-
 
     return new Container(
       child: new charts.LineChart(
