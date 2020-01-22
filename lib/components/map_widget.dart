@@ -194,7 +194,7 @@ class MapWidgetState extends State<MapWidget> {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
-        circleColor: "Blue",
+        circleColor: "#0000FF",
         circleRadius: 16,
         circleBlur: 0.25,
         circleOpacity: 0.5);
@@ -349,9 +349,9 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _onMapChanged() {
-/*    setState(() {
+    setState(() {
       _extractMapInfo();
-    });*/
+    });
   }
 
   @override

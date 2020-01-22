@@ -148,10 +148,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
 class CustomSearchDelegate extends SearchDelegate<String> {
   List<String> _history = List<String>();
-
   CustomSearchDelegate() {
-    //_history = <String>["Berlin Schoeneweide", "Japan", "Weserstraße 144", "Dettlef", "Avenue 1 12052"];
-
     SharedPreferences.getInstance().then((prefs) {
       _history = prefs.getStringList("searchHistory") ?? List<String>();
     });
