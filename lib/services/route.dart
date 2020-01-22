@@ -31,7 +31,6 @@ class HikingRoute {
   }
 
   void setTitle(String title) {
-    if(title == '') this.title = 'Sample Title'; // get Adress from GeoData
-    else this.title = title;
+    this.title = title;
   }
 }
