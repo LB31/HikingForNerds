@@ -86,7 +86,7 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    _getIntentData();
+    //_getIntentData();
     _requestPermissions();
   }
 
@@ -115,9 +115,8 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> _loadOfflineTiles() async {
     try {
-      _styles["klokan-tech"] =
-          await _loadJson('assets/styles/klokan-tech.json');
-      _styles["bright-osm"] = await _loadJson('assets/styles/bright-osm.json');
+      _styles["klokan-tech"] = "https://h4nsolo.f4.htw-berlin.de/styles/klokantech-basic/style.json";
+      _styles["bright-osm"] = "https://h4nsolo.f4.htw-berlin.de/styles/osm-bright/style.json";
       _currentStyle = _styles.keys.first;
       await installOfflineMapTiles("assets/offline-data/berlin_klokan-tech.db");
     } catch (err) {
@@ -142,14 +141,13 @@ class MapWidgetState extends State<MapWidget> {
 
   void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
-
     drawRouteStartingPoint(route);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
 
     LineOptions optionsPassedRoute = LineOptions(
-        geometry: [],
-        lineColor: "Grey",
+        geometry: [route.path[0]],
+        lineColor: "#AAAAAA",
         lineWidth: 4.0,
         lineBlur: 2,
         lineOpacity: 0.5);
@@ -157,7 +155,7 @@ class MapWidgetState extends State<MapWidget> {
 
     LineOptions optionsRoute = LineOptions(
         geometry: route.path.sublist(index - 1),
-        lineColor: "Blue",
+        lineColor: "#0000FF",
         lineWidth: 4.0,
         lineBlur: 1,
         lineOpacity: 0.5);
@@ -166,7 +164,7 @@ class MapWidgetState extends State<MapWidget> {
 
     LineOptions optionsStartRoute = LineOptions(
         geometry: route.path.sublist(0, index),
-        lineColor: "Green",
+        lineColor: "#00FF00",
         lineWidth: 4.0,
         lineBlur: 1,
         lineOpacity: 0.5);

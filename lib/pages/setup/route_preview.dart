@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
-import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
