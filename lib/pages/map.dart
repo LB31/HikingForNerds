@@ -58,7 +58,7 @@ class MapPageState extends State<MapPage> {
           FloatingActionButton(
             heroTag: "btn-heightchart",
             child: Icon(Icons.photo),
-            onPressed: setHeightChartMode,
+            onPressed: toggleHeightChartMode,
           ),
           if(_currentRoute != null && _heightChartEnabled)
             _buildElevationChart(context),
@@ -83,11 +83,11 @@ class MapPageState extends State<MapPage> {
     );
   }
 
-  void setHeightChartMode(){
+  void toggleHeightChartMode(){
+    mapWidgetKey.currentState.removeSelectedElevation();
     this.setState((){
       _heightChartEnabled = !_heightChartEnabled;
     });
-    mapWidgetKey.currentState.removeSelectedElevation();
   }
 
   void updateState(HikingRoute route) {
