@@ -4,7 +4,6 @@ import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
-import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -32,6 +31,8 @@ class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
 
+  static bool _isCurrentlyGranting = false;
+
   static const platform =
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
@@ -44,6 +45,7 @@ class MapWidgetState extends State<MapWidget> {
   Line _lineRemainingRoute;
   Line _linePassedRoute;
   Line _lineStartRoute;
+  LatLng _lastUserLocation;
 
   Timer _timer;
 
@@ -86,6 +88,7 @@ class MapWidgetState extends State<MapWidget> {
     super.initState();
     _loadOfflineTiles();
     _getIntentData();
+    _requestPermissions();
   }
 
   Future<void> _getIntentData() async {
@@ -105,6 +108,10 @@ class MapWidgetState extends State<MapWidget> {
     else if (dataPath.endsWith(".gpx"))
       data = new GpxDataHandler().parseRouteFromString(dataPath);
     return data;
+  }
+
+  void _requestPermissions() async {
+    await requestLocationPermissionIfNotAlreadyGranted();
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -178,6 +185,7 @@ class MapWidgetState extends State<MapWidget> {
       _lineStartRoute = lineStartRoute;
       _linePassedRoute = linePassedRoute;
       _currentRouteIndex = 0;
+      _lastUserLocation = null;
     });
 
     if (!widget.isStatic) {
@@ -262,42 +270,48 @@ class MapWidgetState extends State<MapWidget> {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
-  void updateRoute() async {
+  bool userLocationChanged(LatLng currentLocation){
+    if(_lastUserLocation == null) return true;
+    
+    double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
+    return distance > 0.001;
+  }
 
+  void updateRoute() async {
     LocationData userLocation = await getCurrentLocation();
     LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
-    int currentRouteIndex = _currentRouteIndex;
 
-    //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
-    int finalRouteNodesThreshold = _remainingRoute.length < _route.length - 25 ? 0 : 25;
+    if(userLocationChanged(userLatLng)) {
 
+      int currentRouteIndex = _currentRouteIndex;
 
-    for (int index = currentRouteIndex; index < _route.length - finalRouteNodesThreshold; index++) {
-
-      double distanceToCurrentLocation = OsmData.getDistance(
-          _route[index], userLatLng);
-
-      if (distanceToCurrentLocation < 0.1) {
-        print(index.toString() + " / " + _route.length.toString() + " close");
-        currentRouteIndex = index;
+      //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
+      int finalRouteNodesThreshold = _remainingRoute.length < _route.length - 25 ? 0 : 25;
+      for (int index = currentRouteIndex; index < _route.length - finalRouteNodesThreshold; index++) {
+        double distanceToCurrentLocation = OsmData.getDistance(
+            _route[index], userLatLng);
+        if (distanceToCurrentLocation < 0.1) {
+          currentRouteIndex = index;
+          break;
+        }
       }
+
+      setState(() {
+        _remainingRoute = _route.sublist(currentRouteIndex);
+        _passedRoute = _route.sublist(0, currentRouteIndex + 1);
+        _currentRouteIndex = currentRouteIndex;
+        _lastUserLocation = userLatLng;
+      });
+
+      LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
+      await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
+      LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
+      await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
     }
-
-    setState(() {
-      _remainingRoute = _route.sublist(currentRouteIndex);
-      _passedRoute = _route.sublist(0, currentRouteIndex + 1);
-      _currentRouteIndex = currentRouteIndex;
-    });
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
-    await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
-    LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
-    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
 
     if (_remainingRoute.length <= 1) {
       finishHikingTrip();
     }
-
   }
 
   //TODO implement nicer/prettier implementation
@@ -351,9 +365,9 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _onMapChanged() {
-    setState(() {
+/*    setState(() {
       _extractMapInfo();
-    });
+    });*/
   }
 
   @override
@@ -372,8 +386,10 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     bool granted = await isLocationPermissionGranted();
-    if (!granted) {
+    if (!granted && !_isCurrentlyGranting) {
+      _isCurrentlyGranting = true;
       await LocationPermissions().requestPermissions();
+      _isCurrentlyGranting = false;
       granted = await isLocationPermissionGranted();
       if (granted) forceRebuildMap();
     }
@@ -494,7 +510,6 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute); 
-    requestLocationPermissionIfNotAlreadyGranted();
+    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }

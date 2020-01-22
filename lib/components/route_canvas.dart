@@ -18,19 +18,17 @@ class RouteCanvasWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: width,
-        height: height,
-        color: backgroundColor,
-        child: CustomPaint(
-            painter: RoutePainter(
-                width,
-                height,
-                getPointsFromNodes(this.nodes, this.innerPadding),
-                this.lineColor,
-                this.strokeWidth)),
-      ),
+    return Container(
+      width: width,
+      height: height,
+      color: backgroundColor,
+      child: CustomPaint(
+          painter: RoutePainter(
+              width,
+              height,
+              getPointsFromNodes(this.nodes, this.innerPadding),
+              this.lineColor,
+              this.strokeWidth)),
     );
   }
 

@@ -111,13 +111,19 @@ class _RouteListState extends State<RouteList> {
 
   buildSub(RouteListEntry r) {
 
-    Text text = Text(
-      LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${r.distance} KM / ${r.time} MIN\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${r.date}');
+    Text text = Text('${r.distance} KM\n${r.time} MIN');
+    return Row(
+      children: <Widget>[
+        Column(children: <Widget>[
 
-    return Column(children: <Widget>[
-      text,
-      if (r.chart != null) r.chart,
-    ]);
+          if (r.chart != null) r.chart,
+        ]),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[text],
+        )
+      ],
+    );
   }
 
   Future<void> buildRouteTitles(List<HikingRoute> routes) async{
@@ -150,10 +156,9 @@ class _RouteListState extends State<RouteList> {
                       widget.routeParams.routeIndex = index;
                       widget.onPushRoutePreview(widget.routeParams);
                     },
+                    title: Text(''),
                     subtitle: buildSub(_routeList[index]),
-                    leading: CircleAvatar(
-                      child: _routeList[index].routeCanvas,
-                    ),
+                    leading: _routeList[index].routeCanvas,
                   ),
                 ),
               );
@@ -186,7 +191,7 @@ class RouteListEntry {
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
   ElevationChart chart;
-  List<String> pois = [];
+  Set<String> pois = Set();
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
@@ -195,8 +200,10 @@ class RouteListEntry {
     this.date = r.date;
     this.distance = formatDistance(r.totalLength);
     this.time = (r.totalLength * 12).toInt().toString();
-    this.routeCanvas = RouteCanvasWidget(40, 40, r.path);
+    this.routeCanvas = RouteCanvasWidget(100, 100, r.path, lineColor: htwGreen,);
     (r.elevations != null) ? this.chart = ElevationChart(r, interactive: false, withLabels: false,) : print('NO ALTITUDE INFORMATION AVAILABLE');
+    // TODO remove placeholder when pois are available
+    (r.pointsOfInterest != null) ? r.pointsOfInterest.forEach((p) => pois.add(p.getCategory())) : pois.add('PLACEHOLDER');
   }
 
   String formatDistance(double n) {
