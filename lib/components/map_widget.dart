@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/lifecycle_event_handler.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -14,7 +16,9 @@ import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
@@ -30,16 +34,21 @@ class MapWidgetState extends State<MapWidget> {
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
 
+  static bool _isCurrentlyGranting = false;
+
   static const platform =
       const MethodChannel('app.channel.hikingfornerds.data');
   HikingRoute sharedRoute;
 
-  List<LatLng> _passedRoute = [];
+  HikingRoute _hikingRoute;
+  int _currentRouteIndex = 0;
   List<LatLng> _route = [];
-  Line _lineRoute;
+  List<LatLng> _passedRoute = [];
+  List<LatLng> _remainingRoute = [];
+  Line _lineRemainingRoute;
   Line _linePassedRoute;
+  Line _lineStartRoute;
 
-  LocationData _currentDeviceLocation;
   Timer _timer;
 
   CameraPosition _position;
@@ -82,6 +91,7 @@ class MapWidgetState extends State<MapWidget> {
     super.initState();
     _loadOfflineTiles();
     _getIntentData();
+    _requestPermissions();
   }
 
   Future<void> _getIntentData() async {
@@ -126,6 +136,10 @@ class MapWidgetState extends State<MapWidget> {
     return data;
   }
 
+  void _requestPermissions() async {
+    await requestLocationPermissionIfNotAlreadyGranted();
+  }
+
   Future<void> _loadOfflineTiles() async {
     try {
       _styles["klokan-tech"] =
@@ -149,43 +163,27 @@ class MapWidgetState extends State<MapWidget> {
     LocationData currentLocation;
     var location = new Location();
     currentLocation = await location.getLocation();
-    setState(() {
-      this._currentDeviceLocation = currentLocation;
-    });
     return currentLocation;
   }
 
-  void updateCurrentLocationOnChange() {
-    Location location = Location();
-    location.onLocationChanged().listen((LocationData currentLocation) {
-      setState(() {
-        _currentDeviceLocation = currentLocation;
-      });
-    });
-  }
 
-  void drawRoute(HikingRoute route) async {
+  void drawRoute(HikingRoute route, [bool center=true]) async {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
-    drawHikingDirection(route);
-
-    List<LatLng> routeLatLng = route.path
-        .map((node) => LatLng(node.latitude, node.longitude))
-        .toList();
-
-    routeLatLng = routeLatLng.sublist(0, routeLatLng.length);
+    int index = calculateLastStartingPathNode(route);
+    assert(index != -1, "Error last starting node not found!");
 
     LineOptions optionsPassedRoute = LineOptions(
         geometry: [],
         lineColor: "Grey",
-        lineWidth: 3.0,
+        lineWidth: 4.0,
         lineBlur: 2,
         lineOpacity: 0.5);
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
-        geometry: routeLatLng,
+        geometry: route.path.sublist(index - 1),
         lineColor: "Blue",
         lineWidth: 4.0,
         lineBlur: 1,
@@ -193,16 +191,29 @@ class MapWidgetState extends State<MapWidget> {
 
     Line lineRoute = await mapController.addLine(optionsRoute);
 
-    centerCameraOverRoute(route);
+    LineOptions optionsStartRoute = LineOptions(
+        geometry: route.path.sublist(0, index),
+        lineColor: "Green",
+        lineWidth: 4.0,
+        lineBlur: 1,
+        lineOpacity: 0.5);
+
+    Line lineStartRoute = await mapController.addLine(optionsStartRoute);
+
+    if(center) centerCameraOverRoute(route);
 
     setState(() {
-      _route = routeLatLng;
+      _hikingRoute = route; 
+      _route = route.path;
+      _remainingRoute = route.path;
       _passedRoute = [];
-      _lineRoute = lineRoute;
+      _lineRemainingRoute = lineRoute;
+      _lineStartRoute = lineStartRoute;
       _linePassedRoute = linePassedRoute;
+      _currentRouteIndex = 0;
     });
 
-    if (!widget.isStatic){
+    if (!widget.isStatic) {
       startRoute();
     }
   }
@@ -212,59 +223,31 @@ class MapWidgetState extends State<MapWidget> {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
-        circleColor: "Red",
-        circleRadius: 11,
-        circleStrokeWidth: 7,
-        circleStrokeColor: "Blue",
+        circleColor: "Blue",
+        circleRadius: 16,
         circleBlur: 0.25,
-        circleOpacity: 1);
+        circleOpacity: 0.5);
     mapController.addCircle(optionsStartingPoint);
   }
 
-  void drawHikingDirection(HikingRoute route) {
+  int calculateLastStartingPathNode(HikingRoute route) {
     List<LatLng> startingPointPath = new List<LatLng>();
-    List<LatLng> endingPointPath = new List<LatLng>();
     // use a twentieth of the routes total length for start and end route
     double routeEndingLength = route.totalLength * 0.05;
 
-    double startPathLength = 0, endPathLength = 0;
+    double startPathLength = 0;
     int i = 0;
-    while (startingPointPath.length == 0 || endingPointPath.length == 0) {
-      if (startingPointPath.length == 0) {
+    while (startingPointPath.length == 0) {
         if (startPathLength > routeEndingLength) {
-          startingPointPath = route.path.sublist(0, i + 1);
+          return i + 1;
         } else {
           startPathLength +=
               OsmData.getDistance(route.path[i], route.path[i + 1]);
         }
-      }
-      if (endingPointPath.length == 0) {
-        if (endPathLength > routeEndingLength) {
-          endingPointPath = route.path.sublist(route.path.length - i, route.path.length);
-        } else {
-          endPathLength += OsmData.getDistance(
-              route.path[route.path.length - i - 1],
-              route.path[route.path.length - i - 2]);
-        }
-      }
       i++;
     }
 
-    LineOptions optionsHikingDirectionStart = LineOptions(
-        geometry: startingPointPath,
-        lineColor: "Green",
-        lineWidth: 10.0,
-        lineBlur: 2,
-        lineOpacity: 0.5);
-    LineOptions optionsHikingDirectionEnd = LineOptions(
-        geometry: endingPointPath,
-        lineColor: "Red",
-        lineWidth: 10.0,
-        lineBlur: 2,
-        lineOpacity: 0.5);
-
-    mapController.addLine(optionsHikingDirectionStart);
-    mapController.addLine(optionsHikingDirectionEnd);
+    return -1;
   }
 
   void centerCameraOverRoute(HikingRoute route) {
@@ -277,22 +260,23 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-    setLatLng(LatLng(averageLat, averageLong));
     double zoom = 14.5 - (pow(route.totalLength, 0.4));
+
+    setLatLng(LatLng(averageLat, averageLong));
     setZoom(zoom);
   }
 
-  startRoute(){
+  startRoute() {
     setZoom(16);
     setTrackingMode(MyLocationTrackingMode.TrackingCompass);
     initUpdateRouteTimer();
 
     Flushbar(
-      messageText: Text("Your hiking trip has started!", // TODO add localization
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16.0)
-      ),
+      messageText: Text(
+          LocalizationService().getLocalization(
+              english: "Your hiking trip has started!",
+              german: "Ihre Wanderung hat begonnen!"),
+          style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.check,
         size: 28.0,
@@ -312,57 +296,51 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void updateRoute() async {
-    int currentRouteNodeIndex = 0;
-    for (int index = 0; index < _route.length; index++) {
-      if (isRouteNodeAtIndexAhead(index)) {
-        double distanceToCurrentLocation = OsmData.getDistance(
-            _route[index],
-            new LatLng(_currentDeviceLocation.latitude,
-                _currentDeviceLocation.longitude));
-        if (distanceToCurrentLocation < 0.05) {
-          currentRouteNodeIndex = index + 1;
-        }
+
+    LocationData userLocation = await getCurrentLocation();
+    LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
+    int currentRouteIndex = _currentRouteIndex;
+
+    //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
+    int finalRouteNodesThreshold = _remainingRoute.length < _route.length - 25 ? 0 : 25;
+
+
+    for (int index = currentRouteIndex; index < _route.length - finalRouteNodesThreshold; index++) {
+
+      double distanceToCurrentLocation = OsmData.getDistance(
+          _route[index], userLatLng);
+
+      if (distanceToCurrentLocation < 0.1) {
+        print(index.toString() + " / " + _route.length.toString() + " close");
+        currentRouteIndex = index;
       }
     }
 
-    List<LatLng> remainingRoute = _route.sublist(currentRouteNodeIndex);
-
-    LineOptions optionsRemainingRoute = LineOptions(geometry: remainingRoute);
-    await mapController.updateLine(_lineRoute, optionsRemainingRoute);
-
-    List<LatLng> passedRoute = [
-      ..._passedRoute,
-      ..._route.sublist(0, currentRouteNodeIndex + 1)
-    ];
-    LineOptions optionsPassedRoute = LineOptions(geometry: passedRoute);
-    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
-
     setState(() {
-      _route = remainingRoute;
-      _passedRoute = passedRoute;
+      _remainingRoute = _route.sublist(currentRouteIndex);
+      _passedRoute = _route.sublist(0, currentRouteIndex + 1);
+      _currentRouteIndex = currentRouteIndex;
     });
 
-    if (_route.length <= 1) {
+    LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
+    await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
+    LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
+    await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
+
+    if (_remainingRoute.length <= 1) {
       finishHikingTrip();
     }
-  }
 
-  bool isRouteNodeAtIndexAhead(int index) {
-    // check if the index is within one of the last 25 nodes and also the route length is less then 50
-    if (_route.length > 50 && index > _route.length - 25)
-      return false;
-    else
-      return true;
   }
 
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
     Flushbar(
-      messageText: Text("You have finished your hiking trip", // TODO add localization
-          style: TextStyle(
-              color: Colors.black,
-              fontSize: 16.0)
-      ),
+      messageText:
+          Text(LocalizationService().getLocalization(
+              english: "You have finished your hiking trip",
+              german: "Sie haben Ihre Wanderung beendet"), 
+              style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.thumb_up,
         size: 28.0,
@@ -384,6 +362,17 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearLines();
     mapController.clearCircles();
     _timer.cancel();
+
+    updateTotalHikingDistance();
+  }
+
+  updateTotalHikingDistance(){
+    SharedPreferences.getInstance().then((prefs) {
+      double totalHikingDistance =
+          prefs.getDouble("totalHikingDistance") ?? 0;
+      totalHikingDistance += _hikingRoute.totalLength;
+      prefs.setDouble("totalHikingDistance", totalHikingDistance);
+    });
   }
 
   static CameraPosition _getCameraPosition() {
@@ -416,8 +405,10 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     bool granted = await isLocationPermissionGranted();
-    if (!granted) {
+    if (!granted && !_isCurrentlyGranting) {
+      _isCurrentlyGranting = true;
       await LocationPermissions().requestPermissions();
+      _isCurrentlyGranting = false;
       granted = await isLocationPermissionGranted();
       if (granted) forceRebuildMap();
     }
@@ -538,11 +529,6 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-
-    requestLocationPermissionIfNotAlreadyGranted().then((result) {
-      updateCurrentLocationOnChange();
-    });
-
     if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }

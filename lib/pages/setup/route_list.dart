@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -18,10 +19,11 @@ class _RouteListState extends State<RouteList> {
   List<RouteListEntry> routeList = [];
   String summary = '';
 
+  bool _routesCalculated = false;
+
   @override
   void initState() {
     super.initState();
-    // todo implement loading bar
     calculateRoutes();
   }
 
@@ -36,45 +38,56 @@ class _RouteListState extends State<RouteList> {
           10,
           widget.routeParams.poiCategories);
     } on NoPOIsFoundException catch (err) {
-        print("no poi found exception " + err.toString());
-    } finally {
+      print("no poi found exception " + err.toString());
       routes = await OsmData().calculateHikingRoutes(
-          widget.routeParams.startingLocation.latitude,
-          widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
-          10);
+        widget.routeParams.startingLocation.latitude,
+        widget.routeParams.startingLocation.longitude,
+        widget.routeParams.distanceKm * 1000.0,
+        10);
     }
+
+    routes = routes.toList(growable: true);
+    routes.removeWhere((elem) => elem == null);
+
+    await buildRouteTitles(routes);
+
     setState(() {
       widget.routeParams.routes = routes;
       print('## ${routes.length} routes found');
+
       widget.routeParams.routes.forEach((r) => routeList.add(RouteListEntry(
             r.title,
             r.date,
             r.totalLength,
           )));
+      
+      this._routesCalculated = true;
     });
+
+  }
+
+  Future<void> buildRouteTitles(List<HikingRoute> routes) async{
+    for(int i = 0; i < routes.length; i++){
+      String title = await routes[i].buildTitle();
+      routes[i].setTitle(title);
+    }
   }
 
   // TODO add localization or remove if not needed
   void summaryText() {
-    String text = 'Displaying routes for your chosen parameters\n';
-    text += 'Distance: ${widget.routeParams.distanceKm}\n';
+    String text = LocalizationService().getLocalization(english: "Displaying routes for your chosen parameters\n", german: "Routen für die gewählten Parameter werden dargestellt\n");
+    text += LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${widget.routeParams.distanceKm}\n'; 
     text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: \n' : '';
-    text += 'Altitude: ${widget.routeParams.altitudeType}\n';
+    text += LocalizationService().getLocalization(english: "Altitude:", german: "Höhe:") + '${widget.routeParams.altitudeType}\n';
     print(text);
     summary = text;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.grey[200],
-        appBar: AppBar(
-          backgroundColor: htwGreen,
-          title: Text('Choose a route to preview'), // TODO add localization
-          elevation: 0,
-        ),
-        body: Stack(children: <Widget>[
+    Widget body;
+    if(_routesCalculated) {
+      body = Stack(children: <Widget>[
           Text(
             summary,
             style: TextStyle(
@@ -98,7 +111,7 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        'Distance: ${routeList[index].distance.toString()}\nDate: ${routeList[index].date}'),// TODO localization
+                        LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance.toString()}\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${routeList[index].date}'),
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,
@@ -111,7 +124,22 @@ class _RouteListState extends State<RouteList> {
               );
             },
           ),
-        ]));
+        ]);
+    }
+    else {
+      body = Center(
+        child: new CircularProgressIndicator(),
+      );
+    }
+    return Scaffold(
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          backgroundColor: htwGreen,
+          title: Text(LocalizationService().getLocalization(english: "Choose a route to preview", german: "Route für Vorschau wählen")),
+          elevation: 0,
+        ),
+        body: body
+      );
   }
 }
 
