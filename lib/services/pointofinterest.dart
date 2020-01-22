@@ -1,5 +1,5 @@
-
 import 'package:hiking4nerds/services/routing/node.dart';
+import 'package:flutter/material.dart';
 
 class PointOfInterest extends Node{
   Map<String, dynamic> tags;
@@ -17,70 +17,24 @@ class PointOfInterest extends Node{
     return category;
   }
 
-  String getColorFromCategory(){
+  Color getColorFromCategory(){
     String category = getCategory();
-
-    switch(category) {
-      case "architecture": {
-        return "White";
-      }
-      break;
-      case "bar": {
-        return "Red";
-      }
-      break;
-      case "basilica": {
-        return "Green";
-      }
-      break;
-      case "cathedral": {
-        return "Yellow";
-      }
-      break;
-      case "chruch": {
-        return "Yellow";
-      }
-      break;
-      case "exhibition": {
-        return "Brown";
-      }
-      break;
-      case "gas station": {
-        return "Black";
-      }
-      break;
-      case "lake, monuments": {
-        return "Blue";
-      }
-      break;
-      case "museum": {
-        return "Brown";
-      }
-      break;
-      case "park": {
-        return "Green";
-      }
-      break;
-      case "river": {
-        return "Blue";
-      }
-      break;
-      case "romanic": {
-        return "Red";
-      }
-      break;
-      case "school": {
-        return "Blue";
-      }
-      break;
-      case "zoo": {
-        return "Pink";
-      }
-      break;
-      default: {
-        return "Green";
-      }
-      break;
-    }
+    return getColorFromString(category);
   }
+
+  Color getColorFromString(String abbr){
+    return colorFromAbbr(abbr.toUpperCase());
+  }
+
+  Color colorFromAbbr(String abbr){
+    int r = letterToRGBValue(abbr.substring(0, 1));
+    int g = letterToRGBValue(abbr.substring(1, 2));
+    int b = letterToRGBValue(abbr.substring(2, 3));
+    return Color.fromARGB(255, r, g, b);
+  }
+
+  int letterToRGBValue(String letter){
+    return (letter.substring(0, 1).codeUnitAt(0) - 65) * 10;
+  }
+
 }

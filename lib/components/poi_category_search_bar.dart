@@ -17,20 +17,22 @@ class PoiCategorySearchBar extends StatefulWidget {
 
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
   List<String> categories = <String>[
-    'architecture',
-    'bar',
-    'basilica',
-    'cathedral',
-    'church',
-    'exhibition',
-    'gas station',
-    'lake, ' 'monuments',
+    'information',
+    'attraction',
+    'viewpoint',
+    'artwork',
     'museum',
-    'park',
-    'river',
-    'romanic',
-    'school',
-    'zoo',
+    'alpine_hut',
+    'hunting_stand',
+    'camp_pitch',
+    'bench',
+    'restaurant',
+    'cafe',
+    'fast_food',
+    'bar',
+    'toilets',
+    'drinking_water',
+    'fountain'
   ];
 
 
