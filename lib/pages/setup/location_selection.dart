@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
@@ -77,7 +78,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                   fontWeight: FontWeight.bold)),
           iconTheme: IconThemeData(color: Color(0xFF808080)),
           backgroundColor: Colors.white,
-          title: Text("Search"),
+          title: Text(LocalizationService().getLocalization(english: "Search", german: "Suche")),
 
         ),
         onTap: () async {
@@ -159,7 +160,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      tooltip: 'Back',
+      tooltip: LocalizationService().getLocalization(english: "Back", german: "Zurück"),
       icon: AnimatedIcon(
         icon: AnimatedIcons.menu_arrow,
         progress: transitionAnimation,
@@ -215,7 +216,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     return <Widget>[
       if (query.isNotEmpty)
         IconButton(
-          tooltip: 'Clear',
+          tooltip: LocalizationService().getLocalization(english: "Clear", german: "Leeren"),
           icon: const Icon(Icons.clear),
           onPressed: () {
             query = '';

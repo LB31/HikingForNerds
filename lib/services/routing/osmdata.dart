@@ -11,6 +11,8 @@ import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapbox_gl/mapbox_gl.dart';
+import '../localization_service.dart';
+
 
 class RouteThreadData {
   OsmData osmRef;
@@ -432,14 +434,14 @@ class OsmData{
 class NoPOIsFoundException implements Exception {
   @override
   String toString() {
-    return "No points of interest found to given categories.";
+    return LocalizationService().getLocalization(english: "No points of interest found to given categories.", german: "Für die gewählten Kategorien wurden keine Sehenswürdigkeiten gefunden");
   }
 }
 
 class NoRoutesFoundException implements Exception{
   @override
   String toString() {
-    return "No routes found to given parameters.";
+    return LocalizationService().getLocalization(english: "No routes found to given parameters.", german: "Für die gewählten Parameter wurden keine Routen gefunden");
   }
 }
 

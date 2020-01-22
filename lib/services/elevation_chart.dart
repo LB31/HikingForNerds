@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
+import 'localization_service.dart';
+
 class ElevationChart extends StatelessWidget {
   final HikingRoute route;
   final bool interactive;
@@ -14,9 +16,8 @@ class ElevationChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO add localization
-    String bottomText = "Distance in km";
-    String leftText = "Elevation in m";
+    String bottomText = LocalizationService().getLocalization(english: "Distance in m", german: "Diszanz in m");
+    String leftText = LocalizationService().getLocalization(english: "Elevation in m", german: "Erhebung in m");
     int fontSize = 12;
     charts.SelectionTrigger interaction;
 

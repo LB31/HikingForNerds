@@ -8,6 +8,8 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 
+import '../localization_service.dart';
+
 class GpxDataHandler extends ImportExportHandler{
 
   //export part
@@ -17,8 +19,8 @@ class GpxDataHandler extends ImportExportHandler{
     gpx.version = '1.1';
     gpx.creator = 'Hiking4Nerds';
     gpx.metadata = Metadata(
-        name: 'Personal Route',
-        desc: 'exported GPX Route',
+        name: LocalizationService().getLocalization(english: "Personal Route", german: "Persönliche Route"),
+        desc: LocalizationService().getLocalization(english: "exported GPX Route", german: "exportierte GPX-Route"),
         time: DateTime.now()
     );
 
@@ -41,8 +43,8 @@ class GpxDataHandler extends ImportExportHandler{
     }
 
     return new Rte(
-      name: "route",
-      desc: "route containing waypoints",
+      name: LocalizationService().getLocalization(english: "route", german: "Route"),
+      desc: LocalizationService().getLocalization(english: "route containing waypoints", german: "Route mit Wegpunkten"),
       rtepts: wpts,
     );
   }
@@ -54,13 +56,13 @@ class GpxDataHandler extends ImportExportHandler{
           lat: poi.latitude,
           lon: poi.longitude,
           name: "POI",
-          desc: (poi.tags != null) ? new JsonEncoder.withIndent("  ").convert(poi.tags) : 'N/A'
+          desc: (poi.tags != null) ? new JsonEncoder.withIndent("  ").convert(poi.tags) : LocalizationService().getLocalization(english: "N/A", german: "n. a.")
       ));
     }
 
     return new Trk(
       name: "pois",
-      desc: "contains pois of route",
+      desc: LocalizationService().getLocalization(english: "contains pois of route", german: "enthält POIs der Route"),
       trksegs: [new Trkseg(trkpts: wpts)],
     );
   }

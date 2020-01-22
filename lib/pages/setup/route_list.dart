@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -74,10 +75,10 @@ class _RouteListState extends State<RouteList> {
 
   // TODO add localization or remove if not needed
   void summaryText() {
-    String text = 'Displaying routes for your chosen parameters\n';
-    text += 'Distance: ${widget.routeParams.distanceKm}\n';
+    String text = LocalizationService().getLocalization(english: "Displaying routes for your chosen parameters\n", german: "Routen für die gewählten Parameter werden dargestellt\n");
+    text += LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${widget.routeParams.distanceKm}\n'; 
     text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: \n' : '';
-    text += 'Altitude: ${widget.routeParams.altitudeType}\n';
+    text += LocalizationService().getLocalization(english: "Altitude:", german: "Höhe:") + '${widget.routeParams.altitudeType}\n';
     print(text);
     summary = text;
   }
@@ -110,7 +111,7 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        'Length: ${routeList[index].distance.toString()}km   Date: ${routeList[index].date}'),// TODO localization
+                        LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance.toString()}\n${LocalizationService().getLocalization(english: "Date:", german: "Datum:")}: ${routeList[index].date}'),
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,
@@ -134,7 +135,7 @@ class _RouteListState extends State<RouteList> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: htwGreen,
-          title: Text('Choose a route to preview'), // TODO add localization
+          title: Text(LocalizationService().getLocalization(english: "Choose a route to preview", german: "Route für Vorschau wählen")),
           elevation: 0,
         ),
         body: body
