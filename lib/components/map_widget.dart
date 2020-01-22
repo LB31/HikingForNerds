@@ -274,7 +274,6 @@ class MapWidgetState extends State<MapWidget> {
     if(_lastUserLocation == null) return true;
     else {
       double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
-      print("distance " + distance.toString());
       return distance > 0.001;
     }
   }
@@ -294,7 +293,7 @@ class MapWidgetState extends State<MapWidget> {
             _route[index], userLatLng);
         if (distanceToCurrentLocation < 0.1) {
           currentRouteIndex = index;
-          break;  
+          break;
         }
       }
 
