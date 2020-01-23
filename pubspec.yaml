@@ -73,7 +73,6 @@ flutter:
   assets:
     - assets/img/
     - assets/img/symbols/
-    - assets/img/symbols/restaurant.svg
     - assets/offline-data/
     - assets/styles/
 
