@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/services/categories.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:search_widget/search_widget.dart';
 
