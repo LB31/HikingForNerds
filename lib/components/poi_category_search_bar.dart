@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/categories.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:search_widget/search_widget.dart';
 
@@ -18,26 +19,41 @@ class PoiCategorySearchBar extends StatefulWidget {
 // TODO Get full list of categories
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
   List<String> categories = <String>[
-    'architecture',
-    'bar',
-    'basilica',
-    'bus',
-    'bus station',
-    'cathedral',
-    'church',
-    'exhibition',
-    'gas station',
-    'lake',
-    'monuments',
-    'museum',
-    'park',
-    'river',
-    'romanic',
-    'school',
-    'train',
-    'train station',
-    'viewpoint',
-    'zoo',
+    'Alpin hut',
+    'Apartment',
+    'Architecture',
+    'Artwork',
+    'Attraction',
+    'Bar',
+    'Bus',
+    'Bus station',
+    'Cabin',
+    'Camp pitch',
+    'Camp site',
+    'Caravan site',
+    'Cathedral',
+    'Chalet',
+    'Church',
+    'Exhibition',
+    'Gas station',
+    'Guest house',
+    'Information',
+    'Hostel',
+    'Hotel',
+    'Lake',
+    'Monument',
+    'Museum',
+    'Park',
+    'Picnic site',
+    'River',
+    'Rock Climbing',
+    'Restaurant',
+    'Restroom',
+    'Train',
+    'Train station',
+    'Viewpoint',
+    'WC',
+    'Zoo',
   ];
 
 
