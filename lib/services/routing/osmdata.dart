@@ -152,7 +152,6 @@ class OsmData{
   
   static HikingRoute doRouteCalculationsThreaded(RouteThreadData data) {
     var usePOIFunc = data.poiElements != null;
-    var alternativeRouteCount = data.alternativeRouteCount;
     var startLat = data.startLat;
     var startLong = data.startLong;
     var distanceInMeter = data.distanceInMeter;
@@ -165,9 +164,10 @@ class OsmData{
       if(usePOIFunc)
       {
         try {
-          return data.osmRef._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements, retryCount);
+          var startPoiIndex = randomGenerator.nextInt(poiElements.length);
+          return data.osmRef._calculateHikingRouteWithPois(startPoiIndex, startLat, startLong, distanceInMeter, poiElements, retryCount);
         }
-        catch (_) {
+        catch (NoRoutesFoundException) {
           retryCount++;
         }
       }
@@ -175,9 +175,9 @@ class OsmData{
       {
         try {
           var initialHeading = randomGenerator.nextInt(360).floorToDouble();
-          return data.osmRef._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter, initialHeading);
+          return data.osmRef._calculateHikingRouteWithoutPois(startLat, startLong, distanceInMeter, initialHeading);
         }
-        catch (_) {
+        catch (NoRoutesFoundException) {
           retryCount++;
         }
       }
@@ -205,13 +205,19 @@ class OsmData{
     _importJsonNodesAndWays(jsonNodesAndWays);
 
     RouteThreadData data = RouteThreadData();
-    data.alternativeRouteCount = alternativeRouteCount;
     data.distanceInMeter = distanceInMeter;
     data.foundRoutes = List();
     data.startLat = startLat;
     data.startLong = startLong;
     data.osmRef = this;
-    data.poiElements = poiElements;
+
+    if(poiElements != null){
+      var startLatLng = LatLng(startLat, startLong);
+      var pointsOfInterests = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
+      pointsOfInterests.sort((a,b) => getDistance(startLatLng, a).compareTo(getDistance(startLatLng, b)));
+      var closestPointsOfInterests = pointsOfInterests.sublist(0,min( pointsOfInterests.length, 50));
+      data.poiElements = closestPointsOfInterests;
+    }
 
     List<Future<HikingRoute>> computeFutures = List();
     for(int i = 0; i < alternativeRouteCount; ++i) {
@@ -221,7 +227,7 @@ class OsmData{
     return Future.wait(computeFutures);
   }
 
-  HikingRoute _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM, double initialHeading) {
+  HikingRoute _calculateHikingRouteWithoutPois(double startLat, double startLong, double distanceInM, double initialHeading) {
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
     var beeLineDistance = distanceInM * beeLineToRealRatio;
     graph.edgeAlreadyUsedPenalties.clear();
@@ -268,13 +274,9 @@ class OsmData{
     return resultRoute;
   }
 
-  HikingRoute _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<dynamic> poiElements, int retryCount) {
+  HikingRoute _calculateHikingRouteWithPois(int firstPoiIndex, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> closestPointsOfInterest, int retryCount) {
     var startNode = getClosestToPoint(startLat, startLong);
-
-    var pointsOfInterests = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
-    pointsOfInterests.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
-    var closestPointsOfInterests = pointsOfInterests.sublist(0,min( pointsOfInterests.length, 50));
-    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(closestPointsOfInterests,
+    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(closestPointsOfInterest,
         value: (cPoi) => cPoi,
         key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
     if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
@@ -288,7 +290,7 @@ class OsmData{
     //determine first poi to go to
     var unsortedPoiNodeList = wayNodeAndPOICopy.keys.toList();
     unsortedPoiNodeList.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
-    var firstPoi = unsortedPoiNodeList[(/*routes.length +*/ retryCount) % unsortedPoiNodeList.length];
+    var firstPoi = unsortedPoiNodeList[firstPoiIndex];
     //plan route to that poi
     var routeToFirstPoi = graph.AStar(lastVisited, firstPoi);
     if(routeToFirstPoi.isNotPresent){
@@ -303,6 +305,7 @@ class OsmData{
     wayNodeAndPOICopy.remove(firstPoi);
     lastVisited = firstPoi;
     //start loop over all the other pois
+    //Todo:change order so that the check is made after route to next poi is added to total length --> if route gets to long with that poi the check would cover that
     while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
       var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
       var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
