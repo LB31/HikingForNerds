@@ -1,6 +1,5 @@
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:flutter/material.dart';
-
+import 'package:mapbox_gl/mapbox_gl.dart';
 class PointOfInterest extends Node {
   Map<String, dynamic> tags;
 
@@ -35,4 +34,26 @@ class PointOfInterest extends Node {
     }
     return colour; 
   }
+
+  CircleOptions getCircleOptions(){
+    return CircleOptions(
+        geometry: LatLng(latitude, longitude),
+        circleColor: getColorString(),
+        circleRadius: 3,
+        circleBlur: 0.25,
+        circleOpacity: 0.8);
+  }
+
+  SymbolOptions getSymbolOptions(){
+    String category = getCategory();
+    //iconColor:  getColorString(),
+
+    String iconPath = getIconPath(category);
+    return SymbolOptions(iconImage: iconPath, geometry: LatLng(latitude, longitude), iconSize: 0.1);
+  }
+
+  getIconPath(String category){
+    return "assets/img/symbols/restaurant.svg";
+  }
+
 }

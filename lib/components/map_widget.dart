@@ -50,6 +50,9 @@ class MapWidgetState extends State<MapWidget> {
 
   Timer _timer;
 
+
+  double _lastZoom = 12;
+
   CameraPosition _position;
   MapboxMapController mapController;
   bool _compassEnabled = true;
@@ -146,7 +149,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearLines();
 
     drawRouteStartingPoint(route);
-    drawPOIs(route);
+    drawPOIs(route, 12);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
 
@@ -227,23 +230,34 @@ class MapWidgetState extends State<MapWidget> {
     return -1;
   }
 
-  void drawPOIs(HikingRoute route){
+  void drawPOIs(HikingRoute route, double zoom){
+
+
     List<PointOfInterest> pois = route.pointsOfInterest;
     if(pois !=null){
       pois.forEach((poi){
 
-        String color = poi.getColorString();
-        print("color $color");
+        if(zoom < 14){
+          mapController.clearSymbols();
+          CircleOptions poiOptions = poi.getCircleOptions();
+          mapController.addCircle(poiOptions);
+        } else {
 
-        CircleOptions poiOptions = CircleOptions(
-            geometry: LatLng(poi.latitude, poi.longitude),
-            circleColor: color,
-            circleRadius: 3,
-            circleBlur: 0.25,
-            circleOpacity: 0.8); 
-        mapController.addCircle(poiOptions);
-      });
+          mapController.clearCircles();
+          drawRouteStartingPoint(_hikingRoute);
+          SymbolOptions poiOptions = poi.getSymbolOptions();
+
+
+          Timer(Duration(seconds: 1), () => mapController.addSymbol(poiOptions));
+          mapController.addSymbol(poiOptions);
+
+
+        }
+        });
     }
+
+    setState(() {});
+
   }
 
   void centerCameraOverRoute(HikingRoute route) {
@@ -386,9 +400,15 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _onMapChanged() {
-/*    setState(() {
+
+    double currentZoom = mapController.cameraPosition.zoom;
+    if(currentZoom > 14 && _lastZoom <= 14) drawPOIs(_hikingRoute, currentZoom);
+    else if(currentZoom < 14 && _lastZoom >= 14) drawPOIs(_hikingRoute, currentZoom);
+
+    setState(() {
       _extractMapInfo();
-    });*/
+      _lastZoom = currentZoom;
+    });
   }
 
   @override
