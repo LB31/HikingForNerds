@@ -245,7 +245,7 @@ packages:
   mapbox_gl:
     dependency: "direct main"
     description:
-      path: "packages\\flutter-mapbox-gl"
+      path: "packages/flutter-mapbox-gl"
       relative: true
     source: path
     version: "0.0.5"

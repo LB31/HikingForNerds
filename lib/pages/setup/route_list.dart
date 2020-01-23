@@ -118,13 +118,27 @@ class _RouteListState extends State<RouteList> {
       r.pois.add('PLACEHOLDER');
     }
     r.pois.forEach((p) {
-      chips.add(Transform(
-      transform: Matrix4.identity()..scale(0.6),
-      child: Chip(
-        label: Text(p, style: TextStyle(fontSize: 12.0)),
-        backgroundColor: htwGreen,
-      ),
-    ));
+      chips.add(
+        RawMaterialButton(
+          onPressed: () {},
+          constraints: BoxConstraints(),
+          padding: EdgeInsets.fromLTRB(4.0, 4.0, 4.0, 4.0),
+          child: Text(p, style: TextStyle(fontSize: 10.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: new BorderRadius.circular(18.0),
+          ),
+          fillColor: htwGreen,
+        ));
+
+      //   Transform(
+      //   transform: Matrix4.identity()..scale(0.6),
+      //   child: Chip(
+      //     label: Text(p, style: TextStyle(fontSize: 12.0)),
+      //     backgroundColor: htwGreen,
+      //     labelPadding: EdgeInsets.all(2),
+      //     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      //   ),
+      // ));
     });
     
     return chips;
@@ -136,7 +150,8 @@ class _RouteListState extends State<RouteList> {
 
     Wrap content = Wrap(
       children: chips(r),
-      alignment: WrapAlignment.spaceAround,
+      spacing: 1.0,
+      alignment: WrapAlignment.start,
     );
 
     return Row(
@@ -176,7 +191,7 @@ class _RouteListState extends State<RouteList> {
             itemBuilder: (context, index) {
               return Padding(
                 padding:
-                  const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
+                  const EdgeInsets.symmetric(vertical: 1.0, horizontal: 1.0),
                 child: Card(
                   child: ListTile(
                     onTap: () {
