@@ -229,9 +229,13 @@ class MapWidgetState extends State<MapWidget> {
     List<PointOfInterest> pois = route.pointsOfInterest;
     if(pois !=null){
       pois.forEach((poi){
+
+        String color = poi.getColorString();
+        print("color $color");
+
         CircleOptions poiOptions = CircleOptions(
             geometry: LatLng(poi.latitude, poi.longitude),
-            circleColor: poi.getColorFromCategory(),
+            circleColor: color,
             circleRadius: 3,
             circleBlur: 0.25,
             circleOpacity: 0.8); 

@@ -1,40 +1,38 @@
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:flutter/material.dart';
 
-class PointOfInterest extends Node{
+class PointOfInterest extends Node {
   Map<String, dynamic> tags;
 
-  PointOfInterest(int id, double latitude, double longitude, this.tags) : super(id, latitude, longitude);
+  PointOfInterest(int id, double latitude, double longitude, this.tags)
+      : super(id, latitude, longitude);
 
-  String getCategory(){
+  String getCategory() {
     var category = "";
-    if(tags.containsKey("amenity")) {
+    if (tags.containsKey("amenity")) {
       category = tags["amenity"];
-    }
-    else {
+    } else {
       category = tags["tourism"];
     }
     return category;
   }
 
-  Color getColorFromCategory(){
+  String getColorString() {
     String category = getCategory();
-    return getColorFromString(category);
+    return stringToColourString(category);
   }
 
-  Color getColorFromString(String abbr){
-    return colorFromAbbr(abbr.toUpperCase());
+  /*Javascript code adapted to dart: from https://stackoverflow.com/a/16348977*/
+  String stringToColourString(String str) {
+    int hash = 0;
+    for (int i = 0; i < str.length; i++) {
+      hash = str.codeUnitAt(i) + ((hash << 5) - hash);
+    }
+    String colour = '#';
+    for (var i = 0; i < 3; i++) {
+      var value = (hash >> (i * 8)) & 0xFF;
+      colour += ('' + value.toRadixString(16));
+    }
+    return colour; 
   }
-
-  Color colorFromAbbr(String abbr){
-    int r = letterToRGBValue(abbr.substring(0, 1));
-    int g = letterToRGBValue(abbr.substring(1, 2));
-    int b = letterToRGBValue(abbr.substring(2, 3));
-    return Color.fromARGB(255, r, g, b);
-  }
-
-  int letterToRGBValue(String letter){
-    return (letter.substring(0, 1).codeUnitAt(0) - 65) * 10;
-  }
-
 }
