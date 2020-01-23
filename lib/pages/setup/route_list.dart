@@ -111,11 +111,8 @@ class _RouteListState extends State<RouteList> {
 
   chips(RouteListEntry r) {
     List<Widget> chips = List();
-    // TODO remove test setup when POIs are available
-    if(r.pois == null || r.pois.isEmpty) {
-      r.pois.add('PLACEHOLDER');
-      r.pois.add('PLACEHOLDER');
-      r.pois.add('PLACEHOLDER');
+    if(r.pois.isEmpty) {
+      r.pois.add(LocalizationService().getLocalization(english: 'No applicable POI found', german: 'Keinen zutreffenden POI gefunden'));
     }
     r.pois.forEach((p) {
       chips.add(
@@ -129,16 +126,6 @@ class _RouteListState extends State<RouteList> {
           ),
           fillColor: htwGreen,
         ));
-
-      //   Transform(
-      //   transform: Matrix4.identity()..scale(0.6),
-      //   child: Chip(
-      //     label: Text(p, style: TextStyle(fontSize: 12.0)),
-      //     backgroundColor: htwGreen,
-      //     labelPadding: EdgeInsets.all(2),
-      //     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      //   ),
-      // ));
     });
     
     return chips;
@@ -148,16 +135,19 @@ class _RouteListState extends State<RouteList> {
 
     Text text = Text('\n${r.distance} KM\n\n${r.time} MIN\n\n\n');
 
-    Wrap content = Wrap(
+    Wrap chipsWrap = Wrap(
       children: chips(r),
       spacing: 1.0,
-      alignment: WrapAlignment.start,
     );
 
     return Row(
       children: <Widget>[
         Expanded(
-          child: content,
+          child: r.routeCanvas,
+          flex: 3,
+        ),
+        Expanded(
+          child: chipsWrap,
           flex: 7,
         ),
         Expanded(
@@ -199,7 +189,6 @@ class _RouteListState extends State<RouteList> {
                       widget.onPushRoutePreview(widget.routeParams);
                     },
                     subtitle: buildSub(_routeList[index]),
-                    leading: _routeList[index].routeCanvas,
                     isThreeLine: true,
                   ),
                 ),
@@ -218,7 +207,7 @@ class _RouteListState extends State<RouteList> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: htwGreen,
-          title: Text(LocalizationService().getLocalization(english: "Choose a route to preview", german: "Route für Vorschau wählen")),
+          title: Text(LocalizationService().getLocalization(english: 'Choose a route to preview', german: 'Route für Vorschau wählen')),
           elevation: 0,
         ),
         body: body
@@ -245,7 +234,7 @@ class RouteListEntry {
     this.routeCanvas = RouteCanvasWidget(100, 100, r.path, lineColor: htwGreen,);
     (r.elevations != null) ? this.chart = ElevationChart(r, interactive: false, withLabels: false,) : print('NO ALTITUDE INFORMATION AVAILABLE');
     // TODO remove placeholder when pois are available
-    if (r.pointsOfInterest != null) r.pointsOfInterest.forEach((p) => { if( !pois.contains(p.getCategory) ) pois.add(p.getCategory() )});
+    (r.pointsOfInterest == null) ?  print('NO APPLICABLE POIs FOUND') : r.pointsOfInterest.forEach((p) => { if( !pois.contains(p.getCategory) ) {pois.add(p.getCategory() )} });
   }
 
   String formatDistance(double n) {
