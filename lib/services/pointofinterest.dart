@@ -49,11 +49,11 @@ class PointOfInterest extends Node {
     //iconColor:  getColorString(),
 
     String iconPath = getIconPath(category);
-    return SymbolOptions(iconImage: iconPath, geometry: LatLng(latitude, longitude), iconSize: 0.1); 
+    return SymbolOptions(iconImage: iconPath, geometry: LatLng(latitude, longitude), iconSize: 0.1);
   }
 
   getIconPath(String category){
-    return "assets/img/symbols/restaurant-11.svg";
+    return "assets/img/symbols/$category.png";
   }
 
 }
