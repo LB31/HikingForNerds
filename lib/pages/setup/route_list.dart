@@ -109,18 +109,45 @@ class _RouteListState extends State<RouteList> {
     );
   }
 
+  chips(RouteListEntry r) {
+    List<Widget> chips = List();
+    // TODO remove test setup when POIs are available
+    if(r.pois == null || r.pois.isEmpty) {
+      r.pois.add('PLACEHOLDER');
+      r.pois.add('PLACEHOLDER');
+      r.pois.add('PLACEHOLDER');
+    }
+    r.pois.forEach((p) {
+      chips.add(Transform(
+      transform: Matrix4.identity()..scale(0.6),
+      child: Chip(
+        label: Text(p, style: TextStyle(fontSize: 12.0)),
+        backgroundColor: htwGreen,
+      ),
+    ));
+    });
+    
+    return chips;
+  }
+
   buildSub(RouteListEntry r) {
 
-    Text text = Text('${r.distance} KM\n${r.time} MIN');
+    Text text = Text('\n${r.distance} KM\n\n${r.time} MIN\n\n\n');
+
+    Wrap content = Wrap(
+      children: chips(r),
+      alignment: WrapAlignment.spaceAround,
+    );
+
     return Row(
       children: <Widget>[
-        Column(children: <Widget>[
-
-          if (r.chart != null) r.chart,
-        ]),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[text],
+        Expanded(
+          child: content,
+          flex: 7,
+        ),
+        Expanded(
+          child: text,
+          flex: 1,
         )
       ],
     );
@@ -156,9 +183,9 @@ class _RouteListState extends State<RouteList> {
                       widget.routeParams.routeIndex = index;
                       widget.onPushRoutePreview(widget.routeParams);
                     },
-                    title: Text(''),
                     subtitle: buildSub(_routeList[index]),
                     leading: _routeList[index].routeCanvas,
+                    isThreeLine: true,
                   ),
                 ),
               );
@@ -191,7 +218,7 @@ class RouteListEntry {
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
   ElevationChart chart;
-  Set<String> pois = Set();
+  List<String> pois = [];
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
@@ -203,7 +230,7 @@ class RouteListEntry {
     this.routeCanvas = RouteCanvasWidget(100, 100, r.path, lineColor: htwGreen,);
     (r.elevations != null) ? this.chart = ElevationChart(r, interactive: false, withLabels: false,) : print('NO ALTITUDE INFORMATION AVAILABLE');
     // TODO remove placeholder when pois are available
-    (r.pointsOfInterest != null) ? r.pointsOfInterest.forEach((p) => pois.add(p.getCategory())) : pois.add('PLACEHOLDER');
+    if (r.pointsOfInterest != null) r.pointsOfInterest.forEach((p) => { if( !pois.contains(p.getCategory) ) pois.add(p.getCategory() )});
   }
 
   String formatDistance(double n) {
