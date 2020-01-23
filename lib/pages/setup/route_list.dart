@@ -140,6 +140,13 @@ class _RouteListState extends State<RouteList> {
       spacing: 1.0,
     );
 
+    Column content = Column(
+      children: <Widget>[
+        chipsWrap,
+        if(r.chart != null) r.chart,
+      ],
+    );
+
     return Row(
       children: <Widget>[
         Expanded(
@@ -147,7 +154,7 @@ class _RouteListState extends State<RouteList> {
           flex: 3,
         ),
         Expanded(
-          child: chipsWrap,
+          child: content,
           flex: 7,
         ),
         Expanded(
