@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 
 class CalculatingRoutesDialog extends StatelessWidget {
   @override
@@ -14,8 +15,9 @@ class CalculatingRoutesDialog extends StatelessWidget {
             Center(child: CircularProgressIndicator()),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              // TODO add localization
-              child: Center(child: Text("Calculating Route...")),
+              child: Center(child: Text(LocalizationService().getLocalization(
+              english: "Calculating Route...",
+              german: "Route wird berechnet..."),)),
             ),
           ],
         ),

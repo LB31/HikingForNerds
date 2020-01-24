@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
-import 'package:hiking4nerds/services/geojson_export_handler.dart';
-import 'package:hiking4nerds/services/gpx_export_handler.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
+import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -53,7 +54,7 @@ class ShareRoute extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      ShareConsts.widgetTitle,
+                      ShareConsts().widgetTitle,
                       style: TextStyle(
                         fontSize: 24.0,
                         fontWeight: FontWeight.w700,
@@ -73,7 +74,7 @@ class ShareRoute extends StatelessWidget {
                 height: 16.0,
               ),
               Text(
-                ShareConsts.widgetDescription,
+                ShareConsts().widgetDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18.0,
@@ -90,8 +91,7 @@ class ShareRoute extends StatelessWidget {
                     child: FlatButton(
                       onPressed: () async {
                         if (this.route == null) return;
-                        String jsonString =
-                            GeojsonExportHandler.parseFromPolylines(route.path);
+                        String jsonString = new GeojsonDataHandler().parseStringFromRoute(route);
                         File exportedFile = await exportAsJson(jsonString);
                         await Share.file('route', 'route.geojson',
                             exportedFile.readAsBytesSync(), 'application/json');
@@ -105,8 +105,7 @@ class ShareRoute extends StatelessWidget {
                     child: FlatButton(
                       onPressed: () async {
                         if (this.route == null) return;
-                        String gpxString =
-                            GpxExportHandler.parseFromPolylines(route.path);
+                        String gpxString = new GpxDataHandler().parseStringFromRoute(route);
                         File exportedFile = await exportAsGpx(gpxString);
                         await Share.file('route', 'route.gpx',
                             exportedFile.readAsBytesSync(), 'text/xml');
@@ -125,13 +124,13 @@ class ShareRoute extends StatelessWidget {
   }
 
   Future<File> exportAsJson(String jsonString) async {
-    final file = await localPath('route.geojson');
+    final file = await localPath(ShareConsts.sharedFileName + '.geojson');
 
     return file.writeAsString(json.encode(json.decode(jsonString)));
   }
 
   Future<File> exportAsGpx(String gpxString) async {
-    final file = await localPath('route.gpx');
+    final file = await localPath(ShareConsts.sharedFileName + '.gpx');
 
     return file.writeAsString(gpxString);
   }
@@ -158,15 +157,17 @@ class ShareRoute extends StatelessWidget {
   }
 }
 
-//TODO: add to localization
+
 class ShareConsts {
-  ShareConsts._();
+  ShareConsts();
+
+  static const String sharedFileName = "Route";
 
   static const double padding = 16.0;
   static const double blurRadius = 10.0;
 
-  static const String widgetTitle = "Share";
-  static const String widgetDescription = "your personal route as...";
+  String widgetTitle = LocalizationService().getLocalization(english: "Share", german: "Teilen");
+  String widgetDescription = LocalizationService().getLocalization(english: "your personal route as...", german: "Ihre persönliche Route als...");
   static const String exportButtonGeojson = "GeoJson";
   static const String exportButtonGpx = "GPX";
 }

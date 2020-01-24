@@ -65,9 +65,8 @@ class ElevationChartState extends State<ElevationChart>{
 
   @override
   Widget build(BuildContext context) {
-    // TODO add localization
-    String bottomText = "Distance in m";
-    String leftText = "Elevation in m";
+    String bottomText = LocalizationService().getLocalization(english: "Distance in m", german: "Diszanz in m");
+    String leftText = LocalizationService().getLocalization(english: "Elevation in m", german: "Erhebung in m");
     int fontSize = 12;
     charts.SelectionTrigger interaction;
 

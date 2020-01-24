@@ -1,4 +1,7 @@
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:hiking4nerds/services/route.dart';
+
+import 'localization_service.dart';
 
 typedef RouteParamsCallback = void Function(RouteParams routeParams);
 
@@ -12,11 +15,11 @@ class AltitudeTypeHelper {
   static String asString(AltitudeType type) {
     switch (type) {
       case AltitudeType.none:
-        return "N/A";
+        return LocalizationService().getLocalization(english: "N/A", german: "n. a.");
       case AltitudeType.minimal:
-        return "minimal";
+        return LocalizationService().getLocalization(english: "minimal", german: "minimal");
       case AltitudeType.high:
-        return "high";
+        return LocalizationService().getLocalization(english: "high", german: "hoch");
     }
 
     return "";
@@ -32,7 +35,8 @@ class RouteParams {
   double distanceKm;
   List<String> poiCategories;
   AltitudeType altitudeType;
+  List<HikingRoute> routes;
+  int routeIndex;
 
-  RouteParams(this.startingLocation,
-      [this.distanceKm, this.poiCategories, this.altitudeType]);
+  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType]);
 }
