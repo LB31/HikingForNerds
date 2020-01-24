@@ -19,7 +19,7 @@ class RouteList extends StatefulWidget {
 
 class _RouteListState extends State<RouteList> {
   List<RouteListEntry> _routeList = [];
-  String _title = '';
+  String _title;
   bool _routesCalculated = false;
 
   @override
@@ -39,172 +39,134 @@ class _RouteListState extends State<RouteList> {
           10,
           widget.routeParams.poiCategories);
     } on NoPOIsFoundException catch (err) {
-      print("no poi found exception " + err.toString());
+      print("NoPOIsFoundException: " + err.toString());
       routes = await OsmData().calculateHikingRoutes(
-        widget.routeParams.startingLocation.latitude,
-        widget.routeParams.startingLocation.longitude,
-        widget.routeParams.distanceKm * 1000.0,
-        10);
+          widget.routeParams.startingLocation.latitude,
+          widget.routeParams.startingLocation.longitude,
+          widget.routeParams.distanceKm * 1000.0,
+          10);
     }
 
     routes = routes.toList(growable: true);
     routes.removeWhere((elem) => elem == null);
 
-    await buildRouteTitles(routes);
-
     setState(() {
       widget.routeParams.routes = routes;
-      widget.routeParams.routes.forEach((r) => _routeList.add(RouteListEntry(r)));
-      if(routes.length > 0) _title = routes[0].title;
+      widget.routeParams.routes
+          .forEach((entry) => _routeList.add(RouteListEntry(context, entry)));
       this._routesCalculated = true;
     });
-
   }
 
-  // TODO add localization or remove if not needed
-  headerText() {
-    String paramTitles = 'Start: ';
-    (_title.length > 20) ? paramTitles += '\n\nDistance: ' : paramTitles += '\nDistance: ';
-    if(widget.routeParams.poiCategories.length > 0) {
-      paramTitles += '\nPOIs: ';
-      for(var i = 1; i < widget.routeParams.poiCategories.length; i++) paramTitles += '\n';
-      // widget.routeParams.poiCategories.forEach((p) => paramTitles += '\n');
-    }
-    paramTitles += '\nAltitude differences: ';
-
-    String params = '$_title';
-    params += '\n${widget.routeParams.distanceKm.toInt()} KM / ${(widget.routeParams.distanceKm*12).toInt()} MIN';
-    if(widget.routeParams.poiCategories.length > 0) {
-      widget.routeParams.poiCategories.forEach((p) => params += '\n$p ');
-    }
-    params += '\n${AltitudeTypeHelper.asString(widget.routeParams.altitudeType)}';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-      child: Row(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child:
-              Text(paramTitles,
-                style: TextStyle(
-                // fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600]),
-                textAlign: TextAlign.left,
-              ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(12.0),
-            child:
-              Text(params,
-                style: TextStyle(
-                // fontSize: 14,
-                color: Colors.grey[600]),
-                textAlign: TextAlign.left,
-              ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  chips(RouteListEntry r) {
+  generateChips(RouteListEntry entry) {
     List<Widget> chips = List();
-    if(r.pois.isEmpty) {
-      r.pois.add(LocalizationService().getLocalization(english: 'No applicable POI found', german: 'Keinen zutreffenden POI gefunden'));
+    if (entry.pois.isEmpty) {
+      for (int i = 0; i < 3; i++) {
+        entry.pois.add(LocalizationService().getLocalization(
+            english: 'no poi found', german: 'kein poi gefunden'));
+      }
     }
-    r.pois.forEach((p) {
-      chips.add(
-        RawMaterialButton(
-          onPressed: () {},
-          constraints: BoxConstraints(),
-          padding: EdgeInsets.fromLTRB(4.0, 4.0, 4.0, 4.0),
-          child: Text(p, style: TextStyle(fontSize: 10.0)),
-          shape: RoundedRectangleBorder(
-            borderRadius: new BorderRadius.circular(18.0),
-          ),
-          fillColor: htwGreen,
-        ));
+    entry.pois.forEach((poi) {
+      chips.add(new Chip(
+        label: Text(poi, style: TextStyle(fontSize: 11, color: Colors.white)),
+        backgroundColor: htwGreen,
+      ));
     });
-    
-    return chips;
-  }
 
-  buildSub(RouteListEntry r) {
+    chips.add(Chip(
+        backgroundColor: Color(0xFFE1E4F3),
+        label: Text("high",
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF3649AE)
+          ),
 
-    Text text = Text('\n${r.distance} KM\n\n${r.time} MIN\n\n\n');
-
-    Wrap chipsWrap = Wrap(
-      children: chips(r),
-      spacing: 1.0,
-    );
-
-    Column content = Column(
-      children: <Widget>[
-        chipsWrap,
-        if(r.chart != null) r.chart,
-      ],
-    );
-
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: r.routeCanvas,
-          flex: 3,
-        ),
-        Expanded(
-          child: content,
-          flex: 7,
-        ),
-        Expanded(
-          child: text,
-          flex: 1,
         )
-      ],
-    );
-  }
+    ));
 
-  Future<void> buildRouteTitles(List<HikingRoute> routes) async{
-    for(int i = 0; i < routes.length; i++){
-      String title = await routes[i].buildTitle();
-      routes[i].setTitle(title);
-    }
+    return chips;
   }
 
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if(_routesCalculated) {
-      body = 
-        Column(
-        children: <Widget>[
-        Padding(padding: EdgeInsets.only(top: 4)),
-          headerText(),
-        Padding(padding: EdgeInsets.only(top: 4)),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _routeList.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding:
-                  const EdgeInsets.symmetric(vertical: 1.0, horizontal: 1.0),
-                child: Card(
-                  child: ListTile(
-                    onTap: () {
-                      widget.routeParams.routeIndex = index;
-                      widget.onPushRoutePreview(widget.routeParams);
-                    },
-                    subtitle: buildSub(_routeList[index]),
-                    isThreeLine: true,
+    if (_routesCalculated) {
+      body = ListView.builder(
+        itemBuilder: (context, index) {
+          return InkWell(
+              onTap: () {
+                widget.routeParams.routeIndex = index;
+                widget.onPushRoutePreview(widget.routeParams);
+              },
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Column(
+                        children: <Widget>[
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  20.0, 12.0, 12.0, 12.0),
+                              child: Container(
+                                child: _routeList[index].routeCanvas,
+                                decoration: new BoxDecoration(
+                                    color: Colors.grey[300],
+                                    border: Border.all(color: Colors.grey[600]),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        blurRadius: 3.0,
+                                      ),
+                                    ],
+                                    borderRadius: new BorderRadius.all(
+                                        const Radius.circular(3.0))),
+                              )),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: Wrap(
+                            spacing: 5,
+                            runSpacing: -10,
+                            children: generateChips(_routeList[index]),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 12, 12, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                "${_routeList[index].distance} km",
+                                style: TextStyle(
+                                    fontSize: 13, color: Colors.grey[600]),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "${_routeList[index].time} min",
+                                style: TextStyle(
+                                    fontSize: 13, color: Colors.grey[600]),
+                              ),
+                            ],
+                          )),
+                    ],
                   ),
-                ),
-              );
-            },
-          ),
-        )]);
-    }
-    else {
+                  Divider(
+                    height: 2.0,
+                    color: Colors.grey,
+                  )
+                ],
+              ));
+        },
+        itemCount: _routeList.length,
+      );
+    } else {
       body = Center(
         child: new CircularProgressIndicator(),
       );
@@ -214,11 +176,12 @@ class _RouteListState extends State<RouteList> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: htwGreen,
-          title: Text(LocalizationService().getLocalization(english: 'Choose a route to preview', german: 'Route für Vorschau wählen')),
+          title: Text(LocalizationService().getLocalization(
+              english: 'Choose a route to preview',
+              german: 'Route für Vorschau wählen')),
           elevation: 0,
         ),
-        body: body
-      );
+        body: body);
   }
 }
 
@@ -233,15 +196,15 @@ class RouteListEntry {
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
-  RouteListEntry(HikingRoute r) {
-    this.title = r.title;
-    this.date = r.date;
-    this.distance = formatDistance(r.totalLength);
-    this.time = (r.totalLength * 12).toInt().toString();
-    this.routeCanvas = RouteCanvasWidget(100, 100, r.path, lineColor: htwGreen,);
-    (r.elevations != null) ? this.chart = ElevationChart(r, interactive: false, withLabels: false,) : print('NO ALTITUDE INFORMATION AVAILABLE');
-    // TODO remove placeholder when pois are available
-    (r.pointsOfInterest == null) ?  print('NO APPLICABLE POIs FOUND') : r.pointsOfInterest.forEach((p) => { if( !pois.contains(p.getCategory) ) {pois.add(p.getCategory() )} });
+  RouteListEntry(BuildContext context, HikingRoute route) {
+    this.distance = formatDistance(route.totalLength);
+    this.time = (route.totalLength * 12).toInt().toString();
+    this.routeCanvas = RouteCanvasWidget(
+      MediaQuery.of(context).size.width * 0.2,
+      MediaQuery.of(context).size.width * 0.2,
+      route.path,
+      lineColor: Colors.black,
+    );
   }
 
   String formatDistance(double n) {

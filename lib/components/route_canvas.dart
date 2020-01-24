@@ -6,13 +6,11 @@ class RouteCanvasWidget extends StatelessWidget {
   final double width, height;
   final List<Node> nodes;
   final double innerPadding;
-  final Color backgroundColor;
   final Color lineColor;
   final double strokeWidth;
 
   const RouteCanvasWidget(this.width, this.height, this.nodes,
       {this.innerPadding = 0.2,
-      this.backgroundColor = Colors.white70,
       this.lineColor = Colors.black,
       this.strokeWidth = 1.5});
 
@@ -21,7 +19,6 @@ class RouteCanvasWidget extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: backgroundColor,
       child: CustomPaint(
           painter: RoutePainter(
               width,

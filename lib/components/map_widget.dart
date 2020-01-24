@@ -19,8 +19,9 @@ import 'dart:math';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
+  final VoidCallback mapCreated;
 
-  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+  MapWidget({Key key, @required this.isStatic, this.mapCreated}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -510,6 +511,8 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
+
+    if (widget.mapCreated != null) widget.mapCreated();
     if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }

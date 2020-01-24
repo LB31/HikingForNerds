@@ -141,14 +141,14 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ],
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                padding: EdgeInsets.all(10),
                 child: Divider(color: htwGrey),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    LocalizationService().getLocalization(english: "Select Altitude Level", german: "Höhenlevel wählen"),
+                    LocalizationService().getLocalization(english: "Select Altitude Difference", german: "Höhendifferenz wählen"),
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

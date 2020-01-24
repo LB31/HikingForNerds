@@ -15,44 +15,22 @@ class PoiCategorySearchBar extends StatefulWidget {
   _PoiCategorySearchBarState createState() => _PoiCategorySearchBarState();
 }
 
-// TODO Get full list of categories
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
   List<String> categories = <String>[
-    'Alpin hut',
-    'Apartment',
-    'Architecture',
-    'Artwork',
-    'Attraction',
-    'Bar',
-    'Bus',
-    'Bus station',
-    'Cabin',
-    'Camp pitch',
-    'Camp site',
-    'Caravan site',
-    'Cathedral',
-    'Chalet',
-    'Church',
-    'Exhibition',
-    'Gas station',
-    'Guest house',
-    'Information',
-    'Hostel',
-    'Hotel',
-    'Lake',
-    'Monument',
-    'Museum',
-    'Park',
-    'Picnic site',
-    'River',
-    'Rock Climbing',
-    'Restaurant',
-    'Restroom',
-    'Train',
-    'Train station',
-    'Viewpoint',
-    'WC',
-    'Zoo',
+    'architecture',
+    'bar',
+    'basilica',
+    'cathedral',
+    'church',
+    'exhibition',
+    'gas station',
+    'lake, ' 'monuments',
+    'museum',
+    'park',
+    'river',
+    'romanic',
+    'school',
+    'zoo'
   ];
 
 

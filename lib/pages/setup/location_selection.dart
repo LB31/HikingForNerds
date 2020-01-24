@@ -97,7 +97,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
             heightFactor: 1.5,
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.95,
-              height: 65,
+              height: 60,
               child: GestureDetector(
                 onTap: () async {
                   String query = await showSearch(
@@ -111,7 +111,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                     elevation: 7,
                     shape: RoundedRectangleBorder(
                         borderRadius: const BorderRadius.all(
-                      Radius.circular(8.0),
+                      Radius.circular(5.0),
                     )),
                     child: Padding(
                         padding: EdgeInsets.fromLTRB(20, 0, 20, 0),

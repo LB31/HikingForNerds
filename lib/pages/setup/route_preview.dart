@@ -25,6 +25,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
 
   List<HikingRoute> _routes = [];
+  String _routeAddressLine = LocalizationService().getLocalization(english: 'Loading..', german: 'Lädt..');
   int _currentRouteIndex;
 
   @override
@@ -32,10 +33,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
-
-    //TODO consider using a callback instead of a timeout
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      switchRoute(_currentRouteIndex);
+    _routes[_currentRouteIndex].findAddress().then((address) {
+      _routeAddressLine = address.addressLine;
     });
   }
 
@@ -68,6 +67,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
+  void onMapWidgetCreated() => switchRoute(_currentRouteIndex);
+
   @override
   Widget build(BuildContext context) {
     HikingRoute currentRoute = _routes[_currentRouteIndex];
@@ -85,6 +86,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           MapWidget(
             key: mapWidgetKey,
             isStatic: true,
+            mapCreated: onMapWidgetCreated,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Column(children: <Widget>[
@@ -106,7 +108,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       child: Card(
                           child: ListTile(
                               onTap: () {},
-                              title: Text(currentRoute.title),
+                              title: Text(_routeAddressLine, overflow: TextOverflow.ellipsis),
                               subtitle: Text(
                                   "Length: ${routeLength.toStringAsFixed(2)} km - "
                                   "${(routeLength * avgHikingSpeed).toStringAsFixed(0)} min")))),
