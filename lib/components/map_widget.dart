@@ -245,12 +245,10 @@ class MapWidgetState extends State<MapWidget> {
 
           mapController.clearCircles();
           drawRouteStartingPoint(_hikingRoute);
+
           SymbolOptions poiOptions = poi.getSymbolOptions();
-
-
           Timer(Duration(seconds: 1), () => mapController.addSymbol(poiOptions));
           mapController.addSymbol(poiOptions);
-
 
         }
         });

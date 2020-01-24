@@ -1,5 +1,6 @@
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+
 class PointOfInterest extends Node {
   Map<String, dynamic> tags;
 
@@ -32,10 +33,10 @@ class PointOfInterest extends Node {
       var value = (hash >> (i * 8)) & 0xFF;
       colour += ('' + value.toRadixString(16));
     }
-    return colour; 
+    return colour;
   }
 
-  CircleOptions getCircleOptions(){
+  CircleOptions getCircleOptions() {
     return CircleOptions(
         geometry: LatLng(latitude, longitude),
         circleColor: getColorString(),
@@ -44,16 +45,23 @@ class PointOfInterest extends Node {
         circleOpacity: 0.8);
   }
 
-  SymbolOptions getSymbolOptions(){
+  SymbolOptions getSymbolOptions() {
     String category = getCategory();
-    //iconColor:  getColorString(),
-
+    String iconColor =  getColorString();
     String iconPath = getIconPath(category);
-    return SymbolOptions(iconImage: iconPath, geometry: LatLng(latitude, longitude), iconSize: 0.1);
+    return SymbolOptions(
+        iconImage: iconPath,
+        geometry: LatLng(latitude, longitude),
+        iconSize: 0.1,
+        //textField: "test",
+        textColor: iconColor,
+        textOpacity: 1,
+        textSize: 12,
+        textAnchor: "bottom"
+    );
   }
 
-  getIconPath(String category){
+  getIconPath(String category) {
     return "assets/img/symbols/$category.png";
   }
-
 }
