@@ -24,7 +24,14 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
-    moveToLatLng(LatLng(currentLocation.latitude, currentLocation.longitude));
+    LatLng currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude);
+    moveToLatLng(currentLatLng);
+
+    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(Coordinates(currentLatLng.latitude, currentLatLng.longitude));
+
+    setState(() {
+      searchedLocation = addresses[0].addressLine;
+    });
   }
 
   Future<LatLng> queryToLatLng(String query) async {
