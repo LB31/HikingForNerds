@@ -114,7 +114,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                       Radius.circular(8.0),
                     )),
                     child: Padding(
-                        padding: EdgeInsets.fromLTRB(40, 0, 20, 0),
+                        padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
@@ -125,10 +125,10 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                                         maxLines: 1,
                                         style: TextStyle(
                                             color: Color(0xFF808080),
-                                            fontSize: 20),
+                                            fontSize: 16),
                                         textAlign: TextAlign.start))),
                             Center(
-                                child: Icon(FontAwesomeIcons.search,
+                                child: Icon(FontAwesomeIcons.search, size: 22,
                                     color: Color(0xFF808080)))
                           ],
                         ))),
