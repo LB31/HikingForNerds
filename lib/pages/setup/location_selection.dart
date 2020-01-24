@@ -8,6 +8,7 @@ import 'package:location/location.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
+import 'dart:io' show Platform;
 
 class LocationSelectionPage extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreferences;
@@ -24,10 +25,12 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
-    LatLng currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude);
+    LatLng currentLatLng =
+        LatLng(currentLocation.latitude, currentLocation.longitude);
     moveToLatLng(currentLatLng);
 
-    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(Coordinates(currentLatLng.latitude, currentLatLng.longitude));
+    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(
+        Coordinates(currentLatLng.latitude, currentLatLng.longitude));
 
     setState(() {
       searchedLocation = addresses[0].addressLine;
@@ -75,6 +78,14 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
       updatedHistory = updatedHistory.toSet().toList();
       prefs.setStringList("searchHistory", updatedHistory);
     });
+  }
+
+  int getMarkerPinTopPositionOffset() {
+    int offset = 0;
+    if (Platform.isIOS) {
+      offset = 20;
+    }
+    return -45 - 70 - offset;
   }
 
   @override
@@ -128,15 +139,16 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                                             fontSize: 16),
                                         textAlign: TextAlign.start))),
                             Center(
-                                child: Icon(FontAwesomeIcons.search, size: 22,
-                                    color: Color(0xFF808080)))
+                                child: Icon(FontAwesomeIcons.search,
+                                    size: 22, color: Color(0xFF808080)))
                           ],
                         ))),
               ),
             ),
           ),
           Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 45 - 70,
+              top: MediaQuery.of(context).size.height * 0.5 +
+                  getMarkerPinTopPositionOffset(),
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,

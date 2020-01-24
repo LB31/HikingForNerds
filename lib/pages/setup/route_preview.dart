@@ -8,6 +8,7 @@ import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
+
 class RoutePreviewPage extends StatefulWidget {
   final SwitchToMapCallback onSwitchToMap;
   final RouteParams routeParams;
