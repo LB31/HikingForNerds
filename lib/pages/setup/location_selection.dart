@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -19,20 +20,30 @@ class LocationSelectionPage extends StatefulWidget {
 
 class _LocationSelectionPageState extends State<LocationSelectionPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
+  String searchedLocation = "";
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
-    moveToLatLng(LatLng(currentLocation.latitude, currentLocation.longitude));
+    LatLng currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude);
+    moveToLatLng(currentLatLng);
+
+    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(Coordinates(currentLatLng.latitude, currentLatLng.longitude));
+
+    setState(() {
+      searchedLocation = addresses[0].addressLine;
+    });
   }
 
   Future<LatLng> queryToLatLng(String query) async {
-    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
+    List<Address> addresses =
+        await Geocoder.local.findAddressesFromQuery(query);
     Address first = addresses.first;
     return LatLng(first.coordinates.latitude, first.coordinates.longitude);
   }
 
   Future<String> queryToAddressName(String query) async {
-    List<Address> addresses = await Geocoder.local.findAddressesFromQuery(query);
+    List<Address> addresses =
+        await Geocoder.local.findAddressesFromQuery(query);
     return addresses.first.addressLine;
   }
 
@@ -69,25 +80,12 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        appBar: AppBar(
-          textTheme: TextTheme(
-              title: TextStyle(
-                  color: Color(0xFF808080),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
-          iconTheme: IconThemeData(color: Color(0xFF808080)),
-          backgroundColor: Colors.white,
-          title: Text(LocalizationService().getLocalization(english: "Search", german: "Suche")),
-
-        ),
-        onTap: () async {
-          String query = await showSearch(
-              context: context, delegate: CustomSearchDelegate());
-          if (query.length > 0) {
-            moveToAddress(query);
-          }
-        },
+      appBar: AppBar(
+        title: Text(LocalizationService().getLocalization(
+            english: "Select your starting location",
+            german: "Wähle deinen Startpunkt aus")), // TODO add localization
+        backgroundColor: Theme.of(context).primaryColor,
+        elevation: 0.0,
       ),
       body: Stack(
         children: <Widget>[
@@ -95,8 +93,50 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
             key: mapWidgetKey,
             isStatic: true,
           ),
+          Center(
+            heightFactor: 1.5,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.95,
+              height: 65,
+              child: GestureDetector(
+                onTap: () async {
+                  String query = await showSearch(
+                      context: context, delegate: CustomSearchDelegate());
+                  if (query != null && query.length > 0) {
+                    searchedLocation = query;
+                    moveToAddress(query);
+                  }
+                },
+                child: Card(
+                    elevation: 7,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: const BorderRadius.all(
+                      Radius.circular(8.0),
+                    )),
+                    child: Padding(
+                        padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                                child: Container(
+                                    child: Text(searchBarText(),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                            color: Color(0xFF808080),
+                                            fontSize: 16),
+                                        textAlign: TextAlign.start))),
+                            Center(
+                                child: Icon(FontAwesomeIcons.search, size: 22,
+                                    color: Color(0xFF808080)))
+                          ],
+                        ))),
+              ),
+            ),
+          ),
           Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 45 - 70, 
+              top: MediaQuery.of(context).size.height * 0.5 - 45 - 70,
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,
@@ -128,12 +168,11 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
-                child: Icon(
-                  Icons.directions_walk,
-                  size: 36,
-                ),
+                child: Icon(FontAwesomeIcons.check, size: 32),
+                //child: Text("GO", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 onPressed: () {
-                  LatLng routeStartingLocation = mapWidgetKey.currentState.mapController.cameraPosition.target;
+                  LatLng routeStartingLocation = mapWidgetKey
+                      .currentState.mapController.cameraPosition.target;
                   RouteParams routeParams = RouteParams(routeStartingLocation);
                   widget.onPushRoutePreferences(routeParams);
                 },
@@ -144,6 +183,13 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
       ),
     );
   }
+
+  String searchBarText() {
+    return searchedLocation.isEmpty
+        ? LocalizationService()
+            .getLocalization(english: "Search", german: "Suche")
+        : searchedLocation;
+  }
 }
 
 class CustomSearchDelegate extends SearchDelegate<String> {
@@ -151,7 +197,6 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   CustomSearchDelegate() {
     //_history = <String>["Berlin Schoeneweide", "Japan", "Weserstraße 144", "Dettlef", "Avenue 1 12052"];
-
     SharedPreferences.getInstance().then((prefs) {
       _history = prefs.getStringList("searchHistory") ?? List<String>();
     });
@@ -160,7 +205,8 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      tooltip: LocalizationService().getLocalization(english: "Back", german: "Zurück"),
+      tooltip: LocalizationService()
+          .getLocalization(english: "Back", german: "Zurück"),
       icon: AnimatedIcon(
         icon: AnimatedIcons.menu_arrow,
         progress: transitionAnimation,
@@ -216,7 +262,8 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     return <Widget>[
       if (query.isNotEmpty)
         IconButton(
-          tooltip: LocalizationService().getLocalization(english: "Clear", german: "Leeren"),
+          tooltip: LocalizationService()
+              .getLocalization(english: "Clear", german: "Leeren"),
           icon: const Icon(Icons.clear),
           onPressed: () {
             query = '';
