@@ -46,8 +46,7 @@
                 <data android:scheme="resource" />
                 <data android:host="*" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.geojson" />
-                <data android:pathPattern=".*\\.gpx" />
+                <data android:pathPattern="/.*" />
             </intent-filter>
         </activity>
     </application>

@@ -1,16 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/lifecycle_event_handler.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
-import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/services/sharing/import_export_handler.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
@@ -128,12 +130,7 @@ class MapWidgetState extends State<MapWidget> {
   _getSharedData() async {
     String dataPath = await platform.invokeMethod("getSharedData");
     if (dataPath.isEmpty) return null;
-    var data;
-    if (dataPath.endsWith(".geojson"))
-      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
-    else if (dataPath.endsWith(".gpx"))
-      data = new GpxDataHandler().parseRouteFromString(dataPath);
-    return data;
+    return await new ImportExportHandler().importRouteFromUri(dataPath);
   }
 
   void _requestPermissions() async {
