@@ -241,7 +241,7 @@ class MapWidgetState extends State<MapWidget> {
 
   startRoute() {
     setZoom(16);
-    setTrackingMode(MyLocationTrackingMode.TrackingCompass);
+    setLatLng(_hikingRoute.path[0]);
     initUpdateRouteTimer();
 
     Flushbar(
