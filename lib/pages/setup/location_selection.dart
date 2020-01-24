@@ -80,10 +80,11 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
     });
   }
 
-  int getMarkerPinTopPositionOffset() {
+  int getMarkerPinTopPositionOffset(BuildContext context) {
+    double shortestSide = MediaQuery.of(context).size.shortestSide;
     int offset = 0;
     if (Platform.isIOS) {
-      offset = 20;
+      if(shortestSide < 800) offset += 20;
     }
     return -45 - 70 - offset;
   }
@@ -148,7 +149,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
           ),
           Positioned(
               top: MediaQuery.of(context).size.height * 0.5 +
-                  getMarkerPinTopPositionOffset(),
+                  getMarkerPinTopPositionOffset(context),
               left: MediaQuery.of(context).size.width * 0.5 - 25,
               child: Icon(
                 Icons.person_pin_circle,
