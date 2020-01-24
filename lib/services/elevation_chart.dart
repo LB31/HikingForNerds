@@ -13,15 +13,85 @@ class ElevationChart extends StatefulWidget {
 
   final Function(int) onSelectionChanged;
 
-  final List<RouteData> chartData = new List();
-
-
   @override
   State<StatefulWidget> createState() => new ElevationChartState();
 
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
+}
 
-  List<charts.Series<RouteData, double>> createData(HikingRoute route) {
+class ElevationChartState extends State<ElevationChart>{
+  static final roundingThreshold = 0.0001;
+  final List<RouteData> chartData = new List();
+
+  _onSliderChange(Point<int> point, dynamic domain, String roleId,
+      charts.SliderListenerDragState dragState) {
+
+    RouteData foundRouteData = chartData.firstWhere((routeData) => (routeData.distance - domain) > roundingThreshold, orElse: null);
+    if (foundRouteData != null) {
+      widget.onSelectionChanged(foundRouteData.index);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO add localization
+    String bottomText = "Distance in m";
+    String leftText = "Elevation in m";
+    int fontSize = 12;
+    charts.SelectionTrigger interaction;
+
+    interaction = widget.interactive
+        ? charts.SelectionTrigger.tapAndDrag
+        : charts.SelectionTrigger.hover;
+
+    List<charts.ChartBehavior> behaviours = [
+      new charts.Slider(
+        initialDomainValue: 0,
+        eventTrigger: interaction,
+        onChangeCallback: _onSliderChange,
+        snapToDatum: true,
+        handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
+        style: charts.SliderStyle(
+            handleOffset: Point(0, 40),
+            handleSize: Rectangle<int>(15, 15, 13, 500),
+            fillColor: charts.MaterialPalette.green.shadeDefault
+        ),
+      )
+    ];
+
+    if (widget.withLabels) {
+      behaviours.add(new charts.ChartTitle(bottomText,
+          behaviorPosition: charts.BehaviorPosition.bottom,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+          charts.OutsideJustification.middleDrawArea));
+      behaviours.add(new charts.ChartTitle(leftText,
+          behaviorPosition: charts.BehaviorPosition.start,
+          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
+          titleOutsideJustification:
+          charts.OutsideJustification.middleDrawArea));
+    }
+
+    return new Container(
+      child: new charts.LineChart(
+        _createData(widget.route),
+        animate: false,
+        defaultRenderer: new charts.LineRendererConfig(
+            includeArea: true, includeLine: true, stacked: true),
+        behaviors: behaviours,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xAA7c94b6),
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+  }
+
+  List<charts.Series<RouteData, double>> _createData(HikingRoute route) {
 
     double lastDistance = 0;
     for (int i = 0; i < route.elevations.length; i++) {
@@ -46,82 +116,6 @@ class ElevationChart extends StatefulWidget {
   }
 }
 
-class ElevationChartState extends State<ElevationChart>{
-
-  static final roundingThreshold = 0.0001;
-
-  _onSliderChange(Point<int> point, dynamic domain, String roleId,
-      charts.SliderListenerDragState dragState) {
-
-    void rebuild(_) {
-      RouteData foundRouteData = widget.chartData.firstWhere((routeData) => (routeData.distance - domain) > roundingThreshold, orElse: null);
-      if (foundRouteData != null) {
-        widget.onSelectionChanged(foundRouteData.index);
-      }
-    }
-
-    SchedulerBinding.instance.addPostFrameCallback(rebuild);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String bottomText = LocalizationService().getLocalization(english: "Distance in m", german: "Diszanz in m");
-    String leftText = LocalizationService().getLocalization(english: "Elevation in m", german: "Erhebung in m");
-    int fontSize = 12;
-    charts.SelectionTrigger interaction;
-
-    interaction = widget.interactive
-        ? charts.SelectionTrigger.tapAndDrag
-        : charts.SelectionTrigger.hover;
-
-    List<charts.ChartBehavior> behaviours = [
-      new charts.Slider(
-        initialDomainValue: 0,
-        eventTrigger: interaction,
-        onChangeCallback: _onSliderChange,
-        snapToDatum: true,
-        handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
-        style: charts.SliderStyle(
-            handleOffset: Point(0, 40),
-            handleSize: Rectangle<int>(0, 0, 13, 100),
-            fillColor: charts.MaterialPalette.green.shadeDefault
-        ),
-      )
-    ];
-
-    if (widget.withLabels) {
-      behaviours.add(new charts.ChartTitle(bottomText,
-          behaviorPosition: charts.BehaviorPosition.bottom,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-          charts.OutsideJustification.middleDrawArea));
-      behaviours.add(new charts.ChartTitle(leftText,
-          behaviorPosition: charts.BehaviorPosition.start,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-          charts.OutsideJustification.middleDrawArea));
-    }
-
-    return new Container(
-      child: new charts.LineChart(
-        widget.createData(widget.route),
-        animate: false,
-        defaultRenderer: new charts.LineRendererConfig(
-            includeArea: true, includeLine: true, stacked: true),
-        behaviors: behaviours,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xAA7c94b6),
-        border: Border.all(
-          color: Colors.black,
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-  }
-}
-
 class RouteData {
   final double elevation;
   final double distance;
@@ -129,3 +123,4 @@ class RouteData {
 
   RouteData(this.elevation, this.distance, this.index);
 }
+
