@@ -30,8 +30,10 @@ class _RouteListState extends State<RouteList> {
   Future<void> calculateRoutes() async {
     List<HikingRoute> routes;
 
+    OsmData osm = OsmData();
+
     try {
-      routes = await OsmData().calculateHikingRoutes(
+      routes = await osm.calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
           widget.routeParams.startingLocation.longitude,
           widget.routeParams.distanceKm * 1000.0,
@@ -39,15 +41,15 @@ class _RouteListState extends State<RouteList> {
           widget.routeParams.poiCategories);
     } on NoPOIsFoundException catch (err) {
       print("no poi found exception " + err.toString());
-      routes = await OsmData().calculateHikingRoutes(
+      routes = await osm.calculateHikingRoutes(
         widget.routeParams.startingLocation.latitude,
         widget.routeParams.startingLocation.longitude,
         widget.routeParams.distanceKm * 1000.0,
         10);
     }
 
-    routes = routes.toList(growable: true);
-    routes.removeWhere((elem) => elem == null);
+    if(routes == null)
+      routes = List();
 
     await buildRouteTitles(routes);
 
