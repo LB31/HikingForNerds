@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -163,10 +164,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
-                child: Icon(
-                  Icons.directions_walk,
-                  size: 36,
-                ),
+                child: Icon(FontAwesomeIcons.hiking, size: 36),
                 onPressed: (() =>
                     widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),
