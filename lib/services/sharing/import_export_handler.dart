@@ -11,6 +11,7 @@ import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 /// Superclass providing basic functionality used gpx and geojson data handling
 class ImportExportHandler{
 
+  //TODO: change the if else decision which handler should be instantiated when the bug in FlutterAbsolutePath Plugin is fixed
   Future<HikingRoute> importRouteFromUri(String uriPath) async {
     File readSharedFile = await _sharedFile(uriPath);
 
