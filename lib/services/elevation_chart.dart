@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
@@ -20,18 +17,6 @@ class ElevationChart extends StatefulWidget {
 }
 
 class ElevationChartState extends State<ElevationChart>{
-  static final roundingThreshold = 0.0001;
-  List<RouteData> chartData = new List();
-
-  _onSliderChange(Point<int> point, dynamic domain, String roleId,
-      charts.SliderListenerDragState dragState) {
-
-    RouteData foundRouteData = chartData.firstWhere((routeData) => (routeData.distance - domain) > roundingThreshold, orElse: null);
-    if (foundRouteData != null) {
-      widget.onSelectionChanged(foundRouteData.index);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     // TODO add localization
@@ -45,18 +30,12 @@ class ElevationChartState extends State<ElevationChart>{
         : charts.SelectionTrigger.hover;
 
     List<charts.ChartBehavior> behaviours = [
-      new charts.Slider(
-        initialDomainValue: 0,
-        eventTrigger: interaction,
-        onChangeCallback: _onSliderChange,
-        snapToDatum: true,
-        handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
-        style: charts.SliderStyle(
-            handleOffset: Point(0, 40),
-            handleSize: Rectangle<int>(100, 100, 13, 500),
-            fillColor: charts.MaterialPalette.green.shadeDefault
-        ),
-      )
+      new charts.LinePointHighlighter(
+          showHorizontalFollowLine:
+          charts.LinePointHighlighterFollowLineType.none,
+          showVerticalFollowLine:
+          charts.LinePointHighlighterFollowLineType.nearest),
+      new charts.SelectNearest(eventTrigger: interaction)
     ];
 
     if (widget.withLabels) {
@@ -79,6 +58,12 @@ class ElevationChartState extends State<ElevationChart>{
         defaultRenderer: new charts.LineRendererConfig(
             includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,
+        selectionModels: [
+          new charts.SelectionModelConfig(
+            type: charts.SelectionModelType.info,
+            changedListener: _onSelectionChanged,
+          )
+        ],
       ),
       decoration: BoxDecoration(
         color: const Color(0xAA7c94b6),
@@ -92,9 +77,9 @@ class ElevationChartState extends State<ElevationChart>{
   }
 
   List<charts.Series<RouteData, double>> _createData(HikingRoute route) {
+    final List<RouteData> chartData = new List();
 
     double lastDistance = 0;
-    chartData = new List();
     for (int i = 0; i < route.elevations.length; i++) {
       double distance = 0;
       if (i > 0) {
@@ -115,6 +100,15 @@ class ElevationChartState extends State<ElevationChart>{
       ),
     ];
   }
+
+  _onSelectionChanged(charts.SelectionModel model) {
+    final selectedDatum = model.selectedDatum;
+    if (selectedDatum.isNotEmpty) {
+      selectedDatum.forEach((charts.SeriesDatum datumPair) {
+        widget.onSelectionChanged(datumPair.datum.index);
+      });
+    }
+  }
 }
 
 class RouteData {
@@ -124,4 +118,5 @@ class RouteData {
 
   RouteData(this.elevation, this.distance, this.index);
 }
+
 

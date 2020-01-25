@@ -34,6 +34,7 @@ class MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
 
   static bool _isCurrentlyGranting = false;
+  static bool lockMarkerTransaction = false;
 
   static const platform =
       const MethodChannel('app.channel.hikingfornerds.data');
@@ -519,22 +520,27 @@ class MapWidgetState extends State<MapWidget> {
     if (sharedRoute != null) drawRoute(sharedRoute);
   }
 
-  Future markElevation(int index) async {
-    LatLng latLngPosition = _route[index];
-    SymbolOptions optionsElevationPoint = SymbolOptions(
-      geometry: latLngPosition,
-      //TODO: add a viable marker png image
-      iconImage: "assets/img/icons8-marker-50.png",
-      iconOffset: Offset(0, -10),
-      //iconOpacity: 0.5,
-      //textField: _hikingRoute.elevations[index].toString(),
-      //draggable: false,
+  Future<void> markElevation(int index) async {
+    if (!lockMarkerTransaction) {
+      lockMarkerTransaction = true;
+      LatLng latLngPosition = _route[index];
+      SymbolOptions optionsElevationPoint = SymbolOptions(
+        geometry: latLngPosition,
+        //TODO: add a viable marker png image
+        iconImage: "assets/img/icons8-marker-50.png",
+        iconOffset: Offset(0, -10),
+        //iconOpacity: 0.5,
+        //textField: _hikingRoute.elevations[index].toString(),
+        //draggable: false,
 
-      );
-    if (selectedElevationSymbol == null)
-      selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
-    else
-      mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
+        );
+      if (selectedElevationSymbol == null)
+        selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
+      else
+        await mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
+
+      lockMarkerTransaction = false;
+    }
   }
 
   void removeSelectedElevation(){
