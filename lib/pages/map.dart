@@ -93,10 +93,13 @@ class MapPageState extends State<MapPage> {
               padding: const EdgeInsets.all(5.0),
             ),
           ),
-          FloatingActionButton(
-            heroTag: "btn-heightchart",
-            child: Icon(Icons.photo),
-            onPressed: toggleHeightChart,
+          Align(
+            alignment: Alignment.centerLeft,
+            child:FloatingActionButton(
+              heroTag: "btn-heightchart",
+              child: Icon(Icons.photo),
+              onPressed: toggleHeightChart,
+            )
           ),
           if(_currentRoute != null && _heightChartEnabled)
             _buildElevationChart(context),

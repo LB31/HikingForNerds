@@ -21,7 +21,7 @@ class ElevationChart extends StatefulWidget {
 
 class ElevationChartState extends State<ElevationChart>{
   static final roundingThreshold = 0.0001;
-  final List<RouteData> chartData = new List();
+  List<RouteData> chartData = new List();
 
   _onSliderChange(Point<int> point, dynamic domain, String roleId,
       charts.SliderListenerDragState dragState) {
@@ -94,6 +94,7 @@ class ElevationChartState extends State<ElevationChart>{
   List<charts.Series<RouteData, double>> _createData(HikingRoute route) {
 
     double lastDistance = 0;
+    chartData = new List();
     for (int i = 0; i < route.elevations.length; i++) {
       double distance = 0;
       if (i > 0) {
