@@ -52,7 +52,7 @@ class PointOfInterest extends Node {
     return SymbolOptions(
         iconImage: iconPath,
         geometry: LatLng(latitude, longitude),
-        iconSize: 0.1,
+        iconSize: 4,
         //textField: "test",
         textColor: iconColor,
         textOpacity: 1,
@@ -62,6 +62,7 @@ class PointOfInterest extends Node {
   }
 
   getIconPath(String category) {
+    //return "assets/img/symbols/icon.png";
     return "assets/img/symbols/$category.png";
   }
 }
