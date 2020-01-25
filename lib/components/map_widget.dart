@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +88,8 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    //_getIntentData();
+    if (Platform.isAndroid)
+      _getIntentData();
     _requestPermissions();
   }
 
