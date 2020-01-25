@@ -24,6 +24,37 @@ class RouteThreadData {
   List<HikingRoute> foundRoutes;
 }
 
+class ImportJsonThreadData {
+  OsmData osmRef;
+  String jsonNodesAndWays;
+}
+
+List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
+  var usePOIFunc = data.poiElements != null;
+  var startLat = data.startLat;
+  var startLong = data.startLong;
+  var distanceInMeter = data.distanceInMeter;
+  var poiElements = data.poiElements;
+  var osm = data.osmRef;
+  var alternativeRouteCount = data.alternativeRouteCount;
+
+  try {
+    if(usePOIFunc) {
+      return osm._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements);
+    }
+    else {
+      return osm._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+    }
+  }
+  catch(_) {
+    return List();
+  }
+}
+
+Graph _importJsonThreaded(ImportJsonThreadData data) {
+  return data.osmRef._importJsonNodesAndWays(data.jsonNodesAndWays);
+}
+
 class OsmData{
   HashSet<Node> nodes;
   List<Way> ways;
@@ -83,7 +114,7 @@ class OsmData{
     return (_toDegrees(rad) + 360) % 360;
   }
 
-  void buildGraph(){
+  Graph buildGraph(){
     graph = Graph();
     Map<Node, int> nodeCount= Map();
     for(Way way in ways) {
@@ -109,6 +140,7 @@ class OsmData{
         }
       }
     }
+    return graph;
   }
 
   static double _toRadians(double angleInDeg){
@@ -149,28 +181,6 @@ class OsmData{
     var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
     return closestPoint;
   }
-  
-  static List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
-    var usePOIFunc = data.poiElements != null;
-    var startLat = data.startLat;
-    var startLong = data.startLong;
-    var distanceInMeter = data.distanceInMeter;
-    var poiElements = data.poiElements;
-    var osm = data.osmRef;
-    var alternativeRouteCount = data.alternativeRouteCount;
-
-    try {
-      if(usePOIFunc) {
-        return osm._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements);
-      }
-      else {
-        return osm._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
-      }
-    }
-    catch(_) {
-      return List();
-    }
-  }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
@@ -188,7 +198,10 @@ class OsmData{
 
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    _importJsonNodesAndWays(jsonNodesAndWays);
+    ImportJsonThreadData importData = ImportJsonThreadData();
+    importData.osmRef = this;
+    importData.jsonNodesAndWays = jsonNodesAndWays;
+    graph = await compute(_importJsonThreaded, importData);
 
     RouteThreadData data = RouteThreadData();
     data.distanceInMeter = distanceInMeter;
@@ -382,13 +395,14 @@ class OsmData{
     return edges.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
   }
 
-  void _importJsonNodesAndWays(String jsonNodesAndWays){
+  Graph _importJsonNodesAndWays(String jsonNodesAndWays){
     var jsonDecoder = JsonDecoder();
     dynamic parsedData = jsonDecoder.convert(jsonNodesAndWays)['elements'];
     parsedData.forEach((element) => parseToObject(element));
     if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    buildGraph();
+    var graph = buildGraph();
     if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    return graph;
   }
 
   Future<String> _getPoisJSON(List<String> categories, aroundLat, aroundLong, radius) async{

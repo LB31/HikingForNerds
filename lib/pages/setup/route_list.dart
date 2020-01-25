@@ -48,9 +48,6 @@ class _RouteListState extends State<RouteList> {
         10);
     }
 
-    if(routes == null)
-      routes = List();
-
     await buildRouteTitles(routes);
 
     setState(() {
