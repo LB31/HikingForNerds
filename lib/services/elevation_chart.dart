@@ -53,7 +53,7 @@ class ElevationChartState extends State<ElevationChart>{
         handleRenderer: new charts.CircleSymbolRenderer(isSolid: true),
         style: charts.SliderStyle(
             handleOffset: Point(0, 40),
-            handleSize: Rectangle<int>(15, 15, 13, 500),
+            handleSize: Rectangle<int>(100, 100, 13, 500),
             fillColor: charts.MaterialPalette.green.shadeDefault
         ),
       )
@@ -75,7 +75,7 @@ class ElevationChartState extends State<ElevationChart>{
     return new Container(
       child: new charts.LineChart(
         _createData(widget.route),
-        animate: false,
+        animate: true,
         defaultRenderer: new charts.LineRendererConfig(
             includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,

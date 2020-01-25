@@ -64,7 +64,7 @@ class MapWidgetState extends State<MapWidget> {
   bool _myLocationEnabled = true;
   bool _tilesLoaded = false;
   String _currentStyle;
-  Circle selectedElevationCircle;
+  Symbol selectedElevationSymbol;
   Map<String, String> _styles = new Map();
   MyLocationTrackingMode _myLocationTrackingMode =
       MyLocationTrackingMode.Tracking;
@@ -521,24 +521,26 @@ class MapWidgetState extends State<MapWidget> {
 
   Future markElevation(int index) async {
     LatLng latLngPosition = _route[index];
-    CircleOptions optionsElevationPoint = CircleOptions(
-        geometry: latLngPosition,
-        circleColor: "Red",
-        circleRadius: 6,
-        circleStrokeWidth: 3,
-        circleStrokeColor: "Blue",
-        circleBlur: 0.25,
-        circleOpacity: 1);
-    if (selectedElevationCircle == null)
-      selectedElevationCircle = await mapController.addCircle(optionsElevationPoint);
+    SymbolOptions optionsElevationPoint = SymbolOptions(
+      geometry: latLngPosition,
+      //TODO: add a viable marker png image
+      iconImage: "assets/img/icons8-marker-50.png",
+      iconOffset: Offset(0, -10),
+      //iconOpacity: 0.5,
+      //textField: _hikingRoute.elevations[index].toString(),
+      //draggable: false,
+
+      );
+    if (selectedElevationSymbol == null)
+      selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
     else
-      mapController.updateCircle(selectedElevationCircle, optionsElevationPoint);
+      mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
   }
 
   void removeSelectedElevation(){
-    if (selectedElevationCircle != null) {
-      mapController.removeCircle(selectedElevationCircle);
-      selectedElevationCircle = null;
+    if (selectedElevationSymbol != null) {
+      mapController.removeSymbol(selectedElevationSymbol);
+      selectedElevationSymbol = null;
     }
   }
 }
