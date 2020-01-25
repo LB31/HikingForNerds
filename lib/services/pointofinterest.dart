@@ -53,6 +53,7 @@ class PointOfInterest extends Node {
         iconImage: iconPath,
         geometry: LatLng(latitude, longitude),
         iconSize: 4,
+        iconColor: iconColor
     );
   }
 
