@@ -62,7 +62,6 @@ class PointOfInterest extends Node {
   }
 
   getIconPath(String category) {
-    //return "assets/img/symbols/icon.png";
     return "assets/img/symbols/$category.png";
   }
 }
