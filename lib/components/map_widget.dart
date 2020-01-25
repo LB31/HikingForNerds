@@ -194,7 +194,6 @@ class MapWidgetState extends State<MapWidget> {
       _lastUserLocation = null;
     });
 
-    removeSelectedElevation();
     if (!widget.isStatic) {
       startRoute();
     }
