@@ -77,7 +77,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Preview'), // TODO add localization
+        title: Text(LocalizationService().getLocalization(english: 'Route Preview', german: 'Routenvorschau')), // TODO add localization
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0.0,
       ),
@@ -167,7 +167,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
-                child: Icon(FontAwesomeIcons.hiking, size: 36),
+                child: Icon(FontAwesomeIcons.hiking, size: 34),
                 onPressed: (() =>
                     widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),

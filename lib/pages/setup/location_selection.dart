@@ -168,7 +168,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
-                child: Icon(FontAwesomeIcons.check, size: 32),
+                child: Icon(FontAwesomeIcons.check, size: 30),
                 //child: Text("GO", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 onPressed: () {
                   LatLng routeStartingLocation = mapWidgetKey

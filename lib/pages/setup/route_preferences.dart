@@ -181,7 +181,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
               child: FloatingActionButton(
                   backgroundColor: htwGreen,
                   heroTag: "btn-go",
-                  child: Icon(FontAwesomeIcons.check, size: 32),
+                  child: Icon(FontAwesomeIcons.check, size: 30),
                   onPressed: () {
                     widget.routeParams.distanceKm = distance;
                     widget.routeParams.poiCategories = selectedPoiCategories;
