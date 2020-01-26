@@ -99,7 +99,7 @@ class _RouteListState extends State<RouteList> {
                 fontSize: 16, color: Colors.grey[600]),
               ),
             Text(
-              '${'POI VALUES'}',
+              (widget.routeParams.poiCategories.isNotEmpty) ? '${widget.routeParams.poiCategories.join(', ')}' : LocalizationService().getLocalization(english: 'No POI selected', german: 'Kein POI ausgewählt'),
               style: TextStyle(
                 fontSize: 16, color: Colors.grey[600]),
             ),
