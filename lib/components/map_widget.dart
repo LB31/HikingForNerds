@@ -28,6 +28,7 @@ class MapWidget extends StatefulWidget {
 
 class MapWidgetState extends State<MapWidget> {
   static const double defaultZoom = 12.0;
+  static const double displayPoiSymbolZoom = 14.0;
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
 
@@ -142,7 +143,7 @@ class MapWidgetState extends State<MapWidget> {
     return currentLocation;
   }
 
-  void clearMap(){
+  void clearMap() {
     mapController.clearLines();
     mapController.clearCircles();
     mapController.clearSymbols();
@@ -151,7 +152,7 @@ class MapWidgetState extends State<MapWidget> {
   void drawRoute(HikingRoute route, [bool center = true]) async {
     clearMap();
     drawRouteStartingPoint(route);
-    drawPOIs(route, 12);
+    drawPois(route, 12);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
 
@@ -208,7 +209,7 @@ class MapWidgetState extends State<MapWidget> {
         circleRadius: 16,
         circleBlur: 0.25,
         circleOpacity: 0.5);
-   await mapController.addCircle(optionsStartingPoint);
+    await mapController.addCircle(optionsStartingPoint);
   }
 
   int calculateLastStartingPathNode(HikingRoute route) {
@@ -231,18 +232,27 @@ class MapWidgetState extends State<MapWidget> {
     return -1;
   }
 
-  void drawPOIs(HikingRoute route, double zoom) async {
+  void drawPois(HikingRoute route, double zoom) async {
     List<PointOfInterest> pois = route.pointsOfInterest;
     if (pois != null) {
-      pois.forEach((poi) async{
-        if (zoom < 14) {
+      pois.forEach((poi) async {
+        if (zoom < displayPoiSymbolZoom) {
           await mapController.clearSymbols();
-          CircleOptions poiOptions = poi.getCircleOptions();
+          CircleOptions poiOptions = CircleOptions(
+              geometry: LatLng(poi.latitude, poi.longitude),
+              circleColor: poi.category.colorAsHex(),
+              circleRadius: 3,
+              circleBlur: 0.25,
+              circleOpacity: 0.8);
           await mapController.addCircle(poiOptions);
         } else {
           await mapController.clearCircles();
           await drawRouteStartingPoint(_hikingRoute);
-          SymbolOptions poiOptions = poi.getSymbolOptions();
+          SymbolOptions poiOptions = SymbolOptions(
+              iconImage: poi.category.symbolPath,
+              geometry: LatLng(poi.latitude, poi.longitude),
+              iconSize: 1,
+          );
           await mapController.addSymbol(poiOptions);
         }
       });
@@ -313,13 +323,11 @@ class MapWidgetState extends State<MapWidget> {
       //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
       int finalRouteNodesThreshold =
           _remainingRoute.length < _route.length - 25 ? 0 : 25;
-      for (int index = currentRouteIndex;
-          index < _route.length - finalRouteNodesThreshold;
-          index++) {
-        double distanceToCurrentLocation =
-            OsmData.getDistance(_route[index], userLatLng);
+
+      for (int i = currentRouteIndex; i < _route.length - finalRouteNodesThreshold; i++) {
+        double distanceToCurrentLocation = OsmData.getDistance(_route[i], userLatLng);
         if (distanceToCurrentLocation < 0.1) {
-          currentRouteIndex = index;
+          currentRouteIndex = i;
           break;
         }
       }
@@ -331,10 +339,8 @@ class MapWidgetState extends State<MapWidget> {
         _lastUserLocation = userLatLng;
       });
 
-      LineOptions optionsRemainingRoute =
-          LineOptions(geometry: _remainingRoute);
-      await mapController.updateLine(
-          _lineRemainingRoute, optionsRemainingRoute);
+      LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
+      await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
       LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
       await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
     }
@@ -349,8 +355,8 @@ class MapWidgetState extends State<MapWidget> {
     Flushbar(
       messageText: Text(
           LocalizationService().getLocalization(
-              english: "You have finished your hiking trip",
-              german: "Sie haben Ihre Wanderung beendet"),
+              english: "You have finished your hiking trip!",
+              german: "Sie haben Ihre Wanderung abgeschlossen!"),
           style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.thumb_up,
@@ -395,10 +401,10 @@ class MapWidgetState extends State<MapWidget> {
 
   void _onMapChanged() {
     double currentZoom = mapController.cameraPosition.zoom;
-    if (currentZoom > 14 && _lastZoom <= 14)
-      drawPOIs(_hikingRoute, currentZoom);
-    else if (currentZoom < 14 && _lastZoom >= 14)
-      drawPOIs(_hikingRoute, currentZoom);
+    if (currentZoom > displayPoiSymbolZoom && _lastZoom <= displayPoiSymbolZoom)
+      drawPois(_hikingRoute, currentZoom);
+    else if (currentZoom < displayPoiSymbolZoom &&
+        _lastZoom >= displayPoiSymbolZoom) drawPois(_hikingRoute, currentZoom);
 
     setState(() {
       _extractMapInfo();
