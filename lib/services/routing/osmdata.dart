@@ -304,9 +304,9 @@ class OsmData{
     pointsOfInterest.shuffle(_randomGenerator);
     PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
         .compareTo((targetBeelineDistance - routePoiTripletB.estimatedRouteLength).abs()));
-    for(var poi in pointsOfInterest.where((element) => element.getCategory() == poiCategories[0]).take(100)){
-      for(var poi2 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[1%poiCategories.length]).take(100)){
-        for(var poi3 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[2%poiCategories.length]).take(100)){
+    for(var poi in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[0]).take(100)){
+      for(var poi2 in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[1%poiCategories.length]).take(100)){
+        for(var poi3 in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[2%poiCategories.length]).take(100)){
             Set<PointOfInterest> tripletCandidates = new Set();
             tripletCandidates.addAll([poi, poi2, poi3]);
             if(tripletCandidates.length != 3) continue;
