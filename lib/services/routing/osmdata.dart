@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
+import 'package:collection/priority_queue.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -20,7 +21,8 @@ class RouteThreadData {
   double startLong;
   double distanceInMeter;
   int alternativeRouteCount;
-  List<dynamic> poiElements;
+  List<PointOfInterest> pointsOfInterest;
+  List<String> poiCategories;
   List<HikingRoute> foundRoutes;
 }
 
@@ -29,18 +31,27 @@ class ImportJsonThreadData {
   String jsonNodesAndWays;
 }
 
+class PoiRouteTriplet{
+  List<PointOfInterest> pois;
+  double estimatedRouteLength;
+  PoiRouteTriplet(){
+    pois = List();
+  }
+}
+
 List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
-  var usePOIFunc = data.poiElements != null;
+  var usePOIFunc = data.pointsOfInterest != null;
   var startLat = data.startLat;
   var startLong = data.startLong;
   var distanceInMeter = data.distanceInMeter;
-  var poiElements = data.poiElements;
+  var poiElements = data.pointsOfInterest;
+  var poiCategories = data.poiCategories;
   var osm = data.osmRef;
   var alternativeRouteCount = data.alternativeRouteCount;
 
   try {
     if(usePOIFunc) {
-      return osm._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements);
+      return osm._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements, poiCategories);
     }
     else {
       return osm._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
@@ -188,7 +199,7 @@ class OsmData{
     List<dynamic> poiElements;
     if (poiCategories != null && poiCategories.isNotEmpty) {
       var jsonDecoder = JsonDecoder();
-      var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/2);
+      var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/3);
       if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       poiElements = jsonDecoder.convert(poisJson)['elements'];
       if(poiElements.isEmpty){
@@ -210,13 +221,9 @@ class OsmData{
     data.startLong = startLong;
     data.alternativeRouteCount = alternativeRouteCount;
     data.osmRef = this;
-
+    data.poiCategories = poiCategories;
     if(poiElements != null){
-      var startLatLng = LatLng(startLat, startLong);
-      var pointsOfInterests = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
-      pointsOfInterests.sort((a,b) => getDistance(startLatLng, a).compareTo(getDistance(startLatLng, b)));
-      var closestPointsOfInterests = pointsOfInterests.sublist(0,min( pointsOfInterests.length, 50));
-      data.poiElements = closestPointsOfInterests;
+      data.pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
     }
 
     Future<List<HikingRoute>> routeFuture = compute(_doRouteCalculationsThreaded, data);
@@ -283,19 +290,37 @@ class OsmData{
     return routes;
   }
 
-  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> poiElements) {
+  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> pointsOfInterest, List<String> poiCategories) {
     List<HikingRoute> routes = List();
+    double targetBeelineDistance = (distanceInMeter * beeLineToRealRatio)/1000;
     var startNode = getClosestToPoint(startLat, startLong);
-
-    var pointsOfInterests = poiElements;//poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
-    pointsOfInterests.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
-    var closestPointsOfInterests = pointsOfInterests.sublist(0,min( pointsOfInterests.length, 50));
-    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(closestPointsOfInterests,
-        value: (cPoi) => cPoi,
-        key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
-    if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
+        .compareTo((targetBeelineDistance - routePoiTripletB.estimatedRouteLength).abs()));
+    for(var poi in pointsOfInterest.where((element) => element.getCategory() == poiCategories[0])){
+      for(var poi2 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[1%poiCategories.length])){
+        for(var poi3 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[2%poiCategories.length])){
+            Set<PointOfInterest> tripletCandidates = new Set();
+            tripletCandidates.addAll([poi, poi2, poi3]);
+            if(tripletCandidates.length != 3) continue;
+            var closestToStart = tripletCandidates.reduce((poiA, poiB) => getDistance(startNode, poiA) < getDistance(startNode, poiB) ? poiA : poiB );
+            tripletCandidates.remove(closestToStart);
+            var nextPoi = tripletCandidates.reduce((poiA, poiB) => getDistance(closestToStart, poiA) < getDistance(closestToStart, poiB) ? poiA : poiB );
+            tripletCandidates.remove(nextPoi);
+            var lastPoi = tripletCandidates.first;
+            var triplet = PoiRouteTriplet();
+            triplet.pois.addAll([closestToStart, nextPoi, lastPoi]);
+            triplet.estimatedRouteLength = getDistance(startNode, closestToStart) + getDistance(closestToStart, nextPoi) + getDistance(nextPoi, lastPoi) + getDistance(lastPoi, startNode);
+            bestTriplets.add(triplet);
+          }
+        }
+      }
+    if(profiling) print("Triplets built after: " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount < maxRetries){
+      var nextPois = bestTriplets.removeFirst().pois;
+      Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(nextPois,
+          value: (cPoi) => cPoi,
+          key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
       graph.edgeAlreadyUsedPenalties.clear();
       List<PointOfInterest> includedPois = List();
       List<Edge> route = List();
@@ -341,7 +366,7 @@ class OsmData{
         while(retryCount <= maxRetries){
           var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
           var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
-          var c = getDistance(startNode, lastVisited);
+          var c = getDistance(startNode, lastVisited) * beeLineToRealRatio;
           var cosGamma = (a*a+b*b-c*c)/(2*a*b);
           var relativeGamma = _toDegrees(acos(cosGamma));
           var relativeAlpha = (180-relativeGamma)/2;
@@ -378,7 +403,7 @@ class OsmData{
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
       if(routeResult.totalLength * 1000 < distanceInMeter * 0.8 || routeResult.totalLength * 1000 > distanceInMeter * 1.2){
         retryCount ++;
-        if(profiling) print("Route too long or to short, retrying...");
+        if(profiling) print("Route too long or to short (" + totalRouteLength.toString() + ", retrying... retry count: " + retryCount.toString());
         continue;
       }
       routes.add(routeResult);
@@ -415,8 +440,8 @@ class OsmData{
     var categoryString = categories.join('|');
     var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300];'
-        'node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
-        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
+        '(node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
+        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong););'
         'out body qt;';
 
     var response = await http.get(url);
