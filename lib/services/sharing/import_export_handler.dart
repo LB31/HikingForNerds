@@ -20,7 +20,6 @@ class ImportExportHandler{
       return await new GpxDataHandler().parseRouteFromXmlString(fileContent);
     else
       return await new GeojsonDataHandler().parseRouteFromFile(readSharedFile);
-
   }
 
   double calculateDistance(List<Node> path){

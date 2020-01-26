@@ -93,22 +93,20 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    _getIntentData();
+    _getIntentData().then((route) {
+      setState(() {
+        sharedRoute = route;
+      });
+    });
     _requestPermissions();
   }
 
-  Future<void> _getIntentData() async {
+  Future<HikingRoute> _getIntentData() async {
     WidgetsBinding.instance.addObserver(
         new LifecycleEventHandler(resumeCallBack: resumeMap, suspendingCallBack: suspendMap)
     );
 
-    if (sharedRoute == null) {
-      var data = await _getSharedData();
-      if (data == null) return;
-      setState(() {
-        sharedRoute = data;
-      });
-    }
+    return await _getSharedData();
   }
 
   Future<void> suspendMap(){
