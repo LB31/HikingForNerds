@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
 import 'package:collection/priority_queue.dart';
+import 'package:quiver/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -37,6 +38,12 @@ class PoiRouteTriplet{
   PoiRouteTriplet(){
     pois = List();
   }
+
+  @override
+  bool operator ==(other) => other is PoiRouteTriplet && other.pois[0] == pois[0] && other.pois[1] == pois[1]&& other.pois[2] == pois[2];
+
+  @override
+  int get hashCode => hash3(pois[0].hashCode, pois[1].hashCode, pois[2].hashCode);
 }
 
 List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
@@ -294,11 +301,12 @@ class OsmData{
     List<HikingRoute> routes = List();
     double targetBeelineDistance = (distanceInMeter * beeLineToRealRatio)/1000;
     var startNode = getClosestToPoint(startLat, startLong);
+    pointsOfInterest.shuffle(_randomGenerator);
     PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
         .compareTo((targetBeelineDistance - routePoiTripletB.estimatedRouteLength).abs()));
-    for(var poi in pointsOfInterest.where((element) => element.getCategory() == poiCategories[0])){
-      for(var poi2 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[1%poiCategories.length])){
-        for(var poi3 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[2%poiCategories.length])){
+    for(var poi in pointsOfInterest.where((element) => element.getCategory() == poiCategories[0]).take(100)){
+      for(var poi2 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[1%poiCategories.length]).take(100)){
+        for(var poi3 in pointsOfInterest.where((element) => element.getCategory() == poiCategories[2%poiCategories.length]).take(100)){
             Set<PointOfInterest> tripletCandidates = new Set();
             tripletCandidates.addAll([poi, poi2, poi3]);
             if(tripletCandidates.length != 3) continue;
@@ -310,14 +318,24 @@ class OsmData{
             var triplet = PoiRouteTriplet();
             triplet.pois.addAll([closestToStart, nextPoi, lastPoi]);
             triplet.estimatedRouteLength = getDistance(startNode, closestToStart) + getDistance(closestToStart, nextPoi) + getDistance(nextPoi, lastPoi) + getDistance(lastPoi, startNode);
+
             bestTriplets.add(triplet);
           }
         }
       }
     if(profiling) print("Triplets built after: " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     var retryCount = 0;
+    Set<PoiRouteTriplet> alreadyUsedTriplets = Set();
     while(routes.length < alternativeRouteCount && retryCount < maxRetries){
-      var nextPois = bestTriplets.removeFirst().pois;
+      var nextTriplet = bestTriplets.removeFirst();
+      List<PointOfInterest> nextPois;
+      if(!alreadyUsedTriplets.contains(nextTriplet)){
+        alreadyUsedTriplets.add(nextTriplet);
+        nextPois = nextTriplet.pois;
+      }
+      else{
+        continue;
+      }
       Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(nextPois,
           value: (cPoi) => cPoi,
           key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
@@ -327,23 +345,7 @@ class OsmData{
       var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
       var lastVisited = startNode;
       var totalRouteLength = 0.0;
-      //determine first poi to go to
-      var unsortedPoiNodeList = wayNodeAndPOICopy.keys.toList();
-      unsortedPoiNodeList.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
-      var firstPoi = unsortedPoiNodeList[(routes.length + retryCount) % unsortedPoiNodeList.length];
-      //plan route to that poi
-      var routeToFirstPoi = graph.AStar(lastVisited, firstPoi);
-      if(routeToFirstPoi.isNotPresent){
-        print("Warning: path to first POI not found, retrying... retry count: " + retryCount.toString());
-        retryCount ++;
-        continue;
-      }
-      totalRouteLength += lengthOfEdgesKM(routeToFirstPoi.value);
-      route.addAll(routeToFirstPoi.value);
-      graph.penalizeEdgesAlongRoute(routeToFirstPoi.value, 5);
-      includedPois.add(wayNodeAndPOICopy[firstPoi]);
-      wayNodeAndPOICopy.remove(firstPoi);
-      lastVisited = firstPoi;
+
       //start loop over all the other pois
       while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
         var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
@@ -361,12 +363,12 @@ class OsmData{
       }
 
       List<Edge> routeBack = List();
-      if(wayNodeAndPOICopy.isEmpty){ //route is probably not long enough yet
+      if(wayNodeAndPOICopy.isEmpty && ((distanceInMeter/1000) - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatio ){ //route is probably not long enough yet
         var slightDistanceModifier = 1.0;
         while(retryCount <= maxRetries){
-          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
-          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
-          var c = getDistance(startNode, lastVisited) * beeLineToRealRatio;
+          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var c = getDistance(startNode, lastVisited);
           var cosGamma = (a*a+b*b-c*c)/(2*a*b);
           var relativeGamma = _toDegrees(acos(cosGamma));
           var relativeAlpha = (180-relativeGamma)/2;
