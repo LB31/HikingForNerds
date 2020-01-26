@@ -19,18 +19,18 @@ class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
   List<String> categories = <String>[
     'architecture',
     'bar',
-    'basilica',
     'cathedral',
     'church',
     'exhibition',
     'gas station',
-    'lake, ' 'monuments',
+    'lake',
+    'monuments',
     'museum',
     'park',
     'river',
     'romanic',
     'school',
-    'zoo'
+    'zoo',
   ];
 
 
@@ -80,14 +80,15 @@ class SelectedItemsWidget extends StatefulWidget {
 class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
   chips() {
     List<Widget> chips = List();
-    widget.selectedCategories.forEach((key) {
+    widget.selectedCategories.forEach((category) {
       chips.add(Chip(
-        label: Text(key, style: TextStyle(fontSize: 16.0)),
+        label: Text('${category[0].toUpperCase()}${category.substring(1)}', style: TextStyle(fontSize: 16.0)),
         backgroundColor: htwGreen,
         deleteIcon: Icon(Icons.close),
         onDeleted: () {
           setState(() {
-            widget.selectedCategories.remove(key);
+            widget.selectedCategories.remove(category);
+            widget.selectedCategories.forEach((c) => print('POI BAR Category $c'));
           });
         },
       ));
@@ -129,7 +130,7 @@ class SearchTextField extends StatelessWidget {
           ),
           suffixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          hintText: LocalizationService().getLocalization(english: "Search categories here (max. 3) ...", german: "Suche Kategorien hier (max. 3)"),
+          hintText: LocalizationService().getLocalization(english: 'Search POIs here (max. 3) ...', german: 'Suche nach POIs hier (max. 3)'),
           contentPadding: EdgeInsets.only(
             left: 16,
             right: 20,
@@ -156,7 +157,7 @@ class NoItemsFound extends StatelessWidget {
           ),
           SizedBox(width: 10.0),
           Text(
-            LocalizationService().getLocalization(english: "No Items Found", german: "Keine Elemente gefunden"),
+            LocalizationService().getLocalization(english: 'No Items Found', german: 'Keine Elemente gefunden'),
             style: TextStyle(
               fontSize: 16.0,
               color: Colors.grey[900].withOpacity(0.7),
@@ -178,7 +179,7 @@ class PopupListItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12.0),
       child: Text(
-        category,
+        '${category[0].toUpperCase()}${category.substring(1)}',
         style: TextStyle(fontSize: 16.0),
       ),
     );
