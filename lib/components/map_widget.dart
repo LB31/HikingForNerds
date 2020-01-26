@@ -118,10 +118,10 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> resumeMap(){
-    _getSharedData().then((d) {
-      if (d == null || !_mapSuspended) return;
+    _getSharedData().then((sharedRouteData) {
+      if (sharedRouteData == null || !_mapSuspended) return;
       setState(() {
-        sharedRoute = d;
+        sharedRoute = sharedRouteData;
         _mapSuspended = false;
       });
       drawRoute(sharedRoute);
