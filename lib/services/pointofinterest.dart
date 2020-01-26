@@ -47,13 +47,11 @@ class PointOfInterest extends Node {
 
   SymbolOptions getSymbolOptions() {
     String category = getCategory();
-    String iconColor =  getColorString();
     String iconPath = getIconPath(category);
     return SymbolOptions(
         iconImage: iconPath,
         geometry: LatLng(latitude, longitude),
         iconSize: 4,
-        iconColor: iconColor
     );
   }
 
