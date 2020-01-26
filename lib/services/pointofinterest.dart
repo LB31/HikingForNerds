@@ -7,12 +7,12 @@ class PointOfInterest extends Node {
 
   PointOfInterest(int id, double latitude, double longitude, this.tags)
       : super(id, latitude, longitude) {
-    var categories = PoiCategory.categories.where((cat) => cat.id == _getCategoryString());
+    var categories = PoiCategory.categories.where((cat) => cat.id == getCategoryString());
     if (categories != null && categories.length > 0) {
       category = categories.first;
     }
   }
 
-  String _getCategoryString() =>
-    tags.containsKey("amenity") ? tags["amenity"] : tags["tourism"];
+  String getCategoryString() =>
+      tags.containsKey("amenity") ? tags["amenity"] : tags["tourism"];
 }
