@@ -61,11 +61,10 @@ class _RouteListState extends State<RouteList> {
   generateChips(RouteListEntry entry) {
     List<Widget> chips = List();
     if (entry.pois.isEmpty) {
-      for (int i = 0; i < 3; i++) {
-        entry.pois.add(LocalizationService().getLocalization(
-            english: 'no poi found', german: 'kein poi gefunden'));
-      }
+      entry.pois.add(LocalizationService().getLocalization(
+        english: 'No POI found', german: 'Kein POI gefunden'));
     }
+    
     entry.pois.forEach((poi) {
       chips.add(new Chip(
         label: Text(poi, style: TextStyle(fontSize: 11, color: Colors.white)),
@@ -75,14 +74,11 @@ class _RouteListState extends State<RouteList> {
 
     chips.add(Chip(
         backgroundColor: Color(0xFFE1E4F3),
-        label: Text("high",
+        label: Text(AltitudeTypeHelper.asString(widget.routeParams.altitudeType),
           style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF3649AE)
-          ),
-
-        )
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+        )),
     ));
 
     return chips;
