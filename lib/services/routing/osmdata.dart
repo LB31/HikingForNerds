@@ -22,7 +22,7 @@ class RouteThreadData {
   double startLong;
   double distanceInMeter;
   int alternativeRouteCount;
-  List<PointOfInterest> pointsOfInterest;
+  List<dynamic> poiElements;
   List<String> poiCategories;
   List<HikingRoute> foundRoutes;
 }
@@ -47,11 +47,11 @@ class PoiRouteTriplet{
 }
 
 List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
-  var usePOIFunc = data.pointsOfInterest != null;
+  var usePOIFunc = data.poiElements != null;
   var startLat = data.startLat;
   var startLong = data.startLong;
   var distanceInMeter = data.distanceInMeter;
-  var poiElements = data.pointsOfInterest;
+  var poiElements = data.poiElements;
   var poiCategories = data.poiCategories;
   var osm = data.osmRef;
   var alternativeRouteCount = data.alternativeRouteCount;
@@ -193,7 +193,6 @@ class OsmData{
     return [projectedLat, projectedLon];
   }
 
-
   Node getClosestToPoint(double latitude, double longitude){
     var pointDummy = LatLng(latitude, longitude);
     var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
@@ -229,13 +228,11 @@ class OsmData{
     data.alternativeRouteCount = alternativeRouteCount;
     data.osmRef = this;
     data.poiCategories = poiCategories;
-    if(poiElements != null){
-      data.pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
-    }
+    data.poiElements = poiElements;
 
     Future<List<HikingRoute>> routeFuture = compute(_doRouteCalculationsThreaded, data);
 
-    if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    if(profiling) print("Thread spawned after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     return routeFuture;
   }
 
@@ -297,7 +294,12 @@ class OsmData{
     return routes;
   }
 
-  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> pointsOfInterest, List<String> poiCategories) {
+  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<dynamic> poiElements, List<String> poiCategories) {
+    var timestampCalculationStart = DateTime.now().millisecondsSinceEpoch;
+    var pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
+    var timestampPoisParsed = DateTime.now().millisecondsSinceEpoch;
+    if(profiling) print(pointsOfInterest.length.toString() + " POIs parsed in " + (DateTime.now().millisecondsSinceEpoch - timestampCalculationStart).toString() + " ms");
+
     List<HikingRoute> routes = List();
     double targetBeelineDistance = (distanceInMeter * beeLineToRealRatio)/1000;
     var startNode = getClosestToPoint(startLat, startLong);
@@ -323,10 +325,12 @@ class OsmData{
           }
         }
       }
-    if(profiling) print("Triplets built after: " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    if(profiling) print(bestTriplets.length.toString() + " triplets built in: " + (DateTime.now().millisecondsSinceEpoch - timestampPoisParsed).toString() + " ms");
+
     var retryCount = 0;
     Set<PoiRouteTriplet> alreadyUsedTriplets = Set();
     while(routes.length < alternativeRouteCount && retryCount < maxRetries){
+      var timestampRouteStart = DateTime.now().millisecondsSinceEpoch;
       var nextTriplet = bestTriplets.removeFirst();
       List<PointOfInterest> nextPois;
       if(!alreadyUsedTriplets.contains(nextTriplet)){
@@ -409,7 +413,7 @@ class OsmData{
         continue;
       }
       routes.add(routeResult);
-      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString()
+      if(profiling) print("Route " + (routes.length).toString() + " done in " + (DateTime.now().millisecondsSinceEpoch - timestampRouteStart).toString()
           + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
     }
     if(routes.length == 0) {
@@ -428,7 +432,7 @@ class OsmData{
     parsedData.forEach((element) => parseToObject(element));
     if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     var graph = buildGraph();
-    if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    if(profiling) print(graph.adjacencies.keys.length.toString() + " Vertices put in graph after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
     return graph;
   }
 
