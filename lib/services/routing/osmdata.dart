@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
+import 'package:collection/priority_queue.dart';
+import 'package:quiver/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -20,8 +22,55 @@ class RouteThreadData {
   double startLong;
   double distanceInMeter;
   int alternativeRouteCount;
-  List<dynamic> poiElements;
+  List<PointOfInterest> pointsOfInterest;
+  List<String> poiCategories;
   List<HikingRoute> foundRoutes;
+}
+
+class ImportJsonThreadData {
+  OsmData osmRef;
+  String jsonNodesAndWays;
+}
+
+class PoiRouteTriplet{
+  List<PointOfInterest> pois;
+  double estimatedRouteLength;
+  PoiRouteTriplet(){
+    pois = List();
+  }
+
+  @override
+  bool operator ==(other) => other is PoiRouteTriplet && other.pois[0] == pois[0] && other.pois[1] == pois[1]&& other.pois[2] == pois[2];
+
+  @override
+  int get hashCode => hash3(pois[0].hashCode, pois[1].hashCode, pois[2].hashCode);
+}
+
+List<HikingRoute> _doRouteCalculationsThreaded(RouteThreadData data) {
+  var usePOIFunc = data.pointsOfInterest != null;
+  var startLat = data.startLat;
+  var startLong = data.startLong;
+  var distanceInMeter = data.distanceInMeter;
+  var poiElements = data.pointsOfInterest;
+  var poiCategories = data.poiCategories;
+  var osm = data.osmRef;
+  var alternativeRouteCount = data.alternativeRouteCount;
+
+  try {
+    if(usePOIFunc) {
+      return osm._calculateHikingRoutesWithPois(alternativeRouteCount, startLat, startLong, distanceInMeter, poiElements, poiCategories);
+    }
+    else {
+      return osm._calculateHikingRoutesWithoutPois(alternativeRouteCount, startLat, startLong, distanceInMeter);
+    }
+  }
+  catch(_) {
+    return List();
+  }
+}
+
+Graph _importJsonThreaded(ImportJsonThreadData data) {
+  return data.osmRef._importJsonNodesAndWays(data.jsonNodesAndWays);
 }
 
 class OsmData{
@@ -83,7 +132,7 @@ class OsmData{
     return (_toDegrees(rad) + 360) % 360;
   }
 
-  void buildGraph(){
+  Graph buildGraph(){
     graph = Graph();
     Map<Node, int> nodeCount= Map();
     for(Way way in ways) {
@@ -109,6 +158,7 @@ class OsmData{
         }
       }
     }
+    return graph;
   }
 
   static double _toRadians(double angleInDeg){
@@ -149,42 +199,6 @@ class OsmData{
     var closestPoint = graph.adjacencies.keys.reduce((curr, next) => getDistance(pointDummy, curr) < getDistance(pointDummy, next) ? curr:next);
     return closestPoint;
   }
-  
-  static HikingRoute doRouteCalculationsThreaded(RouteThreadData data) {
-    var usePOIFunc = data.poiElements != null;
-    var startLat = data.startLat;
-    var startLong = data.startLong;
-    var distanceInMeter = data.distanceInMeter;
-    var poiElements = data.poiElements;
-
-    Random randomGenerator = Random();
-
-    var retryCount = 0;
-    while(retryCount < data.osmRef.maxRetries) {
-      if(usePOIFunc)
-      {
-        try {
-          var startPoiIndex = randomGenerator.nextInt(poiElements.length);
-          return data.osmRef._calculateHikingRouteWithPois(startPoiIndex, startLat, startLong, distanceInMeter, poiElements, retryCount);
-        }
-        catch (NoRoutesFoundException) {
-          retryCount++;
-        }
-      }
-      else
-      {
-        try {
-          var initialHeading = randomGenerator.nextInt(360).floorToDouble();
-          return data.osmRef._calculateHikingRouteWithoutPois(startLat, startLong, distanceInMeter, initialHeading);
-        }
-        catch (NoRoutesFoundException) {
-          retryCount++;
-        }
-      }
-    }
-    //throw new NoRoutesFoundException();
-    return null;
-  }
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
     if(profiling) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
@@ -192,7 +206,7 @@ class OsmData{
     List<dynamic> poiElements;
     if (poiCategories != null && poiCategories.isNotEmpty) {
       var jsonDecoder = JsonDecoder();
-      var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/2);
+      var poisJson = await _getPoisJSON(poiCategories, startLat, startLong, distanceInMeter/3);
       if(profiling) print("POI OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
       poiElements = jsonDecoder.convert(poisJson)['elements'];
       if(poiElements.isEmpty){
@@ -202,188 +216,220 @@ class OsmData{
 
     var jsonNodesAndWays = await getWaysJson(startLat, startLong, distanceInMeter/2);
     if(profiling) print("OSM Query done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    _importJsonNodesAndWays(jsonNodesAndWays);
+    ImportJsonThreadData importData = ImportJsonThreadData();
+    importData.osmRef = this;
+    importData.jsonNodesAndWays = jsonNodesAndWays;
+    graph = await compute(_importJsonThreaded, importData);
 
     RouteThreadData data = RouteThreadData();
     data.distanceInMeter = distanceInMeter;
     data.foundRoutes = List();
     data.startLat = startLat;
     data.startLong = startLong;
+    data.alternativeRouteCount = alternativeRouteCount;
     data.osmRef = this;
-
+    data.poiCategories = poiCategories;
     if(poiElements != null){
-      var startLatLng = LatLng(startLat, startLong);
-      var pointsOfInterests = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
-      pointsOfInterests.sort((a,b) => getDistance(startLatLng, a).compareTo(getDistance(startLatLng, b)));
-      var closestPointsOfInterests = pointsOfInterests.sublist(0,min( pointsOfInterests.length, 50));
-      data.poiElements = closestPointsOfInterests;
+      data.pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
     }
 
-    List<Future<HikingRoute>> computeFutures = List();
-    for(int i = 0; i < alternativeRouteCount; ++i) {
-        computeFutures.add(compute(doRouteCalculationsThreaded, data, debugLabel: "Route Thread #$i"));
-    }
+    Future<List<HikingRoute>> routeFuture = compute(_doRouteCalculationsThreaded, data);
+
     if(profiling) print("Routing Algorithm done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    return Future.wait(computeFutures);
+    return routeFuture;
   }
 
-  HikingRoute _calculateHikingRouteWithoutPois(double startLat, double startLong, double distanceInM, double initialHeading) {
+  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM) {
+
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
-    var beeLineDistance = distanceInM * beeLineToRealRatio;
-    graph.edgeAlreadyUsedPenalties.clear();
+    var beeLineDistance = distanceInM * beeLineToRealRatio; List<HikingRoute> routes = List();
+    var retryCount = 0;
+    while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
+      graph.edgeAlreadyUsedPenalties.clear();
+      var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
+      var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
+      var pointC = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading + 60);
 
-    var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
-    var pointC = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading + 60);
+      var nodeA = getClosestToPoint(startLat, startLong);
+      var nodeB = getClosestToPoint(pointB[0], pointB[1]);
+      var nodeC = getClosestToPoint(pointC[0], pointC[1]);
 
-    var nodeA = getClosestToPoint(startLat, startLong);
-    var nodeB = getClosestToPoint(pointB[0], pointB[1]);
-    var nodeC = getClosestToPoint(pointC[0], pointC[1]);
-
-    var aToB = graph.AStar(nodeA, nodeB);
-    if(aToB.isNotPresent){
-      print("Warning: path to B not found, retrying...");
-      throw NoRoutesFoundException;
-    }
-    graph.penalizeEdgesAlongRoute(aToB.value, 2);
-    var bToC = graph.AStar(nodeB, nodeC);
-    if(bToC.isNotPresent){
-      print("Warning: path to C not found, retrying...");
-      throw NoRoutesFoundException;
-    }
-    graph.penalizeEdgesAlongRoute(bToC.value, 2);
-    var cToA = graph.AStar(nodeC, nodeA);
-    if(aToB.isNotPresent){
-      print("Warning: path to C not found, retrying...");
-      throw NoRoutesFoundException;
-    }
-    graph.penalizeEdgesAlongRoute(cToA.value, 2);
-
-    var routeAlternative = aToB.value;
-    routeAlternative.addAll(bToC.value);
-    routeAlternative.addAll(cToA.value);
-
-    var routeAlternativeNodes = List<Node>();
-    routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
-    var resultRoute = HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative));
-    if (resultRoute.totalLength * 1000< distanceInM * 0.8 || resultRoute.totalLength * 1000 > distanceInM * 1.2){
-      if(profiling) print("Route too long or to short, retrying...");
-      throw NoRoutesFoundException;
-    }
-    if(profiling) print("Route " + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms. Total length: " + resultRoute.totalLength.toString());
-
-    return resultRoute;
-  }
-
-  HikingRoute _calculateHikingRouteWithPois(int firstPoiIndex, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> closestPointsOfInterest, int retryCount) {
-    var startNode = getClosestToPoint(startLat, startLong);
-    Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(closestPointsOfInterest,
-        value: (cPoi) => cPoi,
-        key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
-    if(profiling) print("Nodes to " + wayNodeAndPOI.length.toString() + " POIs found after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    
-    graph.edgeAlreadyUsedPenalties.clear();
-    List<PointOfInterest> includedPois = List();
-    List<Edge> route = List();
-    var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
-    var lastVisited = startNode;
-    var totalRouteLength = 0.0;
-    //determine first poi to go to
-    var unsortedPoiNodeList = wayNodeAndPOICopy.keys.toList();
-    unsortedPoiNodeList.sort((a,b) => getDistance(startNode, a).compareTo(getDistance(startNode, b)));
-    var firstPoi = unsortedPoiNodeList[firstPoiIndex];
-    //plan route to that poi
-    var routeToFirstPoi = graph.AStar(lastVisited, firstPoi);
-    if(routeToFirstPoi.isNotPresent){
-      print("Warning: path to first POI not found, retrying... retry count: " + retryCount.toString());
-      //retryCount ++;
-      throw NoRoutesFoundException;
-    }
-    totalRouteLength += lengthOfEdgesKM(routeToFirstPoi.value);
-    route.addAll(routeToFirstPoi.value);
-    graph.penalizeEdgesAlongRoute(routeToFirstPoi.value, 5);
-    includedPois.add(wayNodeAndPOICopy[firstPoi]);
-    wayNodeAndPOICopy.remove(firstPoi);
-    lastVisited = firstPoi;
-    //start loop over all the other pois
-    //Todo:change order so that the check is made after route to next poi is added to total length --> if route gets to long with that poi the check would cover that
-    while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
-      var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
-      var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
-      if(routeToClosestPoi.isNotPresent){
-        wayNodeAndPOICopy.remove(closestPoiWayNode);
+      var aToB = graph.AStar(nodeA, nodeB);
+      if(aToB.isNotPresent){
+        print("Warning: path to B not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
         continue;
       }
-      totalRouteLength += lengthOfEdgesKM(routeToClosestPoi.value);
-      route.addAll(routeToClosestPoi.value);
-      graph.penalizeEdgesAlongRoute(routeToClosestPoi.value, 5);
-      includedPois.add(wayNodeAndPOICopy[closestPoiWayNode]);
-      wayNodeAndPOICopy.remove(closestPoiWayNode);
-      lastVisited = closestPoiWayNode;
-    }
+      graph.penalizeEdgesAlongRoute(aToB.value, 2);
+      var bToC = graph.AStar(nodeB, nodeC);
+      if(bToC.isNotPresent){
+        print("Warning: path to C not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
+        continue;
+      }
+      graph.penalizeEdgesAlongRoute(bToC.value, 2);
+      var cToA = graph.AStar(nodeC, nodeA);
+      if(aToB.isNotPresent){
+        print("Warning: path to C not found, retrying... retry count: " + retryCount.toString());
+        retryCount++;
+        continue;
+      }
+      graph.penalizeEdgesAlongRoute(cToA.value, 2);
 
-    List<Edge> routeBack = List();
-    if(wayNodeAndPOICopy.isEmpty){ //route is probably not long enough yet
-      var slightDistanceModifier = 1.0;
-      while(retryCount <= maxRetries){
-        var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
-        var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier * beeLineToRealRatio;
-        var c = getDistance(startNode, lastVisited);
-        var cosGamma = (a*a+b*b-c*c)/(2*a*b);
-        var relativeGamma = _toDegrees(acos(cosGamma));
-        var relativeAlpha = (180-relativeGamma)/2;
-        var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
-        var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b * 1000, absoluteAlpha);
-        var routeExtensionNode = getClosestToPoint(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
-        var routeToExtensionNode = graph.AStar(lastVisited, routeExtensionNode);
-        var routeFromExtensionNode = graph.AStar(routeExtensionNode, startNode);
-        if(routeToExtensionNode.isNotPresent || routeFromExtensionNode.isNotPresent){
-          print("Warning: path to routeExtensionNode (" + routeExtensionNode.id.toString() + ") not found, retrying... retry count: " + retryCount.toString());
-          retryCount ++;
-          slightDistanceModifier = (12 - _randomGenerator.nextDouble() * 4)/10.0;
-          continue;
-        }else{
-          routeBack.addAll(routeToExtensionNode.value);
-          routeBack.addAll(routeFromExtensionNode.value);
-          break;
-        }
+      var routeAlternative = aToB.value;
+      routeAlternative.addAll(bToC.value);
+      routeAlternative.addAll(cToA.value);
+
+      var routeAlternativeNodes = List<Node>();
+      routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
+      var resultRoute = HikingRoute(routeAlternativeNodes, lengthOfEdgesKM(routeAlternative));
+      if (resultRoute.totalLength * 1000< distanceInM * 0.8 || resultRoute.totalLength * 1000 > distanceInM * 1.2){
+        retryCount ++;
+        if(profiling) print("Route too long or to short, retrying...");
+        continue;
       }
-    }else{ //route is already long enough, just go back
-      var routeBackOptional = graph.AStar(lastVisited, startNode);
-      if(routeBackOptional.isNotPresent){
-        print("Warning: path returning to startPoint not found, retrying... retry count: " + retryCount.toString());
-        //retryCount ++;
-        throw NoRoutesFoundException;
-      }
-      routeBack.addAll(routeBackOptional.value);
+      routes.add(resultRoute);
+      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms. Total length: " + resultRoute.totalLength.toString());
     }
-    graph.penalizeEdgesAlongRoute(routeBack, 5);
-    totalRouteLength += lengthOfEdgesKM(routeBack) ;
-    route.addAll(routeBack);
-    List<Node> routeNodes = List();
-    route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-    var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
-    if(routeResult.totalLength * 1000 < distanceInMeter * 0.8 || routeResult.totalLength * 1000 > distanceInMeter * 1.2){
-      //retryCount ++;
-      if(profiling) print("Route too long or to short, retrying...");
+    if(routes.length == 0){
       throw NoRoutesFoundException;
     }
-    if(profiling) print("Route " + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString()
-        + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
-    
-    return routeResult;
+    return routes;
+  }
+
+  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<PointOfInterest> pointsOfInterest, List<String> poiCategories) {
+    List<HikingRoute> routes = List();
+    double targetBeelineDistance = (distanceInMeter * beeLineToRealRatio)/1000;
+    var startNode = getClosestToPoint(startLat, startLong);
+    pointsOfInterest.shuffle(_randomGenerator);
+    PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
+        .compareTo((targetBeelineDistance - routePoiTripletB.estimatedRouteLength).abs()));
+    for(var poi in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[0]).take(100)){
+      for(var poi2 in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[1%poiCategories.length]).take(100)){
+        for(var poi3 in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[2%poiCategories.length]).take(100)){
+            Set<PointOfInterest> tripletCandidates = new Set();
+            tripletCandidates.addAll([poi, poi2, poi3]);
+            if(tripletCandidates.length != 3) continue;
+            var closestToStart = tripletCandidates.reduce((poiA, poiB) => getDistance(startNode, poiA) < getDistance(startNode, poiB) ? poiA : poiB );
+            tripletCandidates.remove(closestToStart);
+            var nextPoi = tripletCandidates.reduce((poiA, poiB) => getDistance(closestToStart, poiA) < getDistance(closestToStart, poiB) ? poiA : poiB );
+            tripletCandidates.remove(nextPoi);
+            var lastPoi = tripletCandidates.first;
+            var triplet = PoiRouteTriplet();
+            triplet.pois.addAll([closestToStart, nextPoi, lastPoi]);
+            triplet.estimatedRouteLength = getDistance(startNode, closestToStart) + getDistance(closestToStart, nextPoi) + getDistance(nextPoi, lastPoi) + getDistance(lastPoi, startNode);
+
+            bestTriplets.add(triplet);
+          }
+        }
+      }
+    if(profiling) print("Triplets built after: " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    var retryCount = 0;
+    Set<PoiRouteTriplet> alreadyUsedTriplets = Set();
+    while(routes.length < alternativeRouteCount && retryCount < maxRetries){
+      var nextTriplet = bestTriplets.removeFirst();
+      List<PointOfInterest> nextPois;
+      if(!alreadyUsedTriplets.contains(nextTriplet)){
+        alreadyUsedTriplets.add(nextTriplet);
+        nextPois = nextTriplet.pois;
+      }
+      else{
+        continue;
+      }
+      Map<Node, PointOfInterest> wayNodeAndPOI = Map.fromIterable(nextPois,
+          value: (cPoi) => cPoi,
+          key: (cPoi) => getClosestToPoint(cPoi.latitude, cPoi.longitude));
+      graph.edgeAlreadyUsedPenalties.clear();
+      List<PointOfInterest> includedPois = List();
+      List<Edge> route = List();
+      var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
+      var lastVisited = startNode;
+      var totalRouteLength = 0.0;
+
+      //start loop over all the other pois
+      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
+        var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
+        var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
+        if(routeToClosestPoi.isNotPresent){
+          wayNodeAndPOICopy.remove(closestPoiWayNode);
+          continue;
+        }
+        totalRouteLength += lengthOfEdgesKM(routeToClosestPoi.value);
+        route.addAll(routeToClosestPoi.value);
+        graph.penalizeEdgesAlongRoute(routeToClosestPoi.value, 5);
+        includedPois.add(wayNodeAndPOICopy[closestPoiWayNode]);
+        wayNodeAndPOICopy.remove(closestPoiWayNode);
+        lastVisited = closestPoiWayNode;
+      }
+
+      List<Edge> routeBack = List();
+      if(wayNodeAndPOICopy.isEmpty && ((distanceInMeter/1000) - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatio ){ //route is probably not long enough yet
+        var slightDistanceModifier = 1.0;
+        while(retryCount <= maxRetries){
+          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var c = getDistance(startNode, lastVisited);
+          var cosGamma = (a*a+b*b-c*c)/(2*a*b);
+          var relativeGamma = _toDegrees(acos(cosGamma));
+          var relativeAlpha = (180-relativeGamma)/2;
+          var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
+          var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b * 1000, absoluteAlpha);
+          var routeExtensionNode = getClosestToPoint(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
+          var routeToExtensionNode = graph.AStar(lastVisited, routeExtensionNode);
+          var routeFromExtensionNode = graph.AStar(routeExtensionNode, startNode);
+          if(routeToExtensionNode.isNotPresent || routeFromExtensionNode.isNotPresent){
+            print("Warning: path to routeExtensionNode (" + routeExtensionNode.id.toString() + ") not found, retrying... retry count: " + retryCount.toString());
+            retryCount ++;
+            slightDistanceModifier = (12 - _randomGenerator.nextDouble() * 4)/10.0;
+            continue;
+          }else{
+            routeBack.addAll(routeToExtensionNode.value);
+            routeBack.addAll(routeFromExtensionNode.value);
+            break;
+          }
+        }
+      }else{ //route is already long enough, just go back
+        var routeBackOptional = graph.AStar(lastVisited, startNode);
+        if(routeBackOptional.isNotPresent){
+          print("Warning: path returning to startPoint not found, retrying... retry count: " + retryCount.toString());
+          retryCount ++;
+          continue;
+        }
+        routeBack.addAll(routeBackOptional.value);
+      }
+      graph.penalizeEdgesAlongRoute(routeBack, 5);
+      totalRouteLength += lengthOfEdgesKM(routeBack) ;
+      route.addAll(routeBack);
+      List<Node> routeNodes = List();
+      route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
+      var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
+      if(routeResult.totalLength * 1000 < distanceInMeter * 0.8 || routeResult.totalLength * 1000 > distanceInMeter * 1.2){
+        retryCount ++;
+        if(profiling) print("Route too long or to short (" + totalRouteLength.toString() + ", retrying... retry count: " + retryCount.toString());
+        continue;
+      }
+      routes.add(routeResult);
+      if(profiling) print("Route " + (routes.length).toString() + " done after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString()
+          + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
+    }
+    if(routes.length == 0) {
+      throw NoRoutesFoundException;
+    }
+    return routes;
   }
 
   double lengthOfEdgesKM(List<Edge> edges){
     return edges.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
   }
 
-  void _importJsonNodesAndWays(String jsonNodesAndWays){
+  Graph _importJsonNodesAndWays(String jsonNodesAndWays){
     var jsonDecoder = JsonDecoder();
     dynamic parsedData = jsonDecoder.convert(jsonNodesAndWays)['elements'];
     parsedData.forEach((element) => parseToObject(element));
     if(profiling) print("OSM JSON parsed after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    buildGraph();
+    var graph = buildGraph();
     if(profiling) print("Graph built after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    return graph;
   }
 
   Future<String> _getPoisJSON(List<String> categories, aroundLat, aroundLong, radius) async{
@@ -396,8 +442,8 @@ class OsmData{
     var categoryString = categories.join('|');
     var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300];'
-        'node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
-        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
+        '(node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
+        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong););'
         'out body qt;';
 
     var response = await http.get(url);

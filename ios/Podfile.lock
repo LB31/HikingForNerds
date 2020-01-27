@@ -1,43 +1,92 @@
 PODS:
+  - esys_flutter_share (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
-  - FMDB (2.7.5):
-    - FMDB/standard (= 2.7.5)
-  - FMDB/standard (2.7.5)
+  - flutter_absolute_path (0.0.1):
+    - Flutter
+  - geocoder (0.0.1):
+    - Flutter
+  - keyboard_visibility (0.5.0):
+    - Flutter
+    - Reachability
   - location (0.0.1):
     - Flutter
+  - "location_permissions (2.0.4+1)":
+    - Flutter
+  - Mapbox-iOS-SDK (5.5.0)
+  - mapbox_gl (0.0.1):
+    - Flutter
+    - Mapbox-iOS-SDK (~> 5.5.0)
+    - MapboxAnnotationExtension (~> 0.0.1-beta.1)
+  - MapboxAnnotationExtension (0.0.1-beta.1):
+    - Mapbox-iOS-SDK (~> 5.2)
   - path_provider (0.0.1):
     - Flutter
-  - sqflite (0.0.1):
+  - Reachability (3.2)
+  - share (0.5.2):
     - Flutter
-    - FMDB (~> 2.7.2)
+  - shared_preferences (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
+  - esys_flutter_share (from `.symlinks/plugins/esys_flutter_share/ios`)
   - Flutter (from `.symlinks/flutter/ios`)
+  - flutter_absolute_path (from `.symlinks/plugins/flutter_absolute_path/ios`)
+  - geocoder (from `.symlinks/plugins/geocoder/ios`)
+  - keyboard_visibility (from `.symlinks/plugins/keyboard_visibility/ios`)
   - location (from `.symlinks/plugins/location/ios`)
+  - location_permissions (from `.symlinks/plugins/location_permissions/ios`)
+  - mapbox_gl (from `.symlinks/plugins/mapbox_gl/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
-  - sqflite (from `.symlinks/plugins/sqflite/ios`)
+  - share (from `.symlinks/plugins/share/ios`)
+  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
   trunk:
-    - FMDB
+    - Mapbox-iOS-SDK
+    - MapboxAnnotationExtension
+    - Reachability
 
 EXTERNAL SOURCES:
+  esys_flutter_share:
+    :path: ".symlinks/plugins/esys_flutter_share/ios"
   Flutter:
     :path: ".symlinks/flutter/ios"
+  flutter_absolute_path:
+    :path: ".symlinks/plugins/flutter_absolute_path/ios"
+  geocoder:
+    :path: ".symlinks/plugins/geocoder/ios"
+  keyboard_visibility:
+    :path: ".symlinks/plugins/keyboard_visibility/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
+  location_permissions:
+    :path: ".symlinks/plugins/location_permissions/ios"
+  mapbox_gl:
+    :path: ".symlinks/plugins/mapbox_gl/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
-  sqflite:
-    :path: ".symlinks/plugins/sqflite/ios"
+  share:
+    :path: ".symlinks/plugins/share/ios"
+  shared_preferences:
+    :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
+  esys_flutter_share: 403498dab005b36ce1f8d7aff377e81f0621b0b4
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
+  flutter_absolute_path: 5adb13678c88f0bdfba527f3851f9543d01dde66
+  geocoder: 3cfab70531a0b367e917bafe82df4c30f6d4c45a
+  keyboard_visibility: 96a24de806fe6823c3ad956c01ba2ec6d056616f
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
+  location_permissions: 360d12ecd1c94a4cab68585f508be1d5ad944c8b
+  Mapbox-iOS-SDK: 7fa66a27e586acb14c7f32ec5a487343e3994451
+  mapbox_gl: da39c0c519f50d83f3483dc37887acb9cf61f5fa
+  MapboxAnnotationExtension: d66de5561562c9d940153c0135725e671407b781
   path_provider: fb74bd0465e96b594bb3b5088ee4a4e7bb1f2a9d
-  sqflite: ff1d9da63c06588cc8d1faf7256d741f16989d5a
+  Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
+  share: bae0a282aab4483288913fc4dc0b935d4b491f2e
+  shared_preferences: 430726339841afefe5142b9c1f50cb6bd7793e01
 
-PODFILE CHECKSUM: 10ae9c18d12c9ffc2275c9a159a3b1e281990db0
+PODFILE CHECKSUM: ae561bef2184f9210f971f554222391cecdbb2c5
 
 COCOAPODS: 1.8.4
