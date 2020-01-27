@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
-import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
+
 
 class RoutePreviewPage extends StatefulWidget {
   final SwitchToMapCallback onSwitchToMap;
@@ -196,7 +196,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                               child: Container(
                                 width: 55,
                                 height: 5,
-                                color: Colors.green,
+                                color: Color.fromARGB(255, 0, 153, 51),
                               ),
                             )
                           ],

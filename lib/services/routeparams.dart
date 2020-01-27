@@ -1,3 +1,4 @@
+import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/services/route.dart';
 
@@ -33,7 +34,7 @@ class AltitudeTypeHelper {
 class RouteParams {
   LatLng startingLocation;
   double distanceKm;
-  List<String> poiCategories;
+  List<PoiCategory> poiCategories;
   AltitudeType altitudeType;
   List<HikingRoute> routes;
   int routeIndex;
