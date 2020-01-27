@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:search_widget/search_widget.dart';
 
 import '../styles.dart';
 
 class PoiCategorySearchBar extends StatefulWidget {
-  final List<String> selectedCategories;
+  final List<PoiCategory> selectedCategories;
 
   PoiCategorySearchBar({Key key, @required this.selectedCategories})
       : super(key: key);
@@ -16,45 +17,26 @@ class PoiCategorySearchBar extends StatefulWidget {
 }
 
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
-  List<String> categories = <String>[
-    'architecture',
-    'bar',
-    'basilica',
-    'cathedral',
-    'church',
-    'exhibition',
-    'gas station',
-    'lake, ' 'monuments',
-    'museum',
-    'park',
-    'river',
-    'romanic',
-    'school',
-    'zoo',
-  ];
-
-
   @override
   Widget build(BuildContext context) {
-    return SearchWidget<String>(
-        dataList: categories,
+    return SearchWidget<PoiCategory>(
+        dataList: PoiCategory.categories..sort((a, b) => a.name.compareTo(b.name)),
         hideSearchBoxWhenItemSelected: false,
         listContainerHeight: MediaQuery.of(context).size.height / 4,
-        queryBuilder: (String query, List<String> list) {
-          return list
-              .where((String category) =>
-                  category.toLowerCase().contains(query.toLowerCase()))
-              .toList();
+        queryBuilder: (String query, List<PoiCategory> list) {
+          return list.where((category) =>
+              category.name.toLowerCase().startsWith(query.toLowerCase()));
         },
-        popupListItemBuilder: (String category) {
+        popupListItemBuilder: (PoiCategory category) {
           return PopupListItemWidget(category);
         },
-        selectedItemBuilder:
-            (String selectedCategory, VoidCallback onDeleteSelectedCategory) {
-          if (widget.selectedCategories.length < 3 && !widget.selectedCategories.contains(selectedCategory))
+        selectedItemBuilder: (PoiCategory selectedCategory,
+            VoidCallback onDeleteSelectedCategory) {
+          if (widget.selectedCategories.length < 3 &&
+              !widget.selectedCategories.contains(selectedCategory))
             widget.selectedCategories.add(selectedCategory);
-          return SelectedItemsWidget(
-              selectedCategory, onDeleteSelectedCategory, widget.selectedCategories);
+          return SelectedItemsWidget(selectedCategory, onDeleteSelectedCategory,
+              widget.selectedCategories);
         },
         // widget customization
         noItemsFoundWidget: NoItemsFound(),
@@ -66,28 +48,32 @@ class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
 }
 
 class SelectedItemsWidget extends StatefulWidget {
-  final String selectedCategory;
+  final PoiCategory selectedCategory;
+  final List<PoiCategory> selectedCategories;
   final VoidCallback onDeleteSelectedCategory;
-  final List<String> selectedCategories;
 
-  SelectedItemsWidget(
-      this.selectedCategory, this.onDeleteSelectedCategory, this.selectedCategories);
+  SelectedItemsWidget(this.selectedCategory, this.onDeleteSelectedCategory,
+      this.selectedCategories);
 
   @override
   _SelectedItemsWidgetState createState() => _SelectedItemsWidgetState();
 }
 
 class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
-  chips() {
+  List<Widget> generateChips() {
     List<Widget> chips = List();
-    widget.selectedCategories.forEach((key) {
+    widget.selectedCategories.forEach((category) {
       chips.add(Chip(
-        label: Text(key, style: TextStyle(fontSize: 16.0)),
-        backgroundColor: htwGreen,
-        deleteIcon: Icon(Icons.close),
+        label: Text(category.name,
+            style: TextStyle(fontSize: 16.0, color: Colors.white)),
+        backgroundColor: category.color,
+        deleteIcon: Icon(
+          Icons.close,
+          color: Colors.white,
+        ),
         onDeleted: () {
           setState(() {
-            widget.selectedCategories.remove(key);
+            widget.selectedCategories.remove(category);
           });
         },
       ));
@@ -100,7 +86,7 @@ class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
     return Container(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Wrap(
-          children: chips(),
+          children: generateChips(),
           spacing: 4.0,
         ));
   }
@@ -129,7 +115,9 @@ class SearchTextField extends StatelessWidget {
           ),
           suffixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          hintText: LocalizationService().getLocalization(english: "Search categories here (max. 3) ...", german: "Suche Kategorien hier (max. 3)"),
+          hintText: LocalizationService().getLocalization(
+              english: "Search for categories (max. 3) ...",
+              german: "Suche nach Kategorien (max. 3) ..."),
           contentPadding: EdgeInsets.only(
             left: 16,
             right: 20,
@@ -156,7 +144,8 @@ class NoItemsFound extends StatelessWidget {
           ),
           SizedBox(width: 10.0),
           Text(
-            LocalizationService().getLocalization(english: "No Items Found", german: "Keine Elemente gefunden"),
+            LocalizationService().getLocalization(
+                english: "No Items Found", german: "Keine Elemente gefunden"),
             style: TextStyle(
               fontSize: 16.0,
               color: Colors.grey[900].withOpacity(0.7),
@@ -169,7 +158,7 @@ class NoItemsFound extends StatelessWidget {
 }
 
 class PopupListItemWidget extends StatelessWidget {
-  final String category;
+  final PoiCategory category;
 
   PopupListItemWidget(this.category);
 
@@ -178,7 +167,7 @@ class PopupListItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12.0),
       child: Text(
-        category,
+        category.name,
         style: TextStyle(fontSize: 16.0),
       ),
     );
