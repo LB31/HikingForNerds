@@ -136,8 +136,8 @@ class _RouteListState extends State<RouteList> {
     }
     
     entry.pois.forEach((poi) {
-      chips.add(new Chip(
-        label: Text(poi, style: TextStyle(fontSize: 11, color: Colors.white)),
+      chips.add(Chip(
+        label: Text('${poi[0].toUpperCase()}${poi.substring(1)}', style: TextStyle(fontSize: 11, color: Colors.white)),
         backgroundColor: htwGreen,
       ));
     });
