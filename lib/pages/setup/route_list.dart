@@ -31,6 +31,7 @@ class _RouteListState extends State<RouteList> {
     List<HikingRoute> routes;
 
     OsmData osm = OsmData();
+    osm.profiling = true;
 
     try {
       routes = await osm.calculateHikingRoutes(
@@ -38,7 +39,7 @@ class _RouteListState extends State<RouteList> {
           widget.routeParams.startingLocation.longitude,
           widget.routeParams.distanceKm * 1000.0,
           10,
-          widget.routeParams.poiCategories);
+          widget.routeParams.poiCategories.map((category) => category.id).toList());
     } on NoPOIsFoundException catch (err) {
       print("no poi found exception " + err.toString());
       routes = await osm.calculateHikingRoutes(

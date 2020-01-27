@@ -20,7 +20,7 @@ import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
-
+import 'package:hiking4nerds/services/pointofinterest.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
@@ -33,6 +33,7 @@ class MapWidget extends StatefulWidget {
 
 class MapWidgetState extends State<MapWidget> {
   static const double defaultZoom = 12.0;
+  static const double displayPoiSymbolZoom = 14.0;
   final CameraPosition _cameraInitialPos;
   final CameraTargetBounds _cameraTargetBounds;
 
@@ -53,6 +54,8 @@ class MapWidgetState extends State<MapWidget> {
   LatLng _lastUserLocation;
 
   Timer _timer;
+
+  double _lastZoom = 12;
 
   CameraPosition _position;
   MapboxMapController mapController;
@@ -164,10 +167,16 @@ class MapWidgetState extends State<MapWidget> {
     return currentLocation;
   }
 
-
-  void drawRoute(HikingRoute route, [bool center=true]) async {
+  void clearMap() {
     mapController.clearLines();
+    mapController.clearCircles();
+    mapController.clearSymbols();
+  }
+
+  void drawRoute(HikingRoute route, [bool center = true]) async {
+    clearMap();
     drawRouteStartingPoint(route);
+    drawPois(route, 12);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
 
@@ -197,10 +206,10 @@ class MapWidgetState extends State<MapWidget> {
 
     Line lineStartRoute = await mapController.addLine(optionsStartRoute);
 
-    if(center) centerCameraOverRoute(route);
+    if (center) centerCameraOverRoute(route);
 
     setState(() {
-      _hikingRoute = route; 
+      _hikingRoute = route;
       _route = route.path;
       _remainingRoute = route.path;
       _passedRoute = [];
@@ -216,8 +225,7 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  void drawRouteStartingPoint(HikingRoute route) {
-    mapController.clearCircles();
+  Future<void> drawRouteStartingPoint(HikingRoute route) async {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
@@ -225,7 +233,7 @@ class MapWidgetState extends State<MapWidget> {
         circleRadius: 16,
         circleBlur: 0.25,
         circleOpacity: 0.5);
-    mapController.addCircle(optionsStartingPoint);
+    await mapController.addCircle(optionsStartingPoint);
   }
 
   int calculateLastStartingPathNode(HikingRoute route) {
@@ -236,16 +244,45 @@ class MapWidgetState extends State<MapWidget> {
     double startPathLength = 0;
     int i = 0;
     while (startingPointPath.length == 0) {
-        if (startPathLength > routeEndingLength) {
-          return i + 1;
-        } else {
-          startPathLength +=
-              OsmData.getDistance(route.path[i], route.path[i + 1]);
-        }
+      if (startPathLength > routeEndingLength) {
+        return i + 1;
+      } else {
+        startPathLength +=
+            OsmData.getDistance(route.path[i], route.path[i + 1]);
+      }
       i++;
     }
 
     return -1;
+  }
+
+  void drawPois(HikingRoute route, double zoom) async {
+    List<PointOfInterest> pois = route.pointsOfInterest;
+    if (pois != null) {
+      pois.forEach((poi) async {
+        if (zoom < displayPoiSymbolZoom) {
+          await mapController.clearSymbols();
+          CircleOptions poiOptions = CircleOptions(
+              geometry: LatLng(poi.latitude, poi.longitude),
+              circleColor: poi.category.colorAsHex(),
+              circleRadius: 3,
+              circleBlur: 0.25,
+              circleOpacity: 0.8);
+          await mapController.addCircle(poiOptions);
+        } else {
+          await mapController.clearCircles();
+          await drawRouteStartingPoint(_hikingRoute);
+          SymbolOptions poiOptions = SymbolOptions(
+              iconImage: poi.category.symbolPath,
+              geometry: LatLng(poi.latitude, poi.longitude),
+              iconSize: 1,
+          );
+          await mapController.addSymbol(poiOptions);
+        }
+      });
+    }
+
+    setState(() {});
   }
 
   void centerCameraOverRoute(HikingRoute route) {
@@ -293,9 +330,9 @@ class MapWidgetState extends State<MapWidget> {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer t) => updateRoute());
   }
 
-  bool userLocationChanged(LatLng currentLocation){
-    if(_lastUserLocation == null) return true;
-    
+  bool userLocationChanged(LatLng currentLocation) {
+    if (_lastUserLocation == null) return true;
+
     double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
     return distance > 0.001;
   }
@@ -304,17 +341,17 @@ class MapWidgetState extends State<MapWidget> {
     LocationData userLocation = await getCurrentLocation();
     LatLng userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
 
-    if(userLocationChanged(userLatLng)) {
-
+    if (userLocationChanged(userLatLng)) {
       int currentRouteIndex = _currentRouteIndex;
 
       //The final 25 nodes of the route can not be "visited" until at least the first 25 nodes have been "visited".
-      int finalRouteNodesThreshold = _remainingRoute.length < _route.length - 25 ? 0 : 25;
-      for (int index = currentRouteIndex; index < _route.length - finalRouteNodesThreshold; index++) {
-        double distanceToCurrentLocation = OsmData.getDistance(
-            _route[index], userLatLng);
+      int finalRouteNodesThreshold =
+          _remainingRoute.length < _route.length - 25 ? 0 : 25;
+
+      for (int i = currentRouteIndex; i < _route.length - finalRouteNodesThreshold; i++) {
+        double distanceToCurrentLocation = OsmData.getDistance(_route[i], userLatLng);
         if (distanceToCurrentLocation < 0.1) {
-          currentRouteIndex = index;
+          currentRouteIndex = i;
           break;
         }
       }
@@ -340,11 +377,11 @@ class MapWidgetState extends State<MapWidget> {
   //TODO implement nicer/prettier implementation
   void finishHikingTrip() {
     Flushbar(
-      messageText:
-          Text(LocalizationService().getLocalization(
-              english: "You have finished your hiking trip",
-              german: "Sie haben Ihre Wanderung beendet"), 
-              style: TextStyle(color: Colors.black, fontSize: 16.0)),
+      messageText: Text(
+          LocalizationService().getLocalization(
+              english: "You have finished your hiking trip!",
+              german: "Sie haben Ihre Wanderung abgeschlossen!"),
+          style: TextStyle(color: Colors.black, fontSize: 16.0)),
       icon: Icon(
         Icons.thumb_up,
         size: 28.0,
@@ -370,10 +407,9 @@ class MapWidgetState extends State<MapWidget> {
     updateTotalHikingDistance();
   }
 
-  updateTotalHikingDistance(){
+  updateTotalHikingDistance() {
     SharedPreferences.getInstance().then((prefs) {
-      double totalHikingDistance =
-          prefs.getDouble("totalHikingDistance") ?? 0;
+      double totalHikingDistance = prefs.getDouble("totalHikingDistance") ?? 0;
       totalHikingDistance += _hikingRoute.totalLength;
       prefs.setDouble("totalHikingDistance", totalHikingDistance);
     });
@@ -388,8 +424,15 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _onMapChanged() {
+    double currentZoom = mapController.cameraPosition.zoom;
+    if (currentZoom > displayPoiSymbolZoom && _lastZoom <= displayPoiSymbolZoom)
+      drawPois(_hikingRoute, currentZoom);
+    else if (currentZoom < displayPoiSymbolZoom &&
+        _lastZoom >= displayPoiSymbolZoom) drawPois(_hikingRoute, currentZoom);
+
     setState(() {
       _extractMapInfo();
+      _lastZoom = currentZoom;
     });
   }
 

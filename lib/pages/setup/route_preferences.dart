@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/poi_category_search_bar.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 
@@ -21,7 +22,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
   double distance = 5.0; // default
   int selectedAltitude = 0;
   bool distanceAsDuration = false;
-  List<String> selectedPoiCategories = List<String>();
+  List<PoiCategory> selectedPoiCategories = List<PoiCategory>();
 
   altitudeSelection() {
     List<Widget> altitudeTypes = List();
