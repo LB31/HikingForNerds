@@ -17,6 +17,8 @@ class ElevationChart extends StatefulWidget {
 }
 
 class ElevationChartState extends State<ElevationChart>{
+  RouteData selectedRouteData = new RouteData(0, 0, 0);
+
   @override
   Widget build(BuildContext context) {
     // TODO add localization
@@ -30,12 +32,7 @@ class ElevationChartState extends State<ElevationChart>{
         : charts.SelectionTrigger.hover;
 
     List<charts.ChartBehavior> behaviours = [
-      new charts.LinePointHighlighter(
-          showHorizontalFollowLine:
-          charts.LinePointHighlighterFollowLineType.none,
-          showVerticalFollowLine:
-          charts.LinePointHighlighterFollowLineType.nearest),
-      new charts.SelectNearest(eventTrigger: interaction)
+      new charts.SelectNearest(eventTrigger: interaction, )
     ];
 
     if (widget.withLabels) {
@@ -49,12 +46,22 @@ class ElevationChartState extends State<ElevationChart>{
           titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
           titleOutsideJustification:
           charts.OutsideJustification.middleDrawArea));
+      behaviours.add(new charts.RangeAnnotation([
+        new charts.LineAnnotationSegment(selectedRouteData.distance, charts.RangeAnnotationAxisType.domain, startLabel: selectedRouteData.elevation.toString())])
+      );
+    } else {
+      behaviours.add(new charts.LinePointHighlighter(
+          showHorizontalFollowLine:
+          charts.LinePointHighlighterFollowLineType.none,
+          showVerticalFollowLine:
+          charts.LinePointHighlighterFollowLineType.nearest),
+      );
     }
 
     return new Container(
       child: new charts.LineChart(
         _createData(widget.route),
-        animate: true,
+        animate: false,
         defaultRenderer: new charts.LineRendererConfig(
             includeArea: true, includeLine: true, stacked: true),
         behaviors: behaviours,
@@ -106,6 +113,9 @@ class ElevationChartState extends State<ElevationChart>{
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
         widget.onSelectionChanged(datumPair.datum.index);
+        setState(() {
+          this.selectedRouteData = datumPair.datum;
+        });
       });
     }
   }
