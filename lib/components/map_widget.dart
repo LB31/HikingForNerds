@@ -568,11 +568,11 @@ class MapWidgetState extends State<MapWidget> {
       LatLng latLngPosition = _route[index];
       SymbolOptions optionsElevationPoint = SymbolOptions(
         geometry: latLngPosition,
-        //TODO: add a viable marker png image
-        iconImage: "assets/img/icons8-marker-50.png",
+        iconImage: "assets/img/symbols/location_pin.png",
         iconOffset: Offset(0, -10),
         //iconOpacity: 0.5,
         //textField: _hikingRoute.elevations[index].toString(),
+        //textSize: 10.0,
         //draggable: false,
 
         );
