@@ -95,24 +95,28 @@ class MapWidgetState extends State<MapWidget> {
   @override
   initState() {
     super.initState();
+    if (Platform.isAndroid) {
+      addLifecycleIntentHandler();
+    }
+
     _loadOfflineTiles();
     _requestPermissions();
-
-    if (Platform.isAndroid) {
-      _getIntentData().then((route) {
-        setState(() {
-          sharedRoute = route;
-        });
-      });
-    }
+    print("tilted");
   }
 
-  Future<HikingRoute> _getIntentData() async {
+  void addLifecycleIntentHandler() {
     WidgetsBinding.instance.addObserver(
         new LifecycleEventHandler(resumeCallBack: resumeMap, suspendingCallBack: suspendMap)
     );
+  }
 
-    return await _getSharedData();
+  Future<void> _drawRouteFromIntent() async {
+    var data = await _getSharedData();
+    if (data == null || sharedRoute != null) return;
+    setState(() {
+      sharedRoute = data;
+    });
+    drawRoute(sharedRoute);
   }
 
   Future<void> suspendMap(){
@@ -129,10 +133,11 @@ class MapWidgetState extends State<MapWidget> {
         _mapSuspended = false;
       });
       drawRoute(sharedRoute);
+      print("resumed");
     });
   }
 
-  _getSharedData() async {
+  Future<HikingRoute> _getSharedData() async {
     String dataPath = await platform.invokeMethod("getSharedData");
     if (dataPath.isEmpty) return null;
     return await new ImportExportHandler().importRouteFromUri(dataPath);
@@ -175,6 +180,7 @@ class MapWidgetState extends State<MapWidget> {
 
   void drawRoute(HikingRoute route, [bool center = true]) async {
     clearMap();
+    print("drawing route");
     drawRouteStartingPoint(route);
     drawPois(route, 12);
     int index = calculateLastStartingPathNode(route);
@@ -576,6 +582,6 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    if (sharedRoute != null) drawRoute(sharedRoute);
+    _drawRouteFromIntent();
   }
 }
