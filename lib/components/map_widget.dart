@@ -95,13 +95,12 @@ class MapWidgetState extends State<MapWidget> {
   @override
   initState() {
     super.initState();
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid && !widget.isStatic) {
       addLifecycleIntentHandler();
     }
 
     _loadOfflineTiles();
     _requestPermissions();
-    print("tilted");
   }
 
   void addLifecycleIntentHandler() {
@@ -112,7 +111,7 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> _drawRouteFromIntent() async {
     var data = await _getSharedData();
-    if (data == null || sharedRoute != null) return;
+    if (data == null) return;
     setState(() {
       sharedRoute = data;
     });
@@ -125,15 +124,11 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
-  Future<void> resumeMap(){
-    _getSharedData().then((sharedRouteData) {
-      if (sharedRouteData == null || !_mapSuspended) return;
-      setState(() {
-        sharedRoute = sharedRouteData;
-        _mapSuspended = false;
-      });
-      drawRoute(sharedRoute);
-      print("resumed");
+  Future<void> resumeMap() async {
+    if (!_mapSuspended) return null;
+    await _drawRouteFromIntent();
+    setState(() {
+      _mapSuspended = false;
     });
   }
 
@@ -582,6 +577,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
-    _drawRouteFromIntent();
+    if (!widget.isStatic && sharedRoute == null)
+      _drawRouteFromIntent();
   }
 }
