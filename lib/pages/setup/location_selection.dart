@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:location/location.dart';
@@ -184,8 +185,8 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                 child: Icon(FontAwesomeIcons.check, size: 30),
                 //child: Text("GO", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 onPressed: () {
-                  LatLng routeStartingLocation = mapWidgetKey
-                      .currentState.mapController.cameraPosition.target;
+                  Node routeStartingLocation = Node.fromLatLng(mapWidgetKey
+                      .currentState.mapController.cameraPosition.target);
                   RouteParams routeParams = RouteParams(routeStartingLocation);
                   widget.onPushRoutePreferences(routeParams);
                 },

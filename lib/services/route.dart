@@ -1,4 +1,3 @@
-import 'package:geocoder/geocoder.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 
@@ -17,8 +16,11 @@ class HikingRoute {
     this.date = DateTime.now();
   }
 
-  Future<Address> findAddress() async {
-    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(Coordinates(this.path.first.latitude, path.first.longitude));
-    return addresses.first;
+  double getTotalElevationDifference(){
+    var totalElevationDifference = 0.0;
+    for(int i = 1; i<elevations.length; i++){
+      totalElevationDifference += (elevations[i] - elevations[i-1]).abs();
+    }
+    return totalElevationDifference;
   }
 }

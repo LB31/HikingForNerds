@@ -21,7 +21,7 @@ class ElevationQuery {
         http.Response response = await http.get(currentURL);
         dynamic parsedData = JSON.jsonDecode(response.body);
         int addRuns = (i % nodesPerQuery == 0) ? nodesPerQuery : i % nodesPerQuery;
-        for (int j = 0; j <= addRuns; j++) {
+        for (int j = 0; j < addRuns; j++) {
           
           queriedElevations.add(parsedData["results"][j]["elevation"].toDouble());
         }

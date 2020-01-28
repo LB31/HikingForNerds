@@ -4,6 +4,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
 import 'localization_service.dart';
+import 'routing/geo_utilities.dart';
 
 class ElevationChart extends StatelessWidget {
   final HikingRoute route;
@@ -75,7 +76,7 @@ class ElevationChart extends StatelessWidget {
     for (int i = 0; i < route.elevations.length; i++) {
       double distance = 0;
       if (i > 0) {
-        distance = OsmData.getDistance(route.path[i - 1], route.path[i]); // * 1000; for testing with smaller routes
+        distance = getDistance(route.path[i - 1], route.path[i]); // * 1000; for testing with smaller routes
         distance += lastDistance;
         lastDistance = distance;
       }

@@ -7,7 +7,7 @@ import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
-import 'package:geocoder/geocoder.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RouteList extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreview;
@@ -22,11 +22,16 @@ class RouteList extends StatefulWidget {
 class _RouteListState extends State<RouteList> {
   List<RouteListEntry> _routeList = [];
   bool _routesCalculated = false;
-  String _startingLocationAddress = '';
+  String _startingLocationAddress = LocalizationService()
+      .getLocalization(english: 'Loading..', german: 'Lädt..');
 
   @override
   void initState() {
     super.initState();
+    widget.routeParams.startingLocation.findAddress().then((address) {
+      _startingLocationAddress = address.addressLine;
+    });
+
     calculateRoutes();
   }
 
@@ -34,13 +39,12 @@ class _RouteListState extends State<RouteList> {
     List<HikingRoute> routes = List<HikingRoute>();
 
     OsmData osm = OsmData();
-    osm.profiling = true;
 
     try {
       routes = await osm.calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
           widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
+          widget.routeParams.distanceKm,
           10,
           widget.routeParams.poiCategories
               .map((category) => category.id)
@@ -50,11 +54,10 @@ class _RouteListState extends State<RouteList> {
     }
 
     if (routes.length == 0) {
-      print("No routes found.");
       routes = await OsmData().calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
           widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
+          widget.routeParams.distanceKm,
           10);
     }
 
@@ -62,13 +65,25 @@ class _RouteListState extends State<RouteList> {
       routes = routes.toList(growable: true);
       routes.removeWhere((elem) => elem == null);
 
-      Address address = await routes[0].findAddress();
-
       setState(() {
         widget.routeParams.routes = routes;
-        widget.routeParams.routes.forEach((route) => _routeList.add(RouteListEntry(context, route)));
-        _startingLocationAddress =
-            '${address.thoroughfare}, ${address.locality}';
+        widget.routeParams.routes
+            .forEach((route) => _routeList.add(RouteListEntry(context, route)));
+
+        switch (widget.routeParams.altitudeType) {
+          case AltitudeType.none:
+            _routeList.shuffle();
+            break;
+          case AltitudeType.minimal:
+            _routeList.sort(
+                (entryA, entryB) => entryA.altitudeDifference.compareTo(entryB.altitudeDifference));
+            break;
+          case AltitudeType.high:
+            _routeList.sort(
+                (entryA, entryB) => entryB.altitudeDifference.compareTo(entryA.altitudeDifference));
+            break;
+        }
+
         this._routesCalculated = true;
       });
     } else {
@@ -172,15 +187,18 @@ class _RouteListState extends State<RouteList> {
     if (entry.poiCategories != null && entry.poiCategories.isNotEmpty) {
       entry.poiCategories.forEach((category) {
         chips.add(new Chip(
-          label: Text(category.name, style: TextStyle(fontSize: 11, color: Colors.white)),
+          elevation: 1,
+          label: Text(category.name,
+              style: TextStyle(fontSize: 11, color: Colors.white)),
           backgroundColor: category.color,
         ));
       });
     }
 
     chips.add(Chip(
+      elevation: 1,
       backgroundColor: Color(0xFFE1E4F3),
-      label: Text(AltitudeTypeHelper.asString(widget.routeParams.altitudeType),
+      label: Text(AltitudeTypeHelper.asString(entry.altitudeType),
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
@@ -195,7 +213,7 @@ class _RouteListState extends State<RouteList> {
     Widget body = Column(
       children: <Widget>[
         buildHeader(),
-        if (_routesCalculated)
+        if (_routesCalculated && _routeList.length != 0)
           Expanded(
             child: SizedBox(
               child: ListView.builder(
@@ -282,7 +300,28 @@ class _RouteListState extends State<RouteList> {
             child: Center(
               child: new CircularProgressIndicator(),
             ),
-          )
+          ),
+        if (_routesCalculated && _routeList.length == 0)
+          Expanded(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                LocalizationService().getLocalization(
+                    english:
+                        "No suitable routes could be found. Please consider changing the starting point or some preferences of your route for better results.",
+                    german:
+                        "Es konnten keine passenden Routen gefunden werden. Bitte versuchen Sie den Startpunkt sowie die Routeneinstellungen anzupassen um eine Route zu finden."),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+              Icon(FontAwesomeIcons.mehRollingEyes, size: 52),
+            ],
+          )),
       ],
     );
 
@@ -305,6 +344,9 @@ class RouteListEntry {
   String distance; // Route length in KM
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
+  AltitudeType altitudeType;
+  double altitudeDifference;
+
   // List<PointOfInterest> pois = []; not used rn but could be useful
   Set<PoiCategory> poiCategories = new Set();
 
@@ -313,6 +355,9 @@ class RouteListEntry {
   RouteListEntry(BuildContext context, HikingRoute route) {
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
+    this.altitudeDifference = route.getTotalElevationDifference();
+    this.altitudeType = AltitudeTypeHelper.differenceToType(this.altitudeDifference, route.path.length);
+
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
       MediaQuery.of(context).size.width * 0.2,
