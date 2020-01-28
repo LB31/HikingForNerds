@@ -77,6 +77,7 @@ class OsmData{
   Random _randomGenerator = Random(1);
   int maxRetries = 10;
   double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
+  double beeLineToRealRatioWithPOI = 0.6; // estimate of how much the beeline distance differs from real path distance
   static const bool PROFILING = true;
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
@@ -177,7 +178,7 @@ class OsmData{
     if(PROFILING) print(pointsOfInterest.length.toString() + " POIs parsed in " + (DateTime.now().millisecondsSinceEpoch - timestampCalculationStart).toString() + " ms");
 
     List<HikingRoute> routes = List();
-    double targetBeelineDistance = targetActualDistance * beeLineToRealRatio;
+    double targetBeelineDistance = targetActualDistance * beeLineToRealRatioWithPOI;
     var startNode = graph.getClosestNodeToCoordinates(startLat, startLong);
     pointsOfInterest.shuffle(_randomGenerator);
     PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
@@ -227,7 +228,7 @@ class OsmData{
       var totalRouteLength = 0.0;
 
       //start loop over all the other pois
-      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < targetActualDistance ){
+      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatioWithPOI) + totalRouteLength) < targetActualDistance ){
         var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
         var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
         if(routeToClosestPoi.isNotPresent){
@@ -243,15 +244,18 @@ class OsmData{
       }
 
       List<Edge> routeBack = List();
-      if(wayNodeAndPOICopy.isEmpty && (targetActualDistance - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatio ){ //route is probably not long enough yet
+      if(wayNodeAndPOICopy.isEmpty && (targetActualDistance - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatioWithPOI ){ //route is probably not long enough yet
         var slightDistanceModifier = 1.0;
         while(retryCount <= maxRetries){
-          var a = ((targetActualDistance - totalRouteLength) /2) * slightDistanceModifier;
-          var b = ((targetActualDistance- totalRouteLength) /2) * slightDistanceModifier;
+          var a = ((targetActualDistance - totalRouteLength) * beeLineToRealRatioWithPOI /2) * slightDistanceModifier;
+          var b = ((targetActualDistance- totalRouteLength)  * beeLineToRealRatioWithPOI /2) * slightDistanceModifier;
           var c = getDistance(startNode, lastVisited);
           var cosGamma = (a*a+b*b-c*c)/(2*a*b);
           var relativeGamma = toDegrees(acos(cosGamma));
           var relativeAlpha = (180-relativeGamma)/2;
+          if (relativeAlpha.isNaN){ //this can happen when (a + b) < c, in this case, the direct route should be taken, so the angle can be 0
+            relativeAlpha = 0;
+          }
           var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
           var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b, absoluteAlpha);
           var routeExtensionNode = graph.getClosestNodeToCoordinates(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
