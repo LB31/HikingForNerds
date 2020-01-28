@@ -30,12 +30,12 @@ double toDegrees(double angleInRad){
 return (angleInRad*180.0)/pi;
 }
 
-List<double> projectCoordinate(double latInDeg, double longInDeg, double distanceInM, double headingFromNorth){
+List<double> projectCoordinate(double latInDeg, double longInDeg, double distance, double headingFromNorth){
   var latInRadians = toRadians(latInDeg);
   var longInRadians = toRadians(longInDeg);
   var headingInRadians = toRadians(headingFromNorth);
 
-  double angularDistance = distanceInM / 6371000.0;
+  double angularDistance = distance / 6371.0;
 
   // This formula is taken from: http://williams.best.vwh.net/avform.htm#LL
   // (http://www.movable-type.co.uk/scripts/latlong.html -> https://github.com/chrisveness/geodesy  ->  https://github.com/graphhopper/graphhopper Apache 2.0)

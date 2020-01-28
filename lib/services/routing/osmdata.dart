@@ -85,14 +85,14 @@ class OsmData{
     List<dynamic> poiElements;
     if (poiCategories != null && poiCategories.isNotEmpty) {
       var jsonDecoder = JsonDecoder();
-      var poisJson = await _queryPOIs(poiCategories, startLat, startLong, distanceInMeter/3);
+      var poisJson = await _queryPOIs(poiCategories, startLat, startLong, distanceInMeter/3.0);
       poiElements = jsonDecoder.convert(poisJson)['elements'];
       if(poiElements.isEmpty){
         throw new NoPOIsFoundException();
       }
     }
 
-    var jsonNodesAndWays = await _queryNodesAndWays(startLat, startLong, distanceInMeter/2);
+    var jsonNodesAndWays = await _queryNodesAndWays(startLat, startLong, distanceInMeter/2.0);
 
     graph = await compute(_buildGraphThreaded, jsonNodesAndWays);
 
@@ -112,10 +112,10 @@ class OsmData{
     return routeFuture;
   }
 
-  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double distanceInM) {
+  List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double targetActualDistance) {
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
-    var beeLineDistance = distanceInM * beeLineToRealRatio; List<HikingRoute> routes = List();
+    var beeLineDistance = targetActualDistance * beeLineToRealRatio; List<HikingRoute> routes = List();
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
       graph.edgeAlreadyUsedPenalties.clear();
@@ -156,7 +156,7 @@ class OsmData{
       var routeAlternativeNodes = List<Node>();
       routeAlternative.forEach((edge) => routeAlternativeNodes.addAll(graph.edgeToNodes(edge)));
       var resultRoute = HikingRoute(routeAlternativeNodes, graph.lengthOfEdgesKM(routeAlternative));
-      if (resultRoute.totalLength * 1000< distanceInM * 0.8 || resultRoute.totalLength * 1000 > distanceInM * 1.2){
+      if (resultRoute.totalLength < targetActualDistance * 0.8 || resultRoute.totalLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + resultRoute.totalLength.toString() + ") , retrying...");
         continue;
@@ -170,14 +170,14 @@ class OsmData{
     return routes;
   }
 
-  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double distanceInMeter, List<dynamic> poiElements, List<String> poiCategories) {
+  List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double targetActualDistance, List<dynamic> poiElements, List<String> poiCategories) {
     var timestampCalculationStart = DateTime.now().millisecondsSinceEpoch;
     var pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
     var timestampPoisParsed = DateTime.now().millisecondsSinceEpoch;
     if(PROFILING) print(pointsOfInterest.length.toString() + " POIs parsed in " + (DateTime.now().millisecondsSinceEpoch - timestampCalculationStart).toString() + " ms");
 
     List<HikingRoute> routes = List();
-    double targetBeelineDistance = (distanceInMeter * beeLineToRealRatio)/1000;
+    double targetBeelineDistance = targetActualDistance * beeLineToRealRatio;
     var startNode = graph.getClosestNodeToCoordinates(startLat, startLong);
     pointsOfInterest.shuffle(_randomGenerator);
     PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
@@ -227,7 +227,7 @@ class OsmData{
       var totalRouteLength = 0.0;
 
       //start loop over all the other pois
-      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < distanceInMeter / 1000){
+      while(wayNodeAndPOICopy.isNotEmpty && (getDistance(startNode, lastVisited) * (1/beeLineToRealRatio) + totalRouteLength) < targetActualDistance ){
         var closestPoiWayNode = wayNodeAndPOICopy.keys.reduce((curr, next) => getDistance(lastVisited, curr) < getDistance(lastVisited, next) ? curr : next);
         var routeToClosestPoi = graph.AStar(lastVisited, closestPoiWayNode);
         if(routeToClosestPoi.isNotPresent){
@@ -243,17 +243,17 @@ class OsmData{
       }
 
       List<Edge> routeBack = List();
-      if(wayNodeAndPOICopy.isEmpty && ((distanceInMeter/1000) - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatio ){ //route is probably not long enough yet
+      if(wayNodeAndPOICopy.isEmpty && (targetActualDistance - totalRouteLength) > getDistance(startNode, lastVisited)/beeLineToRealRatio ){ //route is probably not long enough yet
         var slightDistanceModifier = 1.0;
         while(retryCount <= maxRetries){
-          var a = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
-          var b = (((distanceInMeter/1000) - totalRouteLength) /2) * slightDistanceModifier;
+          var a = ((targetActualDistance - totalRouteLength) /2) * slightDistanceModifier;
+          var b = ((targetActualDistance- totalRouteLength) /2) * slightDistanceModifier;
           var c = getDistance(startNode, lastVisited);
           var cosGamma = (a*a+b*b-c*c)/(2*a*b);
           var relativeGamma = toDegrees(acos(cosGamma));
           var relativeAlpha = (180-relativeGamma)/2;
           var absoluteAlpha = (getBearing(lastVisited, startNode) + relativeAlpha) % 360; //this is so me
-          var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b * 1000, absoluteAlpha);
+          var makeRouteLongEnoughPoint = projectCoordinate(lastVisited.latitude, lastVisited.longitude, b, absoluteAlpha);
           var routeExtensionNode = graph.getClosestNodeToCoordinates(makeRouteLongEnoughPoint[0], makeRouteLongEnoughPoint[1]);
           var routeToExtensionNode = graph.AStar(lastVisited, routeExtensionNode);
           var routeFromExtensionNode = graph.AStar(routeExtensionNode, startNode);
@@ -283,7 +283,7 @@ class OsmData{
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
-      if(routeResult.totalLength * 1000 < distanceInMeter * 0.8 || routeResult.totalLength * 1000 > distanceInMeter * 1.2){
+      if(routeResult.totalLength < targetActualDistance * 0.8 || routeResult.totalLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + totalRouteLength.toString() + ") , retrying... retry count: " + retryCount.toString());
         continue;
@@ -307,10 +307,11 @@ class OsmData{
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
     var categoryString = categories.join('|');
+    var radiusInM = radius*1000;
     var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300];'
-        '(node["tourism"~"$categoryString"](around:$radius,$aroundLat, $aroundLong);'
-        'node["amenity"~"$categoryString"](around:$radius,$aroundLat, $aroundLong););'
+        '(node["tourism"~"$categoryString"](around:$radiusInM,$aroundLat, $aroundLong);'
+        'node["amenity"~"$categoryString"](around:$radiusInM,$aroundLat, $aroundLong););'
         'out body qt;';
 
     var timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -330,10 +331,11 @@ class OsmData{
     var bottomRightBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 135);
     var southernBorder = bottomRightBoundingBox[0];
     var easternBorder = bottomRightBoundingBox[1];
+    var radiusInM = radius*1000;
 
     var url = 'https://overpass.kumi.systems/api/interpreter?data=[bbox:$southernBorder, $westernBorder, $northernBorder, $easternBorder]'
         '[out:json][timeout:300]'
-        ';way["highway"](around:$radius,$aroundLat, $aroundLong);'
+        ';way["highway"](around:$radiusInM,$aroundLat, $aroundLong);'
         '(._;>;); out body qt;';
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     var response = await http.get(url);
