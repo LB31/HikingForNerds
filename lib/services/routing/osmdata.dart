@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:async';
 import 'package:collection/priority_queue.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:quiver/core.dart';
 import 'package:flutter/foundation.dart';
@@ -107,10 +108,15 @@ class OsmData{
     data.poiCategories = poiCategories;
     data.poiElements = poiElements;
 
-    Future<List<HikingRoute>> routeFuture = compute(_doRouteCalculationsThreaded, data);
+
+    List<HikingRoute> routes = await compute(_doRouteCalculationsThreaded, data);
+    //todo: uncomment this once ElevationQuery works
+//    for(var route in routes){
+//      route.elevations = await ElevationQuery.queryElevations(route);
+//    }
 
     if(PROFILING) print("Thread spawned after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
-    return routeFuture;
+    return routes;
   }
 
   List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double targetActualDistance) {
