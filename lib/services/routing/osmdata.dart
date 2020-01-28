@@ -16,6 +16,7 @@ import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:r_tree/r_tree.dart' as rtree;
 import '../localization_service.dart';
 
 
@@ -29,7 +30,6 @@ class RouteThreadData {
   List<String> poiCategories;
   List<HikingRoute> foundRoutes;
 }
-
 
 class PoiRouteTriplet{
   List<PointOfInterest> pois;
@@ -73,13 +73,16 @@ Graph _buildGraphThreaded(String nodesAndWaysJSON) {
 }
 
 class OsmData{
+  static const bool PROFILING = true;
+  static const double POIADJACENCYDISTANCE = 0.07;
+  static const double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
+  static const double beeLineToRealRatioWithPOI = 0.6; // estimate of how much the beeline distance differs from real path distance (for some reason different when using poi algorithm)
+
   Graph graph;
   int _routeCalculationStartTime;
   Random _randomGenerator = Random(1);
   int maxRetries = 10;
-  double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
-  double beeLineToRealRatioWithPOI = 0.6; // estimate of how much the beeline distance differs from real path distance
-  static const bool PROFILING = true;
+
 
   Future<List<HikingRoute>> calculateHikingRoutes(double startLat, double startLong, double distanceInMeter, [int alternativeRouteCount = 1, List<String> poiCategories]) async{
     if(PROFILING) _routeCalculationStartTime = DateTime.now().millisecondsSinceEpoch;
@@ -113,7 +116,7 @@ class OsmData{
 
     var elevationTimestamp = DateTime.now().millisecondsSinceEpoch;
     for(var route in routes){
-      route.elevations = await ElevationQuery.queryElevations(route);
+        route.elevations = await ElevationQuery.queryElevations(route);
     }
     if(PROFILING){
       print("Elevation Queried in " + (DateTime.now().millisecondsSinceEpoch - elevationTimestamp).toString() + " ms");
@@ -183,14 +186,26 @@ class OsmData{
 
   List<HikingRoute> _calculateHikingRoutesWithPois(int alternativeRouteCount, double startLat, double startLong, double targetActualDistance, List<dynamic> poiElements, List<String> poiCategories) {
     var timestampCalculationStart = DateTime.now().millisecondsSinceEpoch;
+
     var pointsOfInterest = poiElements.map((element) => PointOfInterest(element['id'], element['lat'], element['lon'], element['tags'])).toList();
     var timestampPoisParsed = DateTime.now().millisecondsSinceEpoch;
     if(PROFILING) print(pointsOfInterest.length.toString() + " POIs parsed in " + (DateTime.now().millisecondsSinceEpoch - timestampCalculationStart).toString() + " ms");
 
+    var timestampPoiRTree = DateTime.now().millisecondsSinceEpoch;
+    var poiRTree = buildRTree(pointsOfInterest);
+    if(PROFILING) print(pointsOfInterest.length.toString() + " POI RTree built in " + (DateTime.now().millisecondsSinceEpoch - timestampPoiRTree).toString() + " ms");
+
+
     List<HikingRoute> routes = List();
     double targetBeelineDistance = targetActualDistance * beeLineToRealRatioWithPOI;
     var startNode = graph.getClosestNodeToCoordinates(startLat, startLong);
+
     pointsOfInterest.shuffle(_randomGenerator);
+
+    //ignore categories that have not actually be found for the triplet generation
+    Set<String> actuallyFoundCategories = pointsOfInterest.map((poi) => poi.getCategoryString()).toSet();
+    poiCategories.retainWhere((element) => actuallyFoundCategories.contains(element));
+
     PriorityQueue<PoiRouteTriplet> bestTriplets = PriorityQueue((routePoiTripletA, routePoiTripletB) => ((targetBeelineDistance - routePoiTripletA.estimatedRouteLength).abs())
         .compareTo((targetBeelineDistance - routePoiTripletB.estimatedRouteLength).abs()));
     for(var poi in pointsOfInterest.where((element) => element.getCategoryString() == poiCategories[0]).take(100)){
@@ -216,6 +231,7 @@ class OsmData{
 
     var retryCount = 0;
     Set<PoiRouteTriplet> alreadyUsedTriplets = Set();
+
     while(routes.length < alternativeRouteCount && retryCount < maxRetries){
       var timestampRouteStart = DateTime.now().millisecondsSinceEpoch;
       var nextTriplet = bestTriplets.removeFirst();
@@ -231,7 +247,7 @@ class OsmData{
           value: (cPoi) => cPoi,
           key: (cPoi) => graph.getClosestNodeToCoordinates(cPoi.latitude, cPoi.longitude));
       graph.edgeAlreadyUsedPenalties.clear();
-      List<PointOfInterest> includedPois = List();
+      Set<PointOfInterest> includedPois = Set();
       List<Edge> route = List();
       var wayNodeAndPOICopy = Map.from(wayNodeAndPOI);
       var lastVisited = startNode;
@@ -247,6 +263,7 @@ class OsmData{
         }
         totalRouteLength += graph.lengthOfEdgesKM(routeToClosestPoi.value);
         route.addAll(routeToClosestPoi.value);
+
         graph.penalizeEdgesAlongRoute(routeToClosestPoi.value, 5);
         includedPois.add(wayNodeAndPOICopy[closestPoiWayNode]);
         wayNodeAndPOICopy.remove(closestPoiWayNode);
@@ -291,20 +308,29 @@ class OsmData{
         }
         routeBack.addAll(routeBackOptional.value);
       }
+
       graph.penalizeEdgesAlongRoute(routeBack, 5);
       totalRouteLength += graph.lengthOfEdgesKM(routeBack) ;
       route.addAll(routeBack);
+
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-      var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois);
-      if(routeResult.totalLength < targetActualDistance * 0.8 || routeResult.totalLength > targetActualDistance * 1.2){
+
+      if(totalRouteLength < targetActualDistance * 0.8 || totalRouteLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + totalRouteLength.toString() + ") , retrying... retry count: " + retryCount.toString());
         continue;
       }
+      var findAdjacentPoiTimestamp = DateTime.now().millisecondsSinceEpoch;
+      routeNodes.forEach((node) {
+        var searchTopLeft = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 315); //returns top, left in that order
+        var searchBottomRight = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 135); //returns bottom, right in that order
+        includedPois.addAll(poiRTree.search(Rectangle.fromPoints(Point(searchTopLeft[0], searchTopLeft[1]), Point(searchBottomRight[0], searchBottomRight[1]))).map((e) => e.value));
+      });
+      if(PROFILING) print('${includedPois.length} found in ${findAdjacentPoiTimestamp - DateTime.now().millisecondsSinceEpoch} ms.');
+      var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois.toList());
       routes.add(routeResult);
-      if(PROFILING) print("Route " + (routes.length).toString() + " done in " + (DateTime.now().millisecondsSinceEpoch - timestampRouteStart).toString()
-          + " ms. Total length: " + routeResult.totalLength.toString() + ". Nr of POI: " + routeResult.pointsOfInterest.length.toString());
+      if(PROFILING) print('Route ${routes.length} done in ${DateTime.now().millisecondsSinceEpoch - timestampRouteStart} ms. Total length: ${routeResult.totalLength}. Nr of POI: ${routeResult.pointsOfInterest.length}');
     }
     if(routes.length == 0) {
       throw NoRoutesFoundException;
@@ -312,6 +338,14 @@ class OsmData{
     return routes;
   }
 
+  rtree.RTree<PointOfInterest> buildRTree(List<PointOfInterest> pointsOfInterest){
+    rtree.RTree<PointOfInterest> result = rtree.RTree();
+    for(PointOfInterest poi in pointsOfInterest){
+      var nodeRect = Rectangle(poi.latitude, poi.longitude, 0.000000001,0.000000001);
+      result.insert(rtree.RTreeDatum(nodeRect, poi));
+    }
+    return result;
+  }
 
   Future<String> _queryPOIs(List<String> categories, aroundLat, aroundLong, radius) async{
     var topLeftBoundingBox = projectCoordinate(aroundLat, aroundLong, radius * 1.41, 315);
