@@ -1,9 +1,7 @@
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
-import 'package:hiking4nerds/services/elevation_chart.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
-import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -68,8 +66,7 @@ class _RouteListState extends State<RouteList> {
 
       setState(() {
         widget.routeParams.routes = routes;
-        widget.routeParams.routes
-            .forEach((entry) => _routeList.add(RouteListEntry(context, entry)));
+        widget.routeParams.routes.forEach((route) => _routeList.add(RouteListEntry(context, route)));
         _startingLocationAddress =
             '${address.thoroughfare}, ${address.locality}';
         this._routesCalculated = true;
@@ -141,8 +138,8 @@ class _RouteListState extends State<RouteList> {
               color: Colors.grey[600]),
         ),
         Text(
-          (widget.routeParams.poiCategories.isNotEmpty)
-              ? '${widget.routeParams.poiCategories.join(', ')}'
+          widget.routeParams.poiCategories.isNotEmpty
+              ? '${widget.routeParams.poiCategories.map((category) => category.name).join(", ")}'
               : LocalizationService().getLocalization(
                   english: 'No POI selected', german: 'Kein POI ausgewählt'),
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
@@ -164,25 +161,19 @@ class _RouteListState extends State<RouteList> {
       ]),
     ]);
 
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: header,
-    );
+    return Column(children: [
+      Padding(padding: const EdgeInsets.all(12.0), child: header),
+      Divider(color: htwGrey)
+    ]);
   }
 
   generateChips(RouteListEntry entry) {
     List<Widget> chips = List();
-/*    if (entry.pois.isEmpty) {
-      entry.pois.add(LocalizationService().getLocalization(
-          english: 'No POI found', german: 'Kein POI gefunden'));
-    }*/
-    if (entry.pois != null && entry.pois.isNotEmpty) {
-      Set<String> poiSet = entry.pois.map((poi) => poi.category.name).toSet();
-      poiSet.forEach((poi) {
+    if (entry.poiCategories != null && entry.poiCategories.isNotEmpty) {
+      entry.poiCategories.forEach((category) {
         chips.add(new Chip(
-          label: Text(poi,
-              style: TextStyle(fontSize: 11, color: Colors.white)),
-          backgroundColor: htwGreen,
+          label: Text(category.name, style: TextStyle(fontSize: 11, color: Colors.white)),
+          backgroundColor: category.color,
         ));
       });
     }
@@ -201,11 +192,10 @@ class _RouteListState extends State<RouteList> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body;
-    if (_routesCalculated) {
-      body = Column(
-        children: <Widget>[
-          buildHeader(),
+    Widget body = Column(
+      children: <Widget>[
+        buildHeader(),
+        if (_routesCalculated)
           Expanded(
             child: SizedBox(
               child: ListView.builder(
@@ -287,20 +277,14 @@ class _RouteListState extends State<RouteList> {
               ),
             ),
           ),
-        ],
-      );
-    } else {
-      body = Column(
-        children: <Widget>[
-          buildHeader(),
+        if (!_routesCalculated)
           Expanded(
             child: Center(
               child: new CircularProgressIndicator(),
             ),
-          ),
-        ],
-      );
-    }
+          )
+      ],
+    );
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -321,20 +305,23 @@ class RouteListEntry {
   String distance; // Route length in KM
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
-  List<PointOfInterest> pois = [];
+  // List<PointOfInterest> pois = []; not used rn but could be useful
+  Set<PoiCategory> poiCategories = new Set();
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
   RouteListEntry(BuildContext context, HikingRoute route) {
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
-    this.pois = route.pointsOfInterest;
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
       MediaQuery.of(context).size.width * 0.2,
       route.path,
       lineColor: Colors.black,
     );
+
+    if (route.pointsOfInterest != null)
+      route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
   }
 
   String formatDistance(double n) {
