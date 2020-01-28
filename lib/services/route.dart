@@ -25,6 +25,14 @@ class HikingRoute {
     this.title = 'Sample title'; // TODO get region or custom info as title
   }
 
+  double getTotalElevationDifference(){
+    var totalElevationDifference = 0.0;
+    for(int i = 1; i<elevations.length; i++){
+      totalElevationDifference += (elevations[i] - elevations[i-1]).abs();
+    }
+    return totalElevationDifference;
+  }
+
   Future<String> buildTitle() async{
    List<Address> results = await Geocoder.local.findAddressesFromCoordinates(Coordinates(path[0].latitude, path[0].longitude));
    return results[0].addressLine;
