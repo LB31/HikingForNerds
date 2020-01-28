@@ -21,8 +21,9 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
+  final Function() onElevationChartToggle;
 
-  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+  MapWidget({Key key, @required this.isStatic, this.onElevationChartToggle}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -524,6 +525,7 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
+              onElevationChartToggle: widget.onElevationChartToggle,
             ),
         ],
       );

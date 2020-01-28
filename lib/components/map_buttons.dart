@@ -9,10 +9,12 @@ class MapButtons extends StatelessWidget {
       this.styles,
       this.currentStyle,
       this.onCycleTrackingMode,
-      this.setMapStyle});
+      this.setMapStyle,
+      this.onElevationChartToggle});
 
   final MyLocationTrackingMode currentTrackingMode;
   final VoidCallback onCycleTrackingMode;
+  final VoidCallback onElevationChartToggle;
 
   final String currentStyle;
   final Map<String, String> styles;
@@ -35,6 +37,19 @@ class MapButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
+        Positioned(
+            bottom: 66,
+            left: MediaQuery.of(context).size.width * 0.05,
+            child: SizedBox(
+                width: 50,
+                height: 50,
+                child:FloatingActionButton(
+                  heroTag: "btn-heightchart",
+                  child: Icon(Icons.photo),
+                  onPressed: onElevationChartToggle,
+                )
+            )
+        ),
         Positioned(
           left: MediaQuery.of(context).size.width * 0.05,
           bottom: 16,

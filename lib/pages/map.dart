@@ -70,7 +70,7 @@ class MapPageState extends State<MapPage> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(key: mapWidgetKey, isStatic: false),
+          MapWidget(key: mapWidgetKey, isStatic: false, onElevationChartToggle: toggleHeightChart,),
           //TODO: remove mock button
           Align(
             alignment: Alignment.centerRight,
@@ -92,14 +92,6 @@ class MapPageState extends State<MapPage> {
               fillColor: htwGreen,
               padding: const EdgeInsets.all(5.0),
             ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child:FloatingActionButton(
-              heroTag: "btn-heightchart",
-              child: Icon(Icons.photo),
-              onPressed: toggleHeightChart,
-            )
           ),
           if(_currentRoute != null && _heightChartEnabled)
             _buildElevationChart(context),

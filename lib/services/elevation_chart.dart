@@ -47,7 +47,14 @@ class ElevationChartState extends State<ElevationChart>{
           titleOutsideJustification:
           charts.OutsideJustification.middleDrawArea));
       behaviours.add(new charts.RangeAnnotation([
-        new charts.LineAnnotationSegment(selectedRouteData.distance, charts.RangeAnnotationAxisType.domain, startLabel: selectedRouteData.elevation.toString())])
+        new charts.LineAnnotationSegment(
+          selectedRouteData.distance,
+          charts.RangeAnnotationAxisType.domain,
+          startLabel: selectedRouteData.elevation.toString(),
+          labelDirection: charts.AnnotationLabelDirection.horizontal,
+          labelAnchor: charts.AnnotationLabelAnchor.middle,
+          labelStyleSpec: charts.TextStyleSpec(lineHeight: -20.0)
+        )])
       );
     } else {
       behaviours.add(new charts.LinePointHighlighter(
@@ -96,6 +103,10 @@ class ElevationChartState extends State<ElevationChart>{
       }
       chartData.add(new RouteData(route.elevations[i], distance, i));
     }
+
+    setState(() {
+      selectedRouteData = chartData[0];
+    });
 
     return [
       new charts.Series<RouteData, double>(
