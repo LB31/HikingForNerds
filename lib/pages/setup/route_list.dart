@@ -31,13 +31,12 @@ class _RouteListState extends State<RouteList> {
     List<HikingRoute> routes;
 
     OsmData osm = OsmData();
-    osm.profiling = true;
 
     try {
       routes = await osm.calculateHikingRoutes(
           widget.routeParams.startingLocation.latitude,
           widget.routeParams.startingLocation.longitude,
-          widget.routeParams.distanceKm * 1000.0,
+          widget.routeParams.distanceKm,
           10,
           widget.routeParams.poiCategories.map((category) => category.id).toList());
     } on NoPOIsFoundException catch (err) {
@@ -45,7 +44,7 @@ class _RouteListState extends State<RouteList> {
       routes = await osm.calculateHikingRoutes(
         widget.routeParams.startingLocation.latitude,
         widget.routeParams.startingLocation.longitude,
-        widget.routeParams.distanceKm * 1000.0,
+        widget.routeParams.distanceKm,
         10);
     }
 
@@ -59,8 +58,19 @@ class _RouteListState extends State<RouteList> {
             r.title,
             r.date,
             r.totalLength,
+            r.getTotalElevationDifference()
           )));
-      
+      switch(widget.routeParams.altitudeType) {
+        case AltitudeType.none:
+          routeList.shuffle();
+          break;
+        case AltitudeType.minimal:
+          routeList.sort((entryA, entryB) => entryA.altitude.compareTo(entryB.altitude));
+          break;
+        case AltitudeType.high:
+          routeList.sort((entryA, entryB) => entryB.altitude.compareTo(entryA.altitude));
+          break;
+      }
       this._routesCalculated = true;
     });
 
@@ -76,7 +86,7 @@ class _RouteListState extends State<RouteList> {
   // TODO add localization or remove if not needed
   void summaryText() {
     String text = LocalizationService().getLocalization(english: "Displaying routes for your chosen parameters\n", german: "Routen für die gewählten Parameter werden dargestellt\n");
-    text += LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${widget.routeParams.distanceKm}\n'; 
+    text += LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${widget.routeParams.distanceKm}\n';
     text += (widget.routeParams.poiCategories.length > 0) ? 'POIs: \n' : '';
     text += LocalizationService().getLocalization(english: "Altitude:", german: "Höhe:") + '${widget.routeParams.altitudeType}\n';
     print(text);
@@ -111,7 +121,9 @@ class _RouteListState extends State<RouteList> {
                     },
                     title: Text(routeList[index].title),
                     subtitle: Text(
-                        LocalizationService().getLocalization(english: "Distance:", german: "Distanz:") + '${routeList[index].distance.toString()}\n${LocalizationService().getLocalization(english: "Date", german: "Datum")}: ${routeList[index].date}'),
+                            '${LocalizationService().getLocalization(english: "Distance:", german: "Distanz:")}: ${routeList[index].distance.toString()}\t'
+                            '${LocalizationService().getLocalization(english: "Altitude", german: "Höhenmeter")}: ${routeList[index].altitude}\n'
+                            '${LocalizationService().getLocalization(english: "Date", german: "Datum")}: ${routeList[index].date}'),
                     leading: CircleAvatar(
                         child: Icon(
                       Icons.directions_walk,
@@ -147,13 +159,12 @@ class RouteListEntry {
   String title; // Route title i.e. Address, city, regio, custom
   String date; // Route date - created
   String distance; // Route length in KM
+  double altitude;
   CircleAvatar avatar;
 
   // RouteListTile({ this.title, this.date, this.distance, this.avatar });
 
-  RouteListEntry(String title, String date, double distance) {
-    this.title = title;
-    this.date = date;
+  RouteListEntry(this.title, this.date, double distance, this.altitude) {
     this.distance = formatDistance(distance);
     // this.avatar = avatar;
   }
