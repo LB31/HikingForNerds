@@ -36,8 +36,9 @@ class RouteParams {
   double distanceKm;
   List<PoiCategory> poiCategories;
   AltitudeType altitudeType;
+  double altitude;
   List<HikingRoute> routes;
   int routeIndex;
 
-  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType]);
+  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType, this.altitude]);
 }
