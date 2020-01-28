@@ -110,21 +110,25 @@ class OsmData{
 
 
     List<HikingRoute> routes = await compute(_doRouteCalculationsThreaded, data);
-    //todo: uncomment this once ElevationQuery works
-//    for(var route in routes){
-//      route.elevations = await ElevationQuery.queryElevations(route);
-//    }
 
-    if(PROFILING) print("Thread spawned after " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+    var elevationTimestamp = DateTime.now().millisecondsSinceEpoch;
+    for(var route in routes){
+      route.elevations = await ElevationQuery.queryElevations(route);
+    }
+    if(PROFILING){
+      print("Elevation Queried in " + (DateTime.now().millisecondsSinceEpoch - elevationTimestamp).toString() + " ms");
+      print("Routing done in " + (DateTime.now().millisecondsSinceEpoch - _routeCalculationStartTime).toString() + " ms");
+
+    }
     return routes;
   }
 
   List<HikingRoute> _calculateHikingRoutesWithoutPois(int alternativeRouteCount, double startLat, double startLong, double targetActualDistance) {
-    var timestamp = DateTime.now().millisecondsSinceEpoch;
     //algorithm is using beelinedistance for creating the roundtrip. That bee line distance has to be shorter since real paths are always longer than beeline distance
     var beeLineDistance = targetActualDistance * beeLineToRealRatio; List<HikingRoute> routes = List();
     var retryCount = 0;
     while(routes.length < alternativeRouteCount && retryCount <= maxRetries){
+      var timestamp = DateTime.now().millisecondsSinceEpoch;
       graph.edgeAlreadyUsedPenalties.clear();
       var initialHeading = _randomGenerator.nextInt(360).floorToDouble();
       var pointB = projectCoordinate(startLat, startLong, beeLineDistance/3, initialHeading);
