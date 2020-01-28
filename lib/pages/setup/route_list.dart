@@ -4,6 +4,8 @@ import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class RouteList extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreview;
@@ -107,6 +109,7 @@ class _RouteListState extends State<RouteList> {
             textAlign: TextAlign.left,
           ),
           Padding(padding: EdgeInsets.only(top: 20)),
+          if(routeList.length > 0)
           ListView.builder(
             itemCount: routeList.length,
             itemBuilder: (context, index) {
@@ -135,6 +138,23 @@ class _RouteListState extends State<RouteList> {
                 ),
               );
             },
+          ),
+        if(routeList.length == 0)
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  LocalizationService().getLocalization(english: "No suitable routes could be found. Please consider changing the starting point or some preferences of your route for better results.", german: "Es konnten keine passenden Routen gefunden werden. Bitte versuchen Sie den Startpunkt sowie die Routeneinstellungen anzupassen um eine Route zu finden."),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+                Icon(FontAwesomeIcons.mehRollingEyes, size: 52),
+              ],
+            ),
           ),
         ]);
     }
