@@ -31,7 +31,6 @@ class _RouteListState extends State<RouteList> {
     List<HikingRoute> routes;
 
     OsmData osm = OsmData();
-    osm.profiling = true;
 
     try {
       routes = await osm.calculateHikingRoutes(
