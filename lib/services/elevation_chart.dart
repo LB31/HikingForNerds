@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 
+import 'localization_service.dart';
+
 class ElevationChart extends StatefulWidget {
   final HikingRoute route;
   final bool interactive;
@@ -11,19 +13,21 @@ class ElevationChart extends StatefulWidget {
   final Function(int) onSelectionChanged;
 
   @override
-  State<StatefulWidget> createState() => new ElevationChartState();
+  State<StatefulWidget> createState() => new ElevationChartState(route);
 
   ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
 }
 
 class ElevationChartState extends State<ElevationChart>{
   RouteData selectedRouteData = new RouteData(0, 0, 0);
+  HikingRoute route;
+
+  ElevationChartState(this.route);
 
   @override
   Widget build(BuildContext context) {
-    // TODO add localization
-    String bottomText = "Distance in m";
-    String leftText = "Elevation in m";
+    String bottomText = LocalizationService().getLocalization(english: "Distance in m", german: "Distanz in m");
+    String leftText = LocalizationService().getLocalization(english: "Elevation in m", german: "Erhebung in m");
     int fontSize = 12;
     charts.SelectionTrigger interaction;
 
@@ -67,7 +71,7 @@ class ElevationChartState extends State<ElevationChart>{
 
     return new Container(
       child: new charts.LineChart(
-        _createData(widget.route),
+        _createData(route),
         animate: false,
         defaultRenderer: new charts.LineRendererConfig(
             includeArea: true, includeLine: true, stacked: true),
@@ -104,10 +108,6 @@ class ElevationChartState extends State<ElevationChart>{
       chartData.add(new RouteData(route.elevations[i], distance, i));
     }
 
-    setState(() {
-      selectedRouteData = chartData[0];
-    });
-
     return [
       new charts.Series<RouteData, double>(
         id: 'route',
@@ -125,7 +125,7 @@ class ElevationChartState extends State<ElevationChart>{
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
         widget.onSelectionChanged(datumPair.datum.index);
         setState(() {
-          this.selectedRouteData = datumPair.datum;
+          selectedRouteData = datumPair.datum;
         });
       });
     }

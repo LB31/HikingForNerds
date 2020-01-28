@@ -93,7 +93,9 @@ class MapPageState extends State<MapPage> {
               padding: const EdgeInsets.all(5.0),
             ),
           ),
-          if(_currentRoute != null && _heightChartEnabled)
+          if(_currentRoute != null
+              && _currentRoute.elevations != null
+              && _heightChartEnabled)
             _buildElevationChart(context),
         ],
       ),

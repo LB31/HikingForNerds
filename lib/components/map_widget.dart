@@ -21,7 +21,7 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
-  final Function() onElevationChartToggle;
+  final VoidCallback onElevationChartToggle;
 
   MapWidget({Key key, @required this.isStatic, this.onElevationChartToggle}) : super(key: key);
 
