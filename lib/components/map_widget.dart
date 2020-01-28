@@ -565,26 +565,20 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> markElevation(int index) async {
-    if (!lockMarkerTransaction) {
-      lockMarkerTransaction = true;
-      LatLng latLngPosition = _route[index];
-      SymbolOptions optionsElevationPoint = SymbolOptions(
-        geometry: latLngPosition,
-        iconImage: "assets/img/symbols/location_pin.png",
-        iconOffset: Offset(0, -10),
-        //iconOpacity: 0.5,
-        //textField: _hikingRoute.elevations[index].toString(),
-        //textSize: 10.0,
-        //draggable: false,
+    if (lockMarkerTransaction) return;
+    lockMarkerTransaction = true;
+    LatLng latLngPosition = _route[index];
+    SymbolOptions optionsElevationPoint = SymbolOptions(
+      geometry: latLngPosition,
+      iconImage: "assets/img/symbols/location_pin.png",
+      iconOffset: Offset(0, -10),
+      );
+    if (selectedElevationSymbol == null)
+      selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
+    else
+      await mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
 
-        );
-      if (selectedElevationSymbol == null)
-        selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
-      else
-        await mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
-
-      lockMarkerTransaction = false;
-    }
+    lockMarkerTransaction = false;
   }
 
   void removeSelectedElevation(){

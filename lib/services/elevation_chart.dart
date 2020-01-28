@@ -21,6 +21,7 @@ class ElevationChart extends StatefulWidget {
 class ElevationChartState extends State<ElevationChart>{
   RouteData selectedRouteData = new RouteData(0, 0, 0);
   HikingRoute route;
+  static bool lockSelectionChange = false;
 
   ElevationChartState(this.route);
 
@@ -119,7 +120,12 @@ class ElevationChartState extends State<ElevationChart>{
     ];
   }
 
+  ///function called frequently on value selection on chart
+  ///lock is placed to improve performance slightly because of unnecessary rebuilds
   _onSelectionChanged(charts.SelectionModel model) {
+    if (lockSelectionChange)
+      return;
+    lockSelectionChange = true;
     final selectedDatum = model.selectedDatum;
     if (selectedDatum.isNotEmpty) {
       selectedDatum.forEach((charts.SeriesDatum datumPair) {
@@ -129,6 +135,7 @@ class ElevationChartState extends State<ElevationChart>{
         });
       });
     }
+    lockSelectionChange = false;
   }
 }
 
