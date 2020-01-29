@@ -165,7 +165,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGrey,
                 heroTag: "btn-center",
-                child: Icon(Icons.center_focus_weak),
+                child: Icon(Icons.center_focus_strong),
                 onPressed: () {
                   mapWidgetKey.currentState.centerCameraOverRoute(_routes[_currentRouteIndex]);
                 },
