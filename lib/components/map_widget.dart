@@ -551,9 +551,10 @@ class MapWidgetState extends State<MapWidget> {
         });
   }
 
-  void onMapCreated(MapboxMapController controller) {
+  void onMapCreated(MapboxMapController controller) async {
     mapController = controller;
     mapController.addListener(_onMapChanged);
+    await mapController.invalidateAmbientCache();
     _extractMapInfo();
 
     if (widget.mapCreated != null) widget.mapCreated();
