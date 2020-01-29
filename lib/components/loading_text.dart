@@ -16,17 +16,37 @@ class LoadingText extends StatefulWidget {
 
 class LoadingTextState extends State<LoadingText> {
   String currentText = "";
-  List<String> textListEn = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  List<String> textListEn = [
+    "Fernglas wird eingepackt",
+    "Wanderschuhe werden abgestaubt",
+    "Suche nach optimaler Wegbeschaffenheit",
+    "Wanderstöcke werden geschnitzt",
+    "Reiseproviant wird zubereitet",
+    "Wegweiser werden aufgestellt",
+    "Wasserflaschen werden aufgefüllt",
+    "Sonnencreme wird eingepackt",
+    "Regenjacke wird gesucht",
+    "Schnürsenkel werden festgezogen",
+    "Schuhcreme wird aufgetragen",
+    "Wanderwege werden gereinigt",
+    "Wanderstock wird eingeölt",
+    "Wanderlieder werden einstudiert",
+  ];
   List<String> textListGer = [
-    "1de",
-    "2de",
-    "3de",
-    "4de",
-    "5de",
-    "6de",
-    "7de",
-    "8de",
-    "9de"
+    "Binoculars are being packed",
+    "Hiking shoes are dusted off",
+    "Search for optimal road conditions",
+    "Walking sticks are carved",
+    "Travelling provisions are being prepared",
+    "Signposts are put up",
+    "Water bottles are filled up",
+    "Sunscreen is packed up",
+    "Looking for a rain jacket",
+    "Laces are tightened",
+    "Shoe polish is applied",
+    "Hiking trails are cleaned",
+    "Walking stick is oiled",
+    "Hiking songs are rehearsed",
   ];
 
   @override
@@ -45,12 +65,15 @@ class LoadingTextState extends State<LoadingText> {
         english: textListEn[Random().nextInt(textListEn.length)],
         german: textListGer[Random().nextInt(textListEn.length)]);
     setState(() {
-      currentText = nextText;
+      currentText = nextText + "..";
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text(currentText);
+    return Text(currentText, style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[600]),
+      textAlign: TextAlign.center,);
   }
 }
