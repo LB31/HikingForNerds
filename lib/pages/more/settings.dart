@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/services/database_helpers.dart';
 import 'package:hiking4nerds/services/global_settings.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -189,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
               builder: (BuildContext context) => pupUpDialog(
                 context,
                 LocalizationService().getLocalization(english: "Are you sure you want to delete your history?", german: "Wollen Sie wirklich Ihren Verlauf löschen?"),
-                (){}, // TODO call function to delete history
+                (){DatabaseHelper.instance.deleteAll();}, // TODO call function to delete history
               ),
             );
           },
