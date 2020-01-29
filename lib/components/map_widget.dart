@@ -55,7 +55,7 @@ class MapWidgetState extends State<MapWidget> {
 
   CameraPosition _position;
   MapboxMapController mapController;
-  bool _compassEnabled = true;
+  bool _compassEnabled = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
