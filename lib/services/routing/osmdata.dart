@@ -77,6 +77,7 @@ class OsmData{
   static const double POIADJACENCYDISTANCE = 0.07;
   static const double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
   static const double beeLineToRealRatioWithPOI = 0.6; // estimate of how much the beeline distance differs from real path distance (for some reason different when using poi algorithm)
+  static const double routeEqualFromPercantage = 0.8; //routes that have more nodes in common than this are equal
 
   Graph graph;
   int _routeCalculationStartTime;
@@ -113,6 +114,21 @@ class OsmData{
 
 
     List<HikingRoute> routes = await compute(_doRouteCalculationsThreaded, data);
+
+    List<Set<Node>> usedRouteNodes = routes.map((route) => route.path.toSet()).toList();
+    Map<HikingRoute, bool> markedForDeletion = Map();
+    for(var i=0;i < routes.length; i++){
+      for(var j= (i+1); j <routes.length; j++){
+        var equalNodes = 0;
+        usedRouteNodes[i].forEach((routeNode) { if (usedRouteNodes[j].contains(routeNode)) equalNodes++;});
+        var routeEquality = equalNodes/usedRouteNodes[i].length;
+        if(routeEquality > routeEqualFromPercantage){
+          markedForDeletion.putIfAbsent(routes[i], () => true);
+        }
+      }
+    }
+
+    routes.removeWhere((route) => markedForDeletion[route] ?? false == true);
 
     var elevationTimestamp = DateTime.now().millisecondsSinceEpoch;
     for(var route in routes){
