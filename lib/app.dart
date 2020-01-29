@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hiking4nerds/navigation/segment_navigator.dart';
-import 'package:hiking4nerds/services/sharing/import_service.dart';
 import 'navigation/bottom_navigation.dart';
 
 class App extends StatefulWidget {
@@ -11,6 +10,7 @@ class App extends StatefulWidget {
 
 class AppState extends State<App> {
   AppSegment _currentSegment = AppSegment.setup;
+  
   final Map<AppSegment, GlobalKey<NavigatorState>> _navigatorKeys = {
     AppSegment.setup: GlobalKey<NavigatorState>(),
     AppSegment.map: GlobalKey<NavigatorState>(),
