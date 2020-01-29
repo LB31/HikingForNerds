@@ -168,6 +168,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                   color: htwGrey,
                 ),
               ),
+              SizedBox(height: 100,)
             ],
           ),
           Positioned(
@@ -188,11 +189,11 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                     widget.routeParams.poiCategories = selectedPoiCategories;
                     widget.routeParams.altitudeType =
                         AltitudeTypeHelper.fromIndex(selectedAltitude);
-
                     widget.onPushRouteList(widget.routeParams);
                   }),
             ),
           ),
+
         ],
       ),
     );

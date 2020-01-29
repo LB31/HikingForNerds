@@ -35,7 +35,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
-    _routes[_currentRouteIndex].findAddress().then((address) {
+    _routes[_currentRouteIndex].path.first.findAddress().then((address) {
       _routeAddressLine = address.addressLine;
     });
   }

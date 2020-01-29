@@ -27,6 +27,14 @@ class HikingRoute {
         Coordinates(this.path.first.latitude, path.first.longitude));
     return addresses.first;
   }
+  
+  double getTotalElevationDifference(){
+    var totalElevationDifference = 0.0;
+    for(int i = 1; i<elevations.length; i++){
+      totalElevationDifference += (elevations[i] - elevations[i-1]).abs();
+    }
+    return totalElevationDifference;
+  }
 
   static Future<HikingRoute> fromMap(Map<String, dynamic> map) async{
     DatabaseHelper dbh = DatabaseHelper.instance;

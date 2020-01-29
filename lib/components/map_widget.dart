@@ -5,10 +5,10 @@ import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:flutter/services.dart' show MethodChannel, rootBundle;
@@ -226,7 +226,7 @@ class MapWidgetState extends State<MapWidget> {
         return i + 1;
       } else {
         startPathLength +=
-            OsmData.getDistance(route.path[i], route.path[i + 1]);
+            getDistance(route.path[i], route.path[i + 1]);
       }
       i++;
     }
@@ -311,7 +311,7 @@ class MapWidgetState extends State<MapWidget> {
   bool userLocationChanged(LatLng currentLocation) {
     if (_lastUserLocation == null) return true;
 
-    double distance = OsmData.getDistance(currentLocation, _lastUserLocation);
+    double distance = getDistance(currentLocation, _lastUserLocation);
     return distance > 0.001;
   }
 
@@ -327,7 +327,7 @@ class MapWidgetState extends State<MapWidget> {
           _remainingRoute.length < _route.length - 25 ? 0 : 25;
 
       for (int i = currentRouteIndex; i < _route.length - finalRouteNodesThreshold; i++) {
-        double distanceToCurrentLocation = OsmData.getDistance(_route[i], userLatLng);
+        double distanceToCurrentLocation = getDistance(_route[i], userLatLng);
         if (distanceToCurrentLocation < 0.1) {
           currentRouteIndex = i;
           break;
