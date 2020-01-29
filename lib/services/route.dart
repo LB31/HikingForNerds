@@ -37,7 +37,6 @@ class HikingRoute {
 
   static Future<List> getPathFromDb(DatabaseHelper dbh, int id) async {
     List<Node> path = await dbh.queryPath(id);
-    path.forEach((row) => print('Nodes from DB: $row'));
     return path;
   }
 
