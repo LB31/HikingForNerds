@@ -35,16 +35,17 @@ class _ElevationChartState extends State<ElevationChart> {
   final FlSpot minSpot;
   final FlSpot maxSpot;
 
+  static final 
 
   factory _ElevationChartState(List<FlSpot> routeDataList){
 
     FlSpot minSpot = FlSpot(
-        routeDataList.reduce((current, next) => current.x < next.x ? current : next).x,
-        routeDataList.reduce((current, next) => current.y < next.y ? current : next).y);
+        routeDataList.reduce((current, next) => current.x < next.x ? current : next).x - 1,
+        routeDataList.reduce((current, next) => current.y < next.y ? current : next).y - 1);
 
     FlSpot maxSpot = FlSpot(
-        routeDataList.reduce((current, next) => current.x > next.x ? current : next).x,
-        routeDataList.reduce((current, next) => current.y > next.y ? current : next).y);
+        routeDataList.reduce((current, next) => current.x > next.x ? current : next).x + 1,
+        routeDataList.reduce((current, next) => current.y > next.y ? current : next).y) + 1;
 
     return _ElevationChartState._(routeDataList, minSpot, maxSpot);
   }
@@ -106,15 +107,7 @@ class _ElevationChartState extends State<ElevationChart> {
           textStyle:
           TextStyle(color: const Color(0xff68737d), fontWeight: FontWeight.bold, fontSize: 16),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 2:
-                return 'MAR';
-              case 5:
-                return 'JUN';
-              case 8:
-                return 'SEP';
-            }
-            return '';
+            return value.toString();
           },
           margin: 8,
         ),
@@ -126,15 +119,7 @@ class _ElevationChartState extends State<ElevationChart> {
             fontSize: 15,
           ),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 1:
-                return '10k';
-              case 3:
-                return '30k';
-              case 5:
-                return '50k';
-            }
-            return '';
+            return value.toString();
           },
           reservedSize: 28,
           margin: 12,
