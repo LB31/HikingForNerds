@@ -304,7 +304,11 @@ class _RouteListState extends State<RouteList> {
         if (!_routesCalculated)
           Expanded(
             child: Center(
-              child: new CircularProgressIndicator(),
+              child: Image.asset(
+                "assets/animations/hikinganimation.gif",
+                //height: 125.0,
+                width: MediaQuery.of(context).size.width,
+              ),
             ),
           ),
         if (_routesCalculated && _routeList.length == 0)
