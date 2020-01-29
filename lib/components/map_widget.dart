@@ -274,7 +274,7 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+    double zoom = 14.7 - (pow(route.totalLength, 0.4));
 
     setLatLng(LatLng(averageLat, averageLong));
     setZoom(zoom);
