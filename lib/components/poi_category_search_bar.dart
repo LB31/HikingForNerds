@@ -17,23 +17,6 @@ class PoiCategorySearchBar extends StatefulWidget {
 }
 
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
-  List<String> categories = <String>[
-    'architecture',
-    'bar',
-    'cathedral',
-    'church',
-    'exhibition',
-    'gas station',
-    'lake',
-    'monuments',
-    'museum',
-    'park',
-    'river',
-    'romanic',
-    'school',
-    'zoo',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return SearchWidget<PoiCategory>(
