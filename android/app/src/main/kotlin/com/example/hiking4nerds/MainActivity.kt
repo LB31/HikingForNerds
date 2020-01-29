@@ -24,6 +24,7 @@ class MainActivity: FlutterActivity() {
     MethodChannel(flutterView, CHANNEL).setMethodCallHandler{ call, result ->
       if (call.method!!.contentEquals("getSharedData")){
         result.success(sharedData?.toString() ?: "")
+        sharedData = null
       }
     }
   }

@@ -1,5 +1,5 @@
+import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/services/route.dart';
 
 import 'localization_service.dart';
@@ -29,15 +29,25 @@ class AltitudeTypeHelper {
   static AltitudeType fromIndex(int index) {
     return AltitudeType.values[index];
   }
+
+  static AltitudeType differenceToType(double difference, int routeLength) {
+    double localDifference = difference / routeLength;
+    if (localDifference > 1.5) {
+      return AltitudeType.high;
+    }
+
+    return AltitudeType.minimal;
+  }
 }
 
 class RouteParams {
-  LatLng startingLocation;
+  Node startingLocation;
   double distanceKm;
   List<PoiCategory> poiCategories;
   AltitudeType altitudeType;
+  double altitude;
   List<HikingRoute> routes;
   int routeIndex;
 
-  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType]);
+  RouteParams(this.startingLocation, [this.distanceKm, this.poiCategories, this.altitudeType, this.altitude]);
 }

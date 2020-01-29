@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
 import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 
@@ -25,7 +24,7 @@ class ImportExportHandler{
   double calculateDistance(List<Node> path){
     double distance = 0.0;
     for(int i = 0; i < path.length - 1; i++){
-      distance += OsmData.getDistance(path[i], path[i+1]);
+      distance += getDistance(path[i], path[i+1]);
     }
     return distance;
   }
