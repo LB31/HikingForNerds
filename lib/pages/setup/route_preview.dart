@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
-
 
 class RoutePreviewPage extends StatefulWidget {
   final SwitchToMapCallback onSwitchToMap;
@@ -23,8 +24,11 @@ class RoutePreviewPage extends StatefulWidget {
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
+  int retryCounter = 0;
 
   List<HikingRoute> _routes = [];
+  String _routeAddressLine = LocalizationService()
+      .getLocalization(english: 'Loading..', german: 'Lädt..');
   int _currentRouteIndex;
 
   @override
@@ -32,16 +36,19 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
-
-    //TODO consider using a callback instead of a timeout
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      switchRoute(_currentRouteIndex);
+    _routes[_currentRouteIndex].path.first.findAddress().then((address) {
+      _routeAddressLine = address.addressLine;
     });
   }
 
-  void switchRoute(int index) {
+  void switchRoute(int index) async {
+    if (retryCounter >= 10) {
+      retryCounter = 0;
+      return;
+    }
+
     setState(() => _currentRouteIndex = index);
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    await mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
   }
 
   void switchDirection() {
@@ -68,6 +75,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
+  void onMapWidgetCreated() {
+    switchRoute(_currentRouteIndex);
+  }
+
   @override
   Widget build(BuildContext context) {
     HikingRoute currentRoute = _routes[_currentRouteIndex];
@@ -76,7 +87,9 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Preview'), // TODO add localization
+        title: Text(LocalizationService().getLocalization(
+            english: 'Route Preview', german: 'Routenvorschau')),
+        // TODO add localization
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0.0,
       ),
@@ -85,6 +98,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           MapWidget(
             key: mapWidgetKey,
             isStatic: true,
+            mapCreated: onMapWidgetCreated,
           ),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Column(children: <Widget>[
@@ -106,7 +120,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       child: Card(
                           child: ListTile(
                               onTap: () {},
-                              title: Text(currentRoute.title),
+                              title: Text(_routeAddressLine,
+                                  overflow: TextOverflow.ellipsis),
                               subtitle: Text(
                                   "Length: ${routeLength.toStringAsFixed(2)} km - "
                                   "${(routeLength * avgHikingSpeed).toStringAsFixed(0)} min")))),
@@ -122,7 +137,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ],
               ),
             ),
-            
           ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
@@ -181,7 +195,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               child: FloatingActionButton(
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
-                child: Icon(FontAwesomeIcons.hiking, size: 36),
+                child: Icon(FontAwesomeIcons.hiking, size: 34),
                 onPressed: (() =>
                     widget.onSwitchToMap(_routes[_currentRouteIndex])),
               ),

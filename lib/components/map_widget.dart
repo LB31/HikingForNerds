@@ -20,8 +20,9 @@ import 'package:hiking4nerds/services/pointofinterest.dart';
 
 class MapWidget extends StatefulWidget {
   final bool isStatic;
+  final VoidCallback mapCreated;
 
-  MapWidget({Key key, @required this.isStatic}) : super(key: key);
+  MapWidget({Key key, @required this.isStatic, this.mapCreated}) : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -150,9 +151,9 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearSymbols();
   }
 
-  void drawRoute(HikingRoute route, [bool center = true]) async {
+  Future drawRoute(HikingRoute route, [bool center = true]) async {
     clearMap();
-    drawRouteStartingPoint(route);
+    await drawRouteStartingPoint(route);
     drawPois(route, 12);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
@@ -163,6 +164,7 @@ class MapWidgetState extends State<MapWidget> {
         lineWidth: 4.0,
         lineBlur: 2,
         lineOpacity: 0.5);
+
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
@@ -202,7 +204,7 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  Future<void> drawRouteStartingPoint(HikingRoute route) async {
+  Future drawRouteStartingPoint(HikingRoute route) async {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
@@ -554,10 +556,13 @@ class MapWidgetState extends State<MapWidget> {
         });
   }
 
-  void onMapCreated(MapboxMapController controller) {
+  void onMapCreated(MapboxMapController controller) async {
     mapController = controller;
     mapController.addListener(_onMapChanged);
+    await mapController.invalidateAmbientCache();
     _extractMapInfo();
+
+    if (widget.mapCreated != null) widget.mapCreated();
     if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
