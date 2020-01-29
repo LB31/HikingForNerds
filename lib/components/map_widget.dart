@@ -1,22 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
-import 'package:hiking4nerds/services/lifecycle_event_handler.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
-import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
-import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
-import 'package:hiking4nerds/services/sharing/import_export_handler.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show MethodChannel, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
