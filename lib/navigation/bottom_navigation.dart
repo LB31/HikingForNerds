@@ -27,7 +27,7 @@ class BottomNavigation extends StatelessWidget {
   BottomNavigation({this.currentSegment, this.onSelectSegment}) {
     GlobalSettings().langaugeChanged = () { 
       // Small hack to update the navigation's langauge
-      onSelectSegment(AppSegment.values[0]);
+      onSelectSegment(AppSegment.values.first);
       onSelectSegment(AppSegment.more);
     };
   }

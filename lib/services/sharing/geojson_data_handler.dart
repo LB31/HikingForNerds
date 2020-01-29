@@ -147,9 +147,9 @@ class GeojsonDataHandler extends ImportExportHandler{
   }
 
   //importing part
-  Future<HikingRoute> parseRouteFromPath(String dataPath) async {
-    File readSharedFile = await sharedFile(dataPath);
-
+  /// read geojson Data from file
+  /// the reason for not providing a geojson string as parameter is a problem with escape parameters in the plugin
+  Future<HikingRoute> parseRouteFromFile(File readSharedFile) async {
     GeoJsonFeatureCollection featureCollection = await featuresFromGeoJsonFile(readSharedFile, nameProperty: "null");
 
     HikingRoute hikingRoute = _geoJsonFeatureToRoute(featureCollection);

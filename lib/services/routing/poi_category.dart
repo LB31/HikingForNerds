@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import '../localization_service.dart';
 
 class PoiCategory {
   static List<PoiCategory> categories = [
@@ -53,7 +52,7 @@ class PoiCategory {
         symbolPath: "assets/img/symbols/camp_pitch.png",
         color: const Color(0xff12635f)),
     PoiCategory(
-        id: 'camp_pitch',
+        id: 'bench',
         nameEng: "Bench",
         nameGer: "Sitzbank",
         symbolPath: "assets/img/symbols/bench.png",

@@ -7,6 +7,7 @@ import 'package:hiking4nerds/pages/setup/location_selection.dart';
 import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/pages/setup/route_list.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
+import 'package:hiking4nerds/services/sharing/import_service.dart';
 
 class SegmentRoutes {
   static const String root = '/';
@@ -39,14 +40,16 @@ class SegmentRoutes {
 /// > additional option to update the state of this segment (updateState)
 class SegmentNavigator extends StatelessWidget {
   static GlobalKey<MapPageState> mapKey = GlobalKey<MapPageState>();
+  static ImportService _importService = new ImportService();
   final ChangeSegmentCallback onChangeSegment;
   final GlobalKey<NavigatorState> navigatorKey;
   final AppSegment segment;
 
-  SegmentNavigator(
-      {@required this.navigatorKey,
-      @required this.segment,
-      @required this.onChangeSegment});
+  SegmentNavigator({@required this.navigatorKey, @required this.segment, @required this.onChangeSegment}) {
+    _importService.addLifecycleIntentHandler(switchToHistory: (() {
+      onChangeSegment(AppSegment.history);
+    }));
+  }
 
   /// resolves the corresponding root page for an specified segment
   Widget _findRootPage(BuildContext context, AppSegment segment) {
@@ -71,18 +74,16 @@ class SegmentNavigator extends StatelessWidget {
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context,
       [Map<String, dynamic> params]) {
     return {
-     SegmentRoutes.routePreferences: (context) => RoutePreferences(
-       routeParams: params["route-params"],
-       onPushRouteList: (routeParams) =>
-           _push(context, SegmentRoutes.routeList, {"route-params": routeParams}),
-     ),
-
-     SegmentRoutes.routeList: (context) => RouteList(
-       routeParams: params["route-params"],
-       onPushRoutePreview: (routeParams) => _push(context,
-           SegmentRoutes.routePreview, {"route-params": routeParams}),
-     ),
-
+      SegmentRoutes.routePreferences: (context) => RoutePreferences(
+            routeParams: params["route-params"],
+            onPushRouteList: (routeParams) => _push(context,
+                SegmentRoutes.routeList, {"route-params": routeParams}),
+          ),
+      SegmentRoutes.routeList: (context) => RouteList(
+            routeParams: params["route-params"],
+            onPushRoutePreview: (routeParams) => _push(context,
+                SegmentRoutes.routePreview, {"route-params": routeParams}),
+          ),
       SegmentRoutes.routePreview: (context) => RoutePreviewPage(
           routeParams: params["route-params"],
           onSwitchToMap: (route) {
