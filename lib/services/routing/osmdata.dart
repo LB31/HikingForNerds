@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
 import 'package:collection/priority_queue.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:quiver/core.dart';
@@ -13,9 +11,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/edge.dart';
 import 'package:hiking4nerds/services/routing/graph.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:r_tree/r_tree.dart' as rtree;
 import '../localization_service.dart';
 
