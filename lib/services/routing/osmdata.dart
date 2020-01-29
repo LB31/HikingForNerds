@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
 import 'package:collection/priority_queue.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:quiver/core.dart';
@@ -13,9 +11,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/edge.dart';
 import 'package:hiking4nerds/services/routing/graph.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:r_tree/r_tree.dart' as rtree;
 import '../localization_service.dart';
 
@@ -331,19 +327,18 @@ class OsmData{
 
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-
       if(totalRouteLength < targetActualDistance * 0.8 || totalRouteLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + totalRouteLength.toString() + ") , retrying... retry count: " + retryCount.toString());
         continue;
       }
-      var findAdjacentPoiTimestamp = DateTime.now().millisecondsSinceEpoch;
+
       routeNodes.forEach((node) {
         var searchTopLeft = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 315); //returns top, left in that order
         var searchBottomRight = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 135); //returns bottom, right in that order
         includedPois.addAll(poiRTree.search(Rectangle.fromPoints(Point(searchTopLeft[0], searchTopLeft[1]), Point(searchBottomRight[0], searchBottomRight[1]))).map((e) => e.value));
       });
-      if(PROFILING) print('${includedPois.length} found in ${findAdjacentPoiTimestamp - DateTime.now().millisecondsSinceEpoch} ms.');
+
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois.toList());
       routes.add(routeResult);
       if(PROFILING) print('Route ${routes.length} done in ${DateTime.now().millisecondsSinceEpoch - timestampRouteStart} ms. Total length: ${routeResult.totalLength}. Nr of POI: ${routeResult.pointsOfInterest.length}');
