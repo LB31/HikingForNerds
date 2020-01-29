@@ -525,6 +525,7 @@ class MapWidgetState extends State<MapWidget> {
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
               centerRoute: centerCurrentRoute,
+              hikingRoute: _hikingRoute
             ),
         ],
       );
