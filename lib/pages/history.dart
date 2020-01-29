@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/database_helpers.dart';
+import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
 import 'package:hiking4nerds/services/elevation_chart.dart';
@@ -34,6 +35,35 @@ class _HistoryPageState extends State<HistoryPage> {
   delete(int rid) async {
     DatabaseHelper dbh = DatabaseHelper.instance;
     int id = await dbh.deleteRoute(rid);
+  }
+
+  List _generateChips(HistoryEntry entry) {
+    List<Widget> chips = List();
+    var pois = entry.poiCategories;
+    if (pois != null && pois.isNotEmpty) {
+      pois.forEach((category) {
+        chips.add(new Chip(
+          elevation: 1,
+          label: Text(category.name,
+              style: TextStyle(fontSize: 11, color: Colors.white)),
+          backgroundColor: category.color,
+        ));
+      });
+    }
+
+    /*
+    chips.add(Chip(
+      elevation: 1,
+      backgroundColor: Color(0xFFE1E4F3),
+      label: Text(AltitudeTypeHelper.asString(entry.altitudeType),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          )),
+    ));
+    */
+
+    return chips;
   }
 
   @override
@@ -81,19 +111,19 @@ class _HistoryPageState extends State<HistoryPage> {
                                         borderRadius: new BorderRadius.all(
                                             const Radius.circular(3.0))),
                                   )),
-                              // Padding(
-                              //   padding:
-                              //       const EdgeInsets.only(top: 10, bottom: 10),
-                              //   child: SizedBox(
-                              //     width:
-                              //         MediaQuery.of(context).size.width * 0.5,
-                              //     child: Wrap(
-                              //       spacing: 5,
-                              //       runSpacing: -10,
-                              //       children: generateChips(_routeList[index]),
-                              //     ),
-                              //   ),
-                              // ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Wrap(
+                                    spacing: 5,
+                                    runSpacing: -10,
+                                    children: _generateChips(_routes[index]),
+                                  ),
+                                ),
+                              ),
                               Padding(
                                   padding:
                                       const EdgeInsets.fromLTRB(0, 12, 12, 0),
@@ -181,6 +211,7 @@ class HistoryEntry {
   ElevationChart chart;
   List<String> pois = [];
   HikingRoute route;
+  Set<PoiCategory> poiCategories;
 
   HistoryEntry(BuildContext context, HikingRoute route) {
     this.route = route;
@@ -193,6 +224,10 @@ class HistoryEntry {
       route.path,
       lineColor: Colors.black,
     );
+
+    if (route.pointsOfInterest != null)
+      route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
+
     print('History Entry $date $distance Nodes ${route.path.length} POIs ...');
   }
 

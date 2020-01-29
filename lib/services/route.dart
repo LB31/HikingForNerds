@@ -36,16 +36,29 @@ class HikingRoute {
     return totalElevationDifference;
   }
 
-  static Future<HikingRoute> fromMap(Map<String, dynamic> map) async{
+  static Future<HikingRoute> fromMap(Map<String, dynamic> map) async {
     DatabaseHelper dbh = DatabaseHelper.instance;
-    List<Node> path = await getPathFromDb(dbh, map[dbh.columnId]);
+    int id = map[dbh.columnId];
+    List<Node> path = await getPathFromDb(dbh, id);
     double totalLength = map[dbh.columnLength];
-    return HikingRoute(path, totalLength, null, null, map[dbh.columnId]);
+    List<PointOfInterest> pois = await getPoisFromDb(dbh, id);
+    List<double> elevations = await getElevationsFromDb(dbh, id);
+    return HikingRoute(path, totalLength, pois, elevations, id);
   }
 
   static Future<List> getPathFromDb(DatabaseHelper dbh, int id) async {
     List<Node> path = await dbh.queryPath(id);
     return path;
+  }
+
+  static Future<List> getPoisFromDb(DatabaseHelper dbh, int id) async {
+    List<PointOfInterest> pois = await dbh.queryPois(id);
+    return pois;
+  }
+
+  static Future<List> getElevationsFromDb(DatabaseHelper dbh, int id) async {
+    List<double> elevations = await dbh.queryElevations(id);
+    return elevations;
   }
 
   Map<String, dynamic> toMap() {

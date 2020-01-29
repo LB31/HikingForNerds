@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -24,6 +25,10 @@ class DatabaseHelper {
   final String columnPoiId = 'poi_id';
   final String columnCategory = 'category';
   // + Lat / Lng
+
+  final String tableElevations = 'elevations';
+  final String columnElevationId = 'elevation_id';
+  final String columnElevationData = 'data';
 
   // This is the actual database filename that is saved in the docs directory.
   static final _databaseName = "h4n.db";
@@ -78,6 +83,13 @@ class DatabaseHelper {
         $columnCategory STRING
       )
     ''');
+    await db.execute('''
+      CREATE TABLE $tableElevations (
+        $columnRouteId INTEGER NOT NULL,
+        $columnElevationId INTEGER NOT NULL,
+        $columnElevationData REAL NOT NULL
+      )
+    ''');
   }
 
   // Database helper methods:
@@ -85,9 +97,23 @@ class DatabaseHelper {
   Future<int> insert(HikingRoute route) async {
     Database db = await database;
     int id = await db.insert(tableRoutes, route.toMap());
-    await route.path.forEach((node) => db.insert(tableNodes, node.toMap(id)));
-    await route.pointsOfInterest.forEach((poi) => db.insert(tablePois, poi.toMap(id)));
+    route.path.forEach((node) async => await db.insert(tableNodes, node.toMap(id)));
+    route.pointsOfInterest.forEach((poi) async => await db.insert(tablePois, poi.toMap(id)));
+    int elevationId = Random().nextInt(1000);
+    route.elevations.forEach((elevation) async => await db.insert(tableElevations, _elevationToMap(elevation, elevationId, id)));
     return id;
+  }
+
+  Map _elevationToMap(double elevation, int id, int routeid) {
+    return <String, dynamic>{
+      columnRouteId: routeid,
+      columnElevationId: id,
+      columnElevationData: elevation
+    };
+  }
+
+  double _elevationFromMap(Map<String, dynamic> map) {
+    return map[columnElevationData];
   }
 
   Future<List<HikingRoute>> queryAllRoutes() async {
@@ -112,7 +138,7 @@ class DatabaseHelper {
     return maps.map((n) => Node.fromMap(n)).toList();
   }
 
-  Future<List<Node>> queryPois(int id) async {
+  Future<List<PointOfInterest>> queryPois(int id) async {
     Database db = await database;
     List<Map> maps = await db.query(tablePois,
         columns: [columnPoiId, columnLat, columnLng, columnCategory],
@@ -120,6 +146,16 @@ class DatabaseHelper {
         whereArgs: [id]);
     maps.forEach((row) => print('POI $row'));
     return maps.map((n) => PointOfInterest.fromMap(n)).toList();
+  }
+
+  Future<List<double>> queryElevations(int id) async {
+    Database db = await database;
+    List<Map> maps = await db.query(tableElevations,
+        columns: [columnElevationId, columnElevationData],
+        where: '$columnRouteId = ?',
+        whereArgs: [id]);
+    maps.forEach((row) => print('Elevation $row'));
+    return maps.map((n) => _elevationFromMap(n)).toList();
   }
 
   // TODO: delete(int id)
@@ -136,7 +172,10 @@ class DatabaseHelper {
     int pois = await db.delete(tableNodes,
       where: '$columnRouteId = ?',
       whereArgs: [id]);
-    print('$route routes deleted, $nodes nodes deleted, $pois pois deleted');
+    int elevations = await db.delete(tableElevations,
+      where: '$columnRouteId = ?',
+      whereArgs: [id]);
+    print('$route routes deleted, $nodes nodes deleted, $pois pois deleted, $elevations elevations deleted');
   }
 
   deleteAll() async {
@@ -144,6 +183,7 @@ class DatabaseHelper {
     int routes = await db.delete(tableRoutes, where: '1');
     int nodes = await db.delete(tableNodes, where: '1');
     int pois = await db.delete(tablePois, where: '1');
-    print('$routes routes deleted, $nodes nodes deleted, $pois pois deleted');
+    int elevations = await db.delete(tableElevations, where: '1');
+    print('$routes routes deleted, $nodes nodes deleted, $pois pois deleted, $elevations elevations deleted');
   }
 }
