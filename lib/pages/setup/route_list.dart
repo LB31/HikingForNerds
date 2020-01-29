@@ -29,7 +29,9 @@ class _RouteListState extends State<RouteList> {
   void initState() {
     super.initState();
     widget.routeParams.startingLocation.findAddress().then((address) {
-      _startingLocationAddress = address.addressLine;
+      setState(() {
+        _startingLocationAddress = address.addressLine;
+      });
     });
 
     calculateRoutes();
@@ -67,22 +69,25 @@ class _RouteListState extends State<RouteList> {
 
       setState(() {
         widget.routeParams.routes = routes;
-        widget.routeParams.routes
-            .forEach((route) => _routeList.add(RouteListEntry(context, route)));
 
         switch (widget.routeParams.altitudeType) {
           case AltitudeType.none:
-            _routeList.shuffle();
+            widget.routeParams.routes.shuffle();
             break;
           case AltitudeType.minimal:
-            _routeList.sort(
-                (entryA, entryB) => entryA.altitudeDifference.compareTo(entryB.altitudeDifference));
+            widget.routeParams.routes.sort((a, b) => a
+                .getTotalElevationDifference()
+                .compareTo(b.getTotalElevationDifference()));
             break;
           case AltitudeType.high:
-            _routeList.sort(
-                (entryA, entryB) => entryB.altitudeDifference.compareTo(entryA.altitudeDifference));
+            widget.routeParams.routes.sort((a, b) => a
+                .getTotalElevationDifference()
+                .compareTo(b.getTotalElevationDifference()));
             break;
         }
+
+        widget.routeParams.routes
+            .forEach((route) => _routeList.add(RouteListEntry(context, route)));
 
         this._routesCalculated = true;
       });
@@ -154,7 +159,7 @@ class _RouteListState extends State<RouteList> {
         ),
         Text(
           widget.routeParams.poiCategories.isNotEmpty
-              ? '${widget.routeParams.poiCategories.map((category) => category.name).join(", ")}'
+              ? '${widget.routeParams.poiCategories.map((category) => LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer)).join(", ")}'
               : LocalizationService().getLocalization(
                   english: 'No POI selected', german: 'Kein POI ausgewählt'),
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
@@ -188,7 +193,7 @@ class _RouteListState extends State<RouteList> {
       entry.poiCategories.forEach((category) {
         chips.add(new Chip(
           elevation: 1,
-          label: Text(category.name,
+          label: Text(LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer),
               style: TextStyle(fontSize: 11, color: Colors.white)),
           backgroundColor: category.color,
         ));
@@ -345,7 +350,6 @@ class RouteListEntry {
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
   AltitudeType altitudeType;
-  double altitudeDifference;
 
   // List<PointOfInterest> pois = []; not used rn but could be useful
   Set<PoiCategory> poiCategories = new Set();
@@ -355,8 +359,8 @@ class RouteListEntry {
   RouteListEntry(BuildContext context, HikingRoute route) {
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
-    this.altitudeDifference = route.getTotalElevationDifference();
-    this.altitudeType = AltitudeTypeHelper.differenceToType(this.altitudeDifference, route.path.length);
+    this.altitudeType = AltitudeTypeHelper.differenceToType(
+        route.getTotalElevationDifference(), route.path.length);
 
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
