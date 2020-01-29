@@ -41,21 +41,14 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     });
   }
 
-  void switchRoute(int index) {
+  void switchRoute(int index) async {
     if (retryCounter >= 10) {
       retryCounter = 0;
       return;
     }
 
     setState(() => _currentRouteIndex = index);
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]).then((_) {
-      retryCounter = 0;
-    }).catchError((error) {
-      new Future.delayed(const Duration(milliseconds: 200), () {
-        retryCounter++;
-        switchRoute(index);
-      });
-    });
+    await mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
   }
 
   void switchDirection() {
