@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
@@ -48,7 +47,14 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     }
 
     setState(() => _currentRouteIndex = index);
-    await mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]).then((_) {
+      retryCounter = 0;
+    }).catchError((error) {
+      new Future.delayed(const Duration(milliseconds: 200), () {
+        retryCounter++;
+        switchRoute(index);
+      });
+    });
   }
 
   void switchDirection() {
