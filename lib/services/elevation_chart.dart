@@ -65,9 +65,9 @@ class _ElevationChartState extends State<ElevationChart> {
           child: Container(
             decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(
-                  Radius.circular(18),
+                  Radius.circular(10),
                 ),
-                color: const Color(0xff232d37)),
+                color: const Color(0xAA7c94b6)),
             child: Padding(
               padding: const EdgeInsets.only(right: 18.0, left: 12.0, top: 24, bottom: 12),
               child: LineChart(

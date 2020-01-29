@@ -5,7 +5,6 @@ import 'package:hiking4nerds/services/elevation_chart.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/test_elevation_chart.dart';
 import 'package:hiking4nerds/styles.dart';
 
 class MapPage extends StatefulWidget {
