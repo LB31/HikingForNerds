@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:hiking4nerds/components/map_widget.dart';
-import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/styles.dart';
+import 'package:hiking4nerds/services/database_helpers.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
 import 'package:location/location.dart';
+import 'package:hiking4nerds/styles.dart';
+import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/components/calculate_routes_dialog.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 
 
 class RoutePreviewPage extends StatefulWidget {
@@ -36,6 +38,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     _routes[_currentRouteIndex].findAddress().then((address) {
       _routeAddressLine = address.addressLine;
     });
+  }
+  
+  save(HikingRoute route) async {
+    DatabaseHelper dbh = DatabaseHelper.instance;
+    int id = await dbh.insert(route);
+    print('Route saved: $id');
   }
 
   void switchRoute(int index) {
@@ -168,8 +176,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 backgroundColor: htwGreen,
                 heroTag: "btn-go",
                 child: Icon(FontAwesomeIcons.hiking, size: 34),
-                onPressed: (() =>
-                    widget.onSwitchToMap(_routes[_currentRouteIndex])),
+                onPressed: (() => {
+                  save(_routes[_currentRouteIndex]),
+                  widget.onSwitchToMap(_routes[_currentRouteIndex])
+                }),
               ),
             ),
           ),
