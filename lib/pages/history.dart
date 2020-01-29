@@ -22,9 +22,9 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future loadAllRoutes() async {
-    _routes = [];
     List<HikingRoute> routes = await DatabaseHelper.instance.queryAllRoutes();
     setState(() {
+      _routes.clear();
       if(routes != null) routes.forEach((entry) => _routes.add(HistoryEntry(context, entry)));
       _routesLoaded = true;
     });    
@@ -149,43 +149,13 @@ class _HistoryPageState extends State<HistoryPage> {
       appBar: AppBar(
         backgroundColor: htwGreen,
         title: Text(LocalizationService().getLocalization(
-            english: 'Choose a route to preview',
-            german: 'Route für Vorschau wählen')),
+            english: 'History',
+            german: 'Verlauf')),
         elevation: 0,
       ),
       body: body,
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: Text(LocalizationService()
-  //           .getLocalization(english: "History", german: "Verlauf")),
-  //       backgroundColor: Theme.of(context).primaryColor,
-  //     ),
-  //     body: Row(
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: <Widget>[
-  //         Padding(
-  //           padding: const EdgeInsets.all(8.0),
-  //           child: RaisedButton(
-  //             child: Text('Read'),
-  //             onPressed: () {
-  //               print(_routes[0].date);
-  //             },
-  //           ),
-  //         ),
-  //         Padding(
-  //           padding: const EdgeInsets.all(8.0),
-  //           child: _routes[0].routeCanvas,
-  //         ),
-
-  //       ],
-  //     ),
-  //   );
-  // }
 }
 
 class HistoryEntry {
