@@ -10,6 +10,8 @@ import 'package:geocoder/geocoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'dart:io' show Platform;
+import 'dart:async';
+
 
 class LocationSelectionPage extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreferences;
@@ -24,15 +26,31 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
   String searchedLocation = "";
 
+  @override
+  initState() {
+    super.initState();
+    Timer.periodic(Duration(seconds: 3), (Timer t) => setSearchBarAddressToCameraCenter());
+  }
+
+
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
     LatLng currentLatLng =
         LatLng(currentLocation.latitude, currentLocation.longitude);
     moveToLatLng(currentLatLng);
+    setSearchBarAddress(currentLatLng);
+  }
 
+  setSearchBarAddressToCameraCenter(){
+    if(mapWidgetKey.currentState.mapController != null && !mapWidgetKey.currentState.mapController.isCameraMoving){
+      LatLng cameraCenter = mapWidgetKey.currentState.mapController.cameraPosition.target;
+      setSearchBarAddress(cameraCenter);
+    }
+  }
+
+  setSearchBarAddress(LatLng latLng) async{
     List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(
-        Coordinates(currentLatLng.latitude, currentLatLng.longitude));
-
+        Coordinates(latLng.latitude, latLng.longitude));
     setState(() {
       searchedLocation = addresses[0].addressLine;
     });
