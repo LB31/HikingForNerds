@@ -42,7 +42,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
   }
 
   setSearchBarAddressToCameraCenter(){
-    if(!mapWidgetKey.currentState.mapController.isCameraMoving){
+    if(mapWidgetKey.currentState.mapController != null && !mapWidgetKey.currentState.mapController.isCameraMoving){
       LatLng cameraCenter = mapWidgetKey.currentState.mapController.cameraPosition.target;
       setSearchBarAddress(cameraCenter);
     }
