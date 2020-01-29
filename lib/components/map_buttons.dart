@@ -79,7 +79,7 @@ class MapButtons extends StatelessWidget {
             child: FloatingActionButton(
               backgroundColor: htwGrey,
               heroTag: "btn-center",
-              child: Icon(Icons.center_focus_strong),
+              child: Icon(Icons.center_focus_weak),
               onPressed: () {
                 centerRoute();
               },
