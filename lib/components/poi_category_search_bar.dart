@@ -29,7 +29,12 @@ class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
         listContainerHeight: MediaQuery.of(context).size.height / 4,
         queryBuilder: (String query, List<PoiCategory> list) {
           return list
-              .where((category) => LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer).toLowerCase().startsWith(query.toLowerCase())).toList();
+              .where((category) => LocalizationService()
+                  .getLocalization(
+                      english: category.nameEng, german: category.nameGer)
+                  .toLowerCase()
+                  .startsWith(query.toLowerCase()))
+              .toList();
         },
         popupListItemBuilder: (PoiCategory category) {
           return PopupListItemWidget(category);
@@ -68,7 +73,9 @@ class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
     List<Widget> chips = List();
     widget.selectedCategories.forEach((category) {
       chips.add(Chip(
-        label: Text(LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer),
+        label: Text(
+            LocalizationService().getLocalization(
+                english: category.nameEng, german: category.nameGer),
             style: TextStyle(fontSize: 16.0, color: Colors.white)),
         backgroundColor: category.color,
         deleteIcon: Icon(
@@ -171,7 +178,8 @@ class PopupListItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12.0),
       child: Text(
-        LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer),
+        LocalizationService().getLocalization(
+            english: category.nameEng, german: category.nameGer),
         style: TextStyle(fontSize: 16.0),
       ),
     );

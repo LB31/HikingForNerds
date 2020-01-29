@@ -9,6 +9,7 @@ import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+
 class RouteList extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreview;
   final RouteParams routeParams;

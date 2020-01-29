@@ -18,7 +18,7 @@ class HikingRoute {
 
   double getTotalElevationDifference(){
     var totalElevationDifference = 0.0;
-    for(int i = 1; i<elevations.length; i++){
+    for(int i = 1; i < elevations.length; i++){
       totalElevationDifference += (elevations[i] - elevations[i-1]).abs();
     }
     return totalElevationDifference;
