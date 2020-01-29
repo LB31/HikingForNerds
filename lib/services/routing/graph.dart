@@ -110,7 +110,7 @@ class Graph {
     return edges.map((edge) => edge.weight).fold(0.0, (curr, next) => curr + next);
   }
 
-  void penalizeEdgesAlongRoute(List<Edge> route, doublepenalty){
+  void penalizeEdgesAlongRoute(List<Edge> route, double penalty){
     for(var edge in route){
       edgeAlreadyUsedPenalties.putIfAbsent(edge, () => penalty);
       edgeAlreadyUsedPenalties.putIfAbsent(edge.back, () => penalty);

@@ -327,19 +327,18 @@ class OsmData{
 
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-
       if(totalRouteLength < targetActualDistance * 0.8 || totalRouteLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + totalRouteLength.toString() + ") , retrying... retry count: " + retryCount.toString());
         continue;
       }
-      var findAdjacentPoiTimestamp = DateTime.now().millisecondsSinceEpoch;
+
       routeNodes.forEach((node) {
         var searchTopLeft = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 315); //returns top, left in that order
         var searchBottomRight = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 135); //returns bottom, right in that order
         includedPois.addAll(poiRTree.search(Rectangle.fromPoints(Point(searchTopLeft[0], searchTopLeft[1]), Point(searchBottomRight[0], searchBottomRight[1]))).map((e) => e.value));
       });
-      if(PROFILING) print('${includedPois.length} found in ${findAdjacentPoiTimestamp - DateTime.now().millisecondsSinceEpoch} ms.');
+
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois.toList());
       routes.add(routeResult);
       if(PROFILING) print('Route ${routes.length} done in ${DateTime.now().millisecondsSinceEpoch - timestampRouteStart} ms. Total length: ${routeResult.totalLength}. Nr of POI: ${routeResult.pointsOfInterest.length}');
