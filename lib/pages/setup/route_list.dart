@@ -8,6 +8,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hiking4nerds/components/loading_text.dart';
 
 
 class RouteList extends StatefulWidget {
@@ -304,10 +305,15 @@ class _RouteListState extends State<RouteList> {
         if (!_routesCalculated)
           Expanded(
             child: Center(
-              child: Image.asset(
-                "assets/animations/hikinganimation.gif",
-                //height: 125.0,
-                width: MediaQuery.of(context).size.width,
+              child: Column(
+                children: <Widget>[
+                  Image.asset(
+                    "assets/animations/hikinganimation.gif",
+                    //height: 125.0,
+                    width: MediaQuery.of(context).size.width,
+                  ),
+                  LoadingText(),
+                ],
               ),
             ),
           ),
