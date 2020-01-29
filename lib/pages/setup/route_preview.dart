@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -33,7 +34,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     super.initState();
     _routes = widget.routeParams.routes;
     _currentRouteIndex = widget.routeParams.routeIndex;
-    _routes[_currentRouteIndex].findAddress().then((address) {
+    _routes[_currentRouteIndex].path.first.findAddress().then((address) {
       _routeAddressLine = address.addressLine;
     });
   }
