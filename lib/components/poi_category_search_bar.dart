@@ -17,33 +17,24 @@ class PoiCategorySearchBar extends StatefulWidget {
 }
 
 class _PoiCategorySearchBarState extends State<PoiCategorySearchBar> {
-  
-  List<String> categories = <String>[
-    'architecture',
-    'bar',
-    'cathedral',
-    'church',
-    'exhibition',
-    'gas station',
-    'lake',
-    'monuments',
-    'museum',
-    'park',
-    'river',
-    'romanic',
-    'school',
-    'zoo',
-  ];
-  
   @override
   Widget build(BuildContext context) {
     return SearchWidget<PoiCategory>(
-        dataList: PoiCategory.categories..sort((a, b) => a.name.compareTo(b.name)),
+        dataList: PoiCategory.categories
+          ..sort((a, b) => LocalizationService()
+              .getLocalization(english: a.nameEng, german: a.nameGer)
+              .compareTo(LocalizationService()
+                  .getLocalization(english: b.nameEng, german: b.nameGer))),
         hideSearchBoxWhenItemSelected: false,
         listContainerHeight: MediaQuery.of(context).size.height / 4,
         queryBuilder: (String query, List<PoiCategory> list) {
-          return list.where((category) =>
-              category.name.toLowerCase().startsWith(query.toLowerCase()));
+          return list
+              .where((category) => LocalizationService()
+                  .getLocalization(
+                      english: category.nameEng, german: category.nameGer)
+                  .toLowerCase()
+                  .startsWith(query.toLowerCase()))
+              .toList();
         },
         popupListItemBuilder: (PoiCategory category) {
           return PopupListItemWidget(category);
@@ -82,7 +73,9 @@ class _SelectedItemsWidgetState extends State<SelectedItemsWidget> {
     List<Widget> chips = List();
     widget.selectedCategories.forEach((category) {
       chips.add(Chip(
-        label: Text(category.name,
+        label: Text(
+            LocalizationService().getLocalization(
+                english: category.nameEng, german: category.nameGer),
             style: TextStyle(fontSize: 16.0, color: Colors.white)),
         backgroundColor: category.color,
         deleteIcon: Icon(
@@ -133,7 +126,9 @@ class SearchTextField extends StatelessWidget {
           ),
           suffixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          hintText: LocalizationService().getLocalization(english: 'Search POIs here (max. 3) ...', german: 'Suche nach POIs hier (max. 3)'),
+          hintText: LocalizationService().getLocalization(
+              english: 'Search POIs here (max. 3)',
+              german: 'Suche nach POIs hier (max. 3)'),
           contentPadding: EdgeInsets.only(
             left: 16,
             right: 20,
@@ -160,7 +155,8 @@ class NoItemsFound extends StatelessWidget {
           ),
           SizedBox(width: 10.0),
           Text(
-            LocalizationService().getLocalization(english: 'No Items Found', german: 'Keine Elemente gefunden'),
+            LocalizationService().getLocalization(
+                english: 'No Items Found', german: 'Keine Elemente gefunden'),
             style: TextStyle(
               fontSize: 16.0,
               color: Colors.grey[900].withOpacity(0.7),
@@ -182,7 +178,8 @@ class PopupListItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12.0),
       child: Text(
-        category.name,
+        LocalizationService().getLocalization(
+            english: category.nameEng, german: category.nameGer),
         style: TextStyle(fontSize: 16.0),
       ),
     );

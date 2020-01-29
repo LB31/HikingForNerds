@@ -51,9 +51,9 @@ class MapPageState extends State<MapPage> {
         50,
         [
           new PointOfInterest(0, 52.5102903, 13.4084606,
-              {"highway": "bus_stop", "name": "Main Street"}),
+              {"amenity": "cafe", "name": "Main Street"}),
           new PointOfInterest(
-              1, 52.5101514, 13.4081806, {"name": "Just another Street"})
+              1, 52.5101514, 13.4081806, {"tourism": "bench"})
         ],
         [3.3, 2.1, 50.2, 20.8]);
 

@@ -10,7 +10,6 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 
-
 class RoutePreviewPage extends StatefulWidget {
   final SwitchToMapCallback onSwitchToMap;
   final RouteParams routeParams;
@@ -25,9 +24,11 @@ class RoutePreviewPage extends StatefulWidget {
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
+  int retryCounter = 0;
 
   List<HikingRoute> _routes = [];
-  String _routeAddressLine = LocalizationService().getLocalization(english: 'Loading..', german: 'Lädt..');
+  String _routeAddressLine = LocalizationService()
+      .getLocalization(english: 'Loading..', german: 'Lädt..');
   int _currentRouteIndex;
 
   @override
@@ -46,9 +47,21 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     print('Route saved: $id');
   }
 
-  void switchRoute(int index) {
+  void switchRoute(int index) async {
+    if (retryCounter >= 10) {
+      retryCounter = 0;
+      return;
+    }
+
     setState(() => _currentRouteIndex = index);
-    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]);
+    mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]).then((_) {
+      retryCounter = 0;
+    }).catchError((error) {
+      new Future.delayed(const Duration(milliseconds: 200), () {
+        retryCounter++;
+        switchRoute(index);
+      });
+    });
   }
 
   void switchDirection() {
@@ -75,7 +88,9 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     mapWidgetKey.currentState.mapController.moveCamera(CameraUpdate.zoomTo(14));
   }
 
-  void onMapWidgetCreated() => switchRoute(_currentRouteIndex);
+  void onMapWidgetCreated() {
+    switchRoute(_currentRouteIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +100,9 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationService().getLocalization(english: 'Route Preview', german: 'Routenvorschau')), // TODO add localization
+        title: Text(LocalizationService().getLocalization(
+            english: 'Route Preview', german: 'Routenvorschau')),
+        // TODO add localization
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0.0,
       ),
@@ -116,7 +133,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       child: Card(
                           child: ListTile(
                               onTap: () {},
-                              title: Text(_routeAddressLine, overflow: TextOverflow.ellipsis),
+                              title: Text(_routeAddressLine,
+                                  overflow: TextOverflow.ellipsis),
                               subtitle: Text(
                                   "Length: ${routeLength.toStringAsFixed(2)} km - "
                                   "${(routeLength * avgHikingSpeed).toStringAsFixed(0)} min")))),
@@ -132,7 +150,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ],
               ),
             ),
-            
           ]),
           Positioned(
             left: MediaQuery.of(context).size.width * 0.05,
@@ -162,6 +179,22 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 child: Icon(Icons.gps_fixed),
                 onPressed: () {
                   moveToCurrentLocation();
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 75,
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: FloatingActionButton(
+                backgroundColor: htwGrey,
+                heroTag: "btn-center",
+                child: Icon(Icons.center_focus_strong),
+                onPressed: () {
+                  mapWidgetKey.currentState.centerCameraOverRoute(_routes[_currentRouteIndex]);
                 },
               ),
             ),

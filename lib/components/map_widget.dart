@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flushbar/flushbar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
-import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
-import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show MethodChannel, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,10 +34,6 @@ class MapWidgetState extends State<MapWidget> {
 
   static bool _isCurrentlyGranting = false;
 
-  static const platform =
-      const MethodChannel('app.channel.hikingfornerds.data');
-  HikingRoute sharedRoute;
-
   HikingRoute _hikingRoute;
   int _currentRouteIndex = 0;
   List<LatLng> _route = [];
@@ -56,7 +50,7 @@ class MapWidgetState extends State<MapWidget> {
 
   CameraPosition _position;
   MapboxMapController mapController;
-  bool _compassEnabled = true;
+  bool _compassEnabled = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
@@ -92,28 +86,7 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    if (Platform.isAndroid)
-      _getIntentData();
     _requestPermissions();
-  }
-
-  Future<void> _getIntentData() async {
-    var data = await _getSharedData();
-    if (data == null) return;
-    setState(() {
-      sharedRoute = data;
-    });
-  }
-
-  _getSharedData() async {
-    String dataPath = await platform.invokeMethod("getSharedData");
-    if (dataPath.isEmpty) return null;
-    var data;
-    if (dataPath.endsWith(".geojson"))
-      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
-    else if (dataPath.endsWith(".gpx"))
-      data = new GpxDataHandler().parseRouteFromString(dataPath);
-    return data;
   }
 
   void _requestPermissions() async {
@@ -151,9 +124,9 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearSymbols();
   }
 
-  void drawRoute(HikingRoute route, [bool center = true]) async {
+  Future drawRoute(HikingRoute route, [bool center = true]) async {
     clearMap();
-    drawRouteStartingPoint(route);
+    await drawRouteStartingPoint(route);
     drawPois(route, 12);
     int index = calculateLastStartingPathNode(route);
     assert(index != -1, "Error last starting node not found!");
@@ -164,6 +137,7 @@ class MapWidgetState extends State<MapWidget> {
         lineWidth: 4.0,
         lineBlur: 2,
         lineOpacity: 0.5);
+
     Line linePassedRoute = await mapController.addLine(optionsPassedRoute);
 
     LineOptions optionsRoute = LineOptions(
@@ -203,7 +177,7 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  Future<void> drawRouteStartingPoint(HikingRoute route) async {
+  Future drawRouteStartingPoint(HikingRoute route) async {
     LatLng startingPoint = route.path[0];
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
@@ -273,10 +247,14 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+    double zoom = 14.7 - (pow(route.totalLength, 0.4));
 
     setLatLng(LatLng(averageLat, averageLong));
     setZoom(zoom);
+  }
+
+  void centerCurrentRoute(){
+    centerCameraOverRoute(_hikingRoute);
   }
 
   startRoute() {
@@ -519,6 +497,8 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
+              centerRoute: centerCurrentRoute,
+              hikingRoute: _hikingRoute
             ),
         ],
       );
@@ -550,12 +530,11 @@ class MapWidgetState extends State<MapWidget> {
         });
   }
 
-  void onMapCreated(MapboxMapController controller) {
+  void onMapCreated(MapboxMapController controller) async {
     mapController = controller;
     mapController.addListener(_onMapChanged);
     _extractMapInfo();
 
     if (widget.mapCreated != null) widget.mapCreated();
-    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }

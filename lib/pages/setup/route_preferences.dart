@@ -95,7 +95,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                           child: Slider(
                             activeColor: htwGreen,
                             inactiveColor: htwGrey,
-                            min: 1.0,
+                            min: 2.0,
                             max: 30.0,
                             label: distance.toString(),
                             onChanged: (value) {

@@ -15,7 +15,7 @@ final Map<AppSegment, IconData> segmentIcons = {
 class BottomNavigation extends StatelessWidget {
   final Map<AppSegment, String> segmentNames = {
     AppSegment.setup: LocalizationService()
-        .getLocalization(english: "Setup", german: "Route planen"),
+        .getLocalization(english: "Setup", german: "Planung"),
     AppSegment.map:
         LocalizationService().getLocalization(english: "Map", german: "Karte"),
     AppSegment.history: LocalizationService()
@@ -27,7 +27,7 @@ class BottomNavigation extends StatelessWidget {
   BottomNavigation({this.currentSegment, this.onSelectSegment}) {
     GlobalSettings().langaugeChanged = () { 
       // Small hack to update the navigation's langauge
-      onSelectSegment(AppSegment.values[0]);
+      onSelectSegment(AppSegment.values.first);
       onSelectSegment(AppSegment.more);
     };
   }
