@@ -56,7 +56,7 @@ class MapWidgetState extends State<MapWidget> {
 
   CameraPosition _position;
   MapboxMapController mapController;
-  bool _compassEnabled = true;
+  bool _compassEnabled = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
@@ -274,10 +274,14 @@ class MapWidgetState extends State<MapWidget> {
     }
     averageLat /= route.path.length;
     averageLong /= route.path.length;
-    double zoom = 14.5 - (pow(route.totalLength, 0.4));
+    double zoom = 14.7 - (pow(route.totalLength, 0.4));
 
     setLatLng(LatLng(averageLat, averageLong));
     setZoom(zoom);
+  }
+
+  void centerCurrentRoute(){
+    centerCameraOverRoute(_hikingRoute);
   }
 
   startRoute() {
@@ -520,6 +524,8 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
+              centerRoute: centerCurrentRoute,
+              hikingRoute: _hikingRoute
             ),
         ],
       );
