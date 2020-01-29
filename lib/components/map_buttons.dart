@@ -3,6 +3,7 @@ import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/services/route.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
 class MapButtons extends StatelessWidget {
@@ -32,7 +33,7 @@ class MapButtons extends StatelessWidget {
       case MyLocationTrackingMode.Tracking:
         return Icon(Icons.navigation);
       case MyLocationTrackingMode.TrackingCompass:
-        return Icon(Icons.rotate_90_degrees_ccw);
+        return Icon(FontAwesomeIcons.solidCompass);
       default:
         return Icon(OMIcons.navigation);
     }
