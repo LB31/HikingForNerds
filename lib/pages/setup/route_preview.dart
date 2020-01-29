@@ -157,6 +157,22 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
           ),
           Positioned(
+            right: MediaQuery.of(context).size.width * 0.05,
+            bottom: 75,
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: FloatingActionButton(
+                backgroundColor: htwGrey,
+                heroTag: "btn-center",
+                child: Icon(Icons.center_focus_strong),
+                onPressed: () {
+                  mapWidgetKey.currentState.centerCameraOverRoute(_routes[_currentRouteIndex]);
+                },
+              ),
+            ),
+          ),
+          Positioned(
             bottom: 10,
             left: MediaQuery.of(context).size.width * 0.5 - 35,
             child: SizedBox(

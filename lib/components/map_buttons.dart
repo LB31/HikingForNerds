@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:hiking4nerds/styles.dart';
 
 class MapButtons extends StatelessWidget {
   //Why do these variables exist? check out: https://stackoverflow.com/a/51033284/5630207
@@ -9,10 +10,12 @@ class MapButtons extends StatelessWidget {
       this.styles,
       this.currentStyle,
       this.onCycleTrackingMode,
-      this.setMapStyle});
+      this.setMapStyle,
+      this.centerRoute});
 
   final MyLocationTrackingMode currentTrackingMode;
   final VoidCallback onCycleTrackingMode;
+  final VoidCallback centerRoute;
 
   final String currentStyle;
   final Map<String, String> styles;
@@ -65,6 +68,22 @@ class MapButtons extends StatelessWidget {
                 heroTag: "btn-gps",
                 child: getTrackingModeIcon(),
                 onPressed: onCycleTrackingMode),
+          ),
+        ),
+        Positioned(
+          right: MediaQuery.of(context).size.width * 0.05,
+          bottom: 75,
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: FloatingActionButton(
+              backgroundColor: htwGrey,
+              heroTag: "btn-center",
+              child: Icon(Icons.center_focus_strong),
+              onPressed: () {
+                centerRoute();
+              },
+            ),
           ),
         ),
       ],

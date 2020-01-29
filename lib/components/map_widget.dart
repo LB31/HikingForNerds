@@ -278,6 +278,10 @@ class MapWidgetState extends State<MapWidget> {
     setZoom(zoom);
   }
 
+  void centerCurrentRoute(){
+    centerCameraOverRoute(_hikingRoute);
+  }
+
   startRoute() {
     setZoom(16);
     setLatLng(_hikingRoute.path[0]);
@@ -518,6 +522,7 @@ class MapWidgetState extends State<MapWidget> {
               currentStyle: _currentStyle,
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
+              centerRoute: centerCurrentRoute,
             ),
         ],
       );
