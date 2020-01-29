@@ -25,9 +25,15 @@ class _HistoryPageState extends State<HistoryPage> {
     List<HikingRoute> routes = await DatabaseHelper.instance.queryAllRoutes();
     setState(() {
       _routes.clear();
-      if(routes != null) routes.forEach((entry) => _routes.add(HistoryEntry(context, entry)));
+      if (routes != null)
+        routes.forEach((entry) => _routes.add(HistoryEntry(context, entry)));
       _routesLoaded = true;
-    });    
+    });
+  }
+
+  delete(int rid) async {
+    DatabaseHelper dbh = DatabaseHelper.instance;
+    int id = await dbh.deleteRoute(rid);
   }
 
   @override
@@ -108,6 +114,16 @@ class _HistoryPageState extends State<HistoryPage> {
                                             fontSize: 13,
                                             color: Colors.grey[600]),
                                       ),
+                                      SizedBox(height: 5),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: RaisedButton(
+                                          child: Text('Delete'),
+                                          onPressed: () {
+                                            delete(_routes[index].route.dbId);
+                                          },
+                                        ),
+                                      ),
                                     ],
                                   )),
                             ],
@@ -148,9 +164,8 @@ class _HistoryPageState extends State<HistoryPage> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor: htwGreen,
-        title: Text(LocalizationService().getLocalization(
-            english: 'History',
-            german: 'Verlauf')),
+        title: Text(LocalizationService()
+            .getLocalization(english: 'History', german: 'Verlauf')),
         elevation: 0,
       ),
       body: body,
@@ -165,10 +180,10 @@ class HistoryEntry {
   RouteCanvasWidget routeCanvas;
   ElevationChart chart;
   List<String> pois = [];
-
-  // RouteListTile({ this.title, this.date, this.distance, this.avatar });
+  HikingRoute route;
 
   HistoryEntry(BuildContext context, HikingRoute route) {
+    this.route = route;
     this.date = route.date.toString();
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
@@ -178,7 +193,7 @@ class HistoryEntry {
       route.path,
       lineColor: Colors.black,
     );
-    print('History Entry $date $distance Nodes ${route.path.length}');
+    print('History Entry $date $distance Nodes ${route.path.length} POIs ...');
   }
 
   String formatDistance(double n) {

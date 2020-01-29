@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:path/path.dart';
@@ -18,6 +19,11 @@ class DatabaseHelper {
   final String columnNodeId = 'node_id';
   final String columnLat = 'latitude';
   final String columnLng = 'longitude';
+
+  final String tablePois = 'pois';
+  final String columnPoiId = 'poi_id';
+  final String columnCategory = 'category';
+  // + Lat / Lng
 
   // This is the actual database filename that is saved in the docs directory.
   static final _databaseName = "h4n.db";
@@ -63,6 +69,15 @@ class DatabaseHelper {
         $columnLng DOUBLE NOT NULL
       )
     ''');
+    await db.execute('''
+      CREATE TABLE $tablePois (
+        $columnRouteId INTEGER NOT NULL,
+        $columnPoiId INTEGER NOT NULL,
+        $columnLat DOUBLE NOT NULL,
+        $columnLng DOUBLE NOT NULL,
+        $columnCategory STRING
+      )
+    ''');
   }
 
   // Database helper methods:
@@ -70,7 +85,8 @@ class DatabaseHelper {
   Future<int> insert(HikingRoute route) async {
     Database db = await database;
     int id = await db.insert(tableRoutes, route.toMap());
-    route.path.forEach((node) => db.insert(tableNodes, node.toMap(id)));
+    await route.path.forEach((node) => db.insert(tableNodes, node.toMap(id)));
+    await route.pointsOfInterest.forEach((poi) => db.insert(tablePois, poi.toMap(id)));
     return id;
   }
 
@@ -96,12 +112,38 @@ class DatabaseHelper {
     return maps.map((n) => Node.fromMap(n)).toList();
   }
 
+  Future<List<Node>> queryPois(int id) async {
+    Database db = await database;
+    List<Map> maps = await db.query(tablePois,
+        columns: [columnPoiId, columnLat, columnLng, columnCategory],
+        where: '$columnRouteId = ?',
+        whereArgs: [id]);
+    maps.forEach((row) => print('POI $row'));
+    return maps.map((n) => PointOfInterest.fromMap(n)).toList();
+  }
+
   // TODO: delete(int id)
+
+  deleteRoute(int id) async {
+    Database db = await database;
+    int route = await db.delete(
+      tableRoutes,
+      where: '$columnId = ?',
+      whereArgs: [id]);
+    int nodes = await db.delete(tableNodes,
+      where: '$columnRouteId = ?',
+      whereArgs: [id]);
+    int pois = await db.delete(tableNodes,
+      where: '$columnRouteId = ?',
+      whereArgs: [id]);
+    print('$route routes deleted, $nodes nodes deleted, $pois pois deleted');
+  }
 
   deleteAll() async {
     Database db = await database;
     int routes = await db.delete(tableRoutes, where: '1');
     int nodes = await db.delete(tableNodes, where: '1');
-    print('$routes routes deleted, $nodes nodes deleted');
+    int pois = await db.delete(tablePois, where: '1');
+    print('$routes routes deleted, $nodes nodes deleted, $pois pois deleted');
   }
 }

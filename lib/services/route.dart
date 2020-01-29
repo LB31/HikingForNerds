@@ -40,7 +40,7 @@ class HikingRoute {
     DatabaseHelper dbh = DatabaseHelper.instance;
     List<Node> path = await getPathFromDb(dbh, map[dbh.columnId]);
     double totalLength = map[dbh.columnLength];
-    return HikingRoute(path, totalLength);
+    return HikingRoute(path, totalLength, null, null, map[dbh.columnId]);
   }
 
   static Future<List> getPathFromDb(DatabaseHelper dbh, int id) async {
