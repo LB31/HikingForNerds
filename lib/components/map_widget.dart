@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flushbar/flushbar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
-import 'package:hiking4nerds/services/sharing/geojson_data_handler.dart';
-import 'package:hiking4nerds/services/sharing/gpx_data_handler.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:flutter/services.dart' show MethodChannel, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,10 +33,6 @@ class MapWidgetState extends State<MapWidget> {
   final CameraTargetBounds _cameraTargetBounds;
 
   static bool _isCurrentlyGranting = false;
-
-  static const platform =
-      const MethodChannel('app.channel.hikingfornerds.data');
-  HikingRoute sharedRoute;
 
   HikingRoute _hikingRoute;
   int _currentRouteIndex = 0;
@@ -92,28 +86,7 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    if (Platform.isAndroid)
-      _getIntentData();
     _requestPermissions();
-  }
-
-  Future<void> _getIntentData() async {
-    var data = await _getSharedData();
-    if (data == null) return;
-    setState(() {
-      sharedRoute = data;
-    });
-  }
-
-  _getSharedData() async {
-    String dataPath = await platform.invokeMethod("getSharedData");
-    if (dataPath.isEmpty) return null;
-    var data;
-    if (dataPath.endsWith(".geojson"))
-      data = new GeojsonDataHandler().parseRouteFromPath(dataPath);
-    else if (dataPath.endsWith(".gpx"))
-      data = new GpxDataHandler().parseRouteFromString(dataPath);
-    return data;
   }
 
   void _requestPermissions() async {
@@ -563,6 +536,5 @@ class MapWidgetState extends State<MapWidget> {
     _extractMapInfo();
 
     if (widget.mapCreated != null) widget.mapCreated();
-    if (sharedRoute != null) drawRoute(sharedRoute);
   }
 }
