@@ -10,7 +10,7 @@ class App extends StatefulWidget {
 
 class AppState extends State<App> {
   AppSegment _currentSegment = AppSegment.setup;
-  
+
   final Map<AppSegment, GlobalKey<NavigatorState>> _navigatorKeys = {
     AppSegment.setup: GlobalKey<NavigatorState>(),
     AppSegment.map: GlobalKey<NavigatorState>(),
