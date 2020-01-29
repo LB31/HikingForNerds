@@ -52,23 +52,23 @@ class Graph {
         if (RegExp(
             r"motorway|trunk|primary|motorway_link|trunk_link|primary_link")
             .hasMatch(element['tags']['highway'])) {
-          wayPenalty = 20;
+          wayPenalty = 5;
         }
         else
         if (RegExp(r"secondary|tertiary|secondary_link|tertiary_link").hasMatch(
             element['tags']['highway'])) {
-          wayPenalty = 8;
+          wayPenalty = 3;
         }
         else if (RegExp(
             r"cyclepath|track|path|bridleway|sidewalk|residential|service")
             .hasMatch(element['tags']['highway'])) {
-          wayPenalty = 2;
+          wayPenalty = 1.5;
         }
         else if (RegExp(r"footway|pedestrian|unclassified").hasMatch(
             element['tags']['highway'])) {
           wayPenalty = 1;
         } else {
-          wayPenalty = 5;
+          wayPenalty = 2.5;
         }
         ways.add(Way(
             element['id'], element['nodes'].cast<int>(), nodes, wayPenalty));

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -75,6 +77,9 @@ class RoutePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = new Paint();
+    canvas.translate(width/2, height/2);
+    canvas.rotate(-pi/2);
+    canvas.translate(-width/2, -height/2);
     paint.color = this.lineColor;
     paint.strokeWidth = this.strokeWidth;
 
