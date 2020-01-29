@@ -35,17 +35,19 @@ class _ElevationChartState extends State<ElevationChart> {
   final FlSpot minSpot;
   final FlSpot maxSpot;
 
-  static final 
+  static final double yAxisThreshold = 1.0;
+  static final int yAxisLabelCount = 4;
+  static final int xAxisLabelCount = 5;
 
   factory _ElevationChartState(List<FlSpot> routeDataList){
 
     FlSpot minSpot = FlSpot(
-        routeDataList.reduce((current, next) => current.x < next.x ? current : next).x - 1,
-        routeDataList.reduce((current, next) => current.y < next.y ? current : next).y - 1);
+        routeDataList.reduce((current, next) => current.x < next.x ? current : next).x,
+        routeDataList.reduce((current, next) => current.y < next.y ? current : next).y - yAxisThreshold);
 
     FlSpot maxSpot = FlSpot(
-        routeDataList.reduce((current, next) => current.x > next.x ? current : next).x + 1,
-        routeDataList.reduce((current, next) => current.y > next.y ? current : next).y) + 1;
+        routeDataList.reduce((current, next) => current.x > next.x ? current : next).x,
+        routeDataList.reduce((current, next) => current.y > next.y ? current : next).y + yAxisThreshold);
 
     return _ElevationChartState._(routeDataList, minSpot, maxSpot);
   }
@@ -107,9 +109,10 @@ class _ElevationChartState extends State<ElevationChart> {
           textStyle:
           TextStyle(color: const Color(0xff68737d), fontWeight: FontWeight.bold, fontSize: 16),
           getTitles: (value) {
-            return value.toString();
+            double difference = maxSpot.x - minSpot.x;
+            return value % (difference ~/ xAxisLabelCount)  == 0 ? value.toString() : '';
           },
-          margin: 8,
+          margin: 10,
         ),
         leftTitles: SideTitles(
           showTitles: true,
@@ -119,10 +122,11 @@ class _ElevationChartState extends State<ElevationChart> {
             fontSize: 15,
           ),
           getTitles: (value) {
-            return value.toString();
+            double difference = maxSpot.y - minSpot.y;
+            return value % (difference ~/ yAxisLabelCount)  == 0 ? value.toString() : '';
           },
           reservedSize: 28,
-          margin: 12,
+          margin: 10,
         ),
       ),
       borderData:
