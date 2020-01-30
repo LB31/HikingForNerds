@@ -52,8 +52,8 @@ class MapButtons extends StatelessWidget {
             child: FloatingActionButton(
               heroTag: "btn-maptype",
               child: Icon(currentStyle == styles.keys.first
-                  ? Icons.terrain
-                  : Icons.satellite),
+                  ? FontAwesomeIcons.map
+                  : FontAwesomeIcons.mapMarked),
               onPressed: () {
                 // TODO for now only switching between klokan and bright
                 setMapStyle(currentStyle == styles.keys.first
