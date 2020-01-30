@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/database_helpers.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
@@ -208,6 +209,21 @@ class _HistoryPageState extends State<HistoryPage> {
                                           },
                                         ),
                                       ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: RaisedButton(
+                                          child: Text('Share'),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder:
+                                                (BuildContext context) =>
+                                                  ShareRoute(
+                                                    route: _routes[index].route,
+                                                  ));
+                                          },
+                                        ),
+                                      ),
                                     ],
                                   )),
                             ],
@@ -290,10 +306,10 @@ class HistoryEntry {
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
 
     print(
-        'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
+      'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
   }
 }
 
 String formatDistance(double n) {
-    return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2) + ' km';
+  return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2) + ' km';
 }
