@@ -99,7 +99,7 @@ class LoadingTextState extends State<LoadingText> {
   @override
   Widget build(BuildContext context) {
     return Text(currentText, style: TextStyle(
-        fontSize: 14,
+        fontSize: 16,
         color: Colors.grey[600]),
       textAlign: TextAlign.center,);
   }
