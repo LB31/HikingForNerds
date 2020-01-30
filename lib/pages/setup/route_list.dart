@@ -305,15 +305,19 @@ class _RouteListState extends State<RouteList> {
         if (!_routesCalculated)
           Expanded(
             child: Center(
-              child: Column(
-                children: <Widget>[
-                  Image.asset(
-                    "assets/animations/hikinganimation.gif",
-                    //height: 125.0,
-                    width: MediaQuery.of(context).size.width,
-                  ),
-                  LoadingText(),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Image.asset(
+                      "assets/animations/hikinganimation.gif",
+                      //height: 125.0,
+                      width: MediaQuery.of(context).size.width * 0.6,
+                    ),
+                    LoadingText(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -342,7 +346,8 @@ class _RouteListState extends State<RouteList> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      //backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: htwGreen,
         title: Text(LocalizationService().getLocalization(
