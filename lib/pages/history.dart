@@ -25,19 +25,20 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future loadAllRoutes() async {
+    _routesLoaded = false;
     List<HikingRoute> routes = await DatabaseHelper.instance.queryAllRoutes();
     setState(() {
+      _routesLoaded = true;
       _routes.clear();
       if (routes != null)
-        routes.forEach((entry) =>  {
-          _routes.add(HistoryEntry(context, entry)),
-          _totalDistance += entry.totalLength,
-        });          
-      _routesLoaded = true;
+        routes.forEach((entry) {
+          _routes.add(HistoryEntry(context, entry));
+          _totalDistance += entry.totalLength;
+        });
     });
   }
 
-  loadButton() {
+  Widget loadButton() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: RaisedButton(
@@ -53,6 +54,7 @@ class _HistoryPageState extends State<HistoryPage> {
   delete(int rid) async {
     DatabaseHelper dbh = DatabaseHelper.instance;
     int id = await dbh.deleteRoute(rid);
+    loadAllRoutes();
   }
 
   buildHeader() {
@@ -127,7 +129,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if (_routesLoaded && _routes.length > 0) {
+    if (_routes.length > 0) {
       body = Column(
         children: <Widget>[
           buildHeader(),
@@ -281,6 +283,7 @@ class HistoryEntry {
       route.path,
       lineColor: Colors.black,
     );
+    poiCategories = Set();
 
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));

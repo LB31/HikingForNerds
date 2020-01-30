@@ -98,7 +98,8 @@ class DatabaseHelper {
     Database db = await database;
     int id = await db.insert(tableRoutes, route.toMap());
     route.path.forEach((node) async => await db.insert(tableNodes, node.toMap(id)));
-    route.pointsOfInterest.forEach((poi) async => await db.insert(tablePois, poi.toMap(id)));
+    if(route.pointsOfInterest != null)
+      route.pointsOfInterest.forEach((poi) async => await db.insert(tablePois, poi.toMap(id)));
     int elevationId = Random().nextInt(1000);
     route.elevations.forEach((elevation) async => await db.insert(tableElevations, _elevationToMap(elevation, elevationId, id)));
     return id;
