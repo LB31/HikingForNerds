@@ -209,39 +209,38 @@ class _HistoryPageState extends State<HistoryPage> {
                                       ),
                                       SizedBox(height: 5),
                                       Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: ButtonTheme(
-                                          minWidth: 32,
-                                          buttonColor: htwGreen,
-                                          child: RaisedButton.icon(
-                                            icon: Icon(Icons.delete_outline),
-                                            onPressed: () {
-                                              delete(_routes[index].route.dbId);
-                                            },
-                                            label: Text(''),
+                                        padding: const EdgeInsets.all(2.0),
+                                        child: RawMaterialButton(
+                                          onPressed: () {
+                                            delete(_routes[index].route.dbId);
+                                          },
+                                          child: Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.black,
+                                            size: 20.0,
                                           ),
+                                          shape: CircleBorder(),
+                                          elevation: 2.0,
+                                          fillColor: htwGreen,
                                         ),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: ButtonTheme(
-                                          minWidth: 32,
-                                          buttonColor: htwGreen,
-                                          child: RaisedButton.icon(
-                                            icon: Icon(Icons.share),
-                                            onPressed: () {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) =>
-                                                          ShareRoute(
-                                                            route:
-                                                                _routes[index]
-                                                                    .route,
-                                                          ));
-                                            },
-                                            label: Text(''),
+                                        padding: const EdgeInsets.all(2.0),
+                                        child: RawMaterialButton(
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => ShareRoute(route: _routes[index].route)
+                                            );
+                                          },
+                                          child: Icon(
+                                            Icons.share,
+                                            color: Colors.black,
+                                            size: 20.0,
                                           ),
+                                          shape: CircleBorder(),
+                                          elevation: 2.0,
+                                          fillColor: htwGreen,
                                         ),
                                       ),
                                     ],
