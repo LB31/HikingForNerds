@@ -114,7 +114,7 @@ class _HistoryPageState extends State<HistoryPage> {
     chips.add(Chip(
       elevation: 1,
       backgroundColor: Color(0xFFE1E4F3),
-      label: Text(AltitudeTypeHelper.asString(entry.route.altitudeType),
+      label: Text(AltitudeTypeHelper.asString(entry.route.getAltitudeType()),
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,

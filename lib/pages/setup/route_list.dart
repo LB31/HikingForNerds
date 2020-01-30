@@ -360,7 +360,7 @@ class RouteListEntry {
   RouteListEntry(BuildContext context, HikingRoute route) {
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
-    this.altitudeType = route.altitudeType;
+    this.altitudeType = route.getAltitudeType();
 
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
