@@ -16,7 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 
-
 class MapWidget extends StatefulWidget {
   final bool isStatic;
   final VoidCallback mapCreated;
@@ -412,11 +411,13 @@ class MapWidgetState extends State<MapWidget> {
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     bool granted = await isLocationPermissionGranted();
 
-
     if(granted){
-      forceRebuildMap();
+      SharedPreferences.getInstance().then((prefs) {
+        bool rebuild = prefs.getBool("rebuild") ?? true;
+        prefs.setBool("rebuild", false);
+        if(rebuild) forceRebuildMap();
+      });
     }
-
 
     if (!granted && !_isCurrentlyGranting) {
       _isCurrentlyGranting = true;
