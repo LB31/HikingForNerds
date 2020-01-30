@@ -7,8 +7,9 @@ import 'package:hiking4nerds/styles.dart';
 class ElevationChart extends StatefulWidget {
   final HikingRoute route;
   final TouchCallback onTouch;
+  final VoidCallback onClose;
 
-  List<FlSpot> _createData(HikingRoute route) {
+  List<FlSpot> createData(HikingRoute route) {
     final List<FlSpot> chartData = new List();
 
     double lastDistance = 0;
@@ -26,14 +27,15 @@ class ElevationChart extends StatefulWidget {
   }
 
   @override
-  _ElevationChartState createState() =>
-      _ElevationChartState(_createData(route));
+  ElevationChartState createState() =>
+      ElevationChartState(createData(route));
 
-  ElevationChart({this.route, this.onTouch});
+
+  ElevationChart({Key key, this.route, this.onTouch, this.onClose}) : super(key: key);
 }
 
-class _ElevationChartState extends State<ElevationChart> {
-  final List<FlSpot> routeDataList;
+class ElevationChartState extends State<ElevationChart> {
+  List<FlSpot> routeDataList;
   final FlSpot minSpot;
   final FlSpot maxSpot;
 
@@ -41,17 +43,28 @@ class _ElevationChartState extends State<ElevationChart> {
   static final int yAxisLabelCount = 4;
   static final int xAxisLabelCount = 5;
 
-  factory _ElevationChartState(List<FlSpot> routeDataList) {
+  factory ElevationChartState(List<FlSpot> routeDataList) {
     FlSpot minSpot = FlSpot(routeDataList.reduce((current, next) => current.x < next.x ? current : next).x,
         routeDataList.reduce((current, next) => current.y < next.y ? current : next).y - yAxisThreshold);
 
     FlSpot maxSpot = FlSpot(routeDataList.reduce((current, next) => current.x > next.x ? current : next).x,
         routeDataList.reduce((current, next) => current.y > next.y ? current : next).y + yAxisThreshold);
 
-    return _ElevationChartState._(routeDataList, minSpot, maxSpot);
+    return ElevationChartState._(routeDataList, minSpot, maxSpot);
   }
 
-  _ElevationChartState._(this.routeDataList, this.minSpot, this.maxSpot);
+  void updateRoute(HikingRoute route){
+    if (route == null) return;
+    List<FlSpot> listSpots = widget.createData(route);
+    if (listSpots == null) return;
+    if (routeDataList == null || listSpots != routeDataList){
+      setState(() {
+        routeDataList = listSpots;
+      });
+    }
+  }
+
+  ElevationChartState._(this.routeDataList, this.minSpot, this.maxSpot);
 
   List<Color> gradientColors = [
     htwGreen,
@@ -61,8 +74,24 @@ class _ElevationChartState extends State<ElevationChart> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: Alignment.bottomCenter,
       children: <Widget>[
         Container(
+          color: const Color(0xef232d37),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height * 0.18,
+          child: Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              iconSize: 24,
+              icon: Icon(Icons.close),
+              onPressed: widget.onClose
+            ),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.7,
+          height: MediaQuery.of(context).size.height * 0.18,
           padding: EdgeInsets.only(top: 16),
           decoration: BoxDecoration(
             color: Colors.transparent,
@@ -128,9 +157,9 @@ class _ElevationChartState extends State<ElevationChart> {
           showTitles: true,
           reservedSize: 25,
           textStyle: TextStyle(
-              color: const Color(0xff68737d),
+              color: Colors.white70,
               fontWeight: FontWeight.bold,
-              fontSize: 14),
+              fontSize: 13),
           getTitles: (value) {
             double difference = maxSpot.x - minSpot.x;
             return value % (difference ~/ xAxisLabelCount) == 0
@@ -141,9 +170,9 @@ class _ElevationChartState extends State<ElevationChart> {
         leftTitles: SideTitles(
           showTitles: true,
           textStyle: TextStyle(
-            color: const Color(0xff67727d),
+            color: Colors.white70,
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 13,
           ),
           getTitles: (value) {
             double difference = maxSpot.y - minSpot.y;
@@ -151,7 +180,7 @@ class _ElevationChartState extends State<ElevationChart> {
                 ? value.toStringAsFixed(0) + " m"
                 : '';
           },
-          reservedSize: 30,
+          reservedSize: 50,
         ),
       ),
       borderData: FlBorderData(

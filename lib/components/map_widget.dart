@@ -542,7 +542,6 @@ class MapWidgetState extends State<MapWidget> {
               centerRoute: centerCurrentRoute,
               hikingRouteAvailable: _hikingRoute != null,
               onElevationChartToggle: () {
-                setState(() => _heightChartVisible = !_heightChartVisible);
                 widget.onElevationChartToggle();
               },
             ),
@@ -552,6 +551,12 @@ class MapWidgetState extends State<MapWidget> {
     return Center(
       child: new CircularProgressIndicator(),
     );
+  }
+
+  void toggleHeightChart(){
+    setState(() {
+      _heightChartVisible = !_heightChartVisible;
+    });
   }
 
   MapboxMap _buildMapBox(BuildContext context) {

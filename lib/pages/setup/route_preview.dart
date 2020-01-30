@@ -14,6 +14,7 @@ class RoutePreviewPage extends StatefulWidget {
   final SwitchToMapCallback onSwitchToMap;
   final RouteParams routeParams;
 
+
   @override
   _RoutePreviewPageState createState() => _RoutePreviewPageState();
 
@@ -24,6 +25,7 @@ class RoutePreviewPage extends StatefulWidget {
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
+  final GlobalKey<ElevationChartState> elevationChartWidgetKey = GlobalKey<ElevationChartState>();
   int _drawRouteRetryCounter = 0;
   bool _heightChartEnabled = false;
   List<HikingRoute> _routes = [];
@@ -47,7 +49,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       return;
     }
 
-    setState(() => _currentRouteIndex = index);
+
+      setState(() => _currentRouteIndex = index);
     mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]).then((_) {
       _drawRouteRetryCounter = 0;
     }).catchError((error) {
@@ -56,6 +59,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
         switchRoute(index);
       });
     });
+
+    elevationChartWidgetKey.currentState.updateRoute(_routes[_currentRouteIndex]);
   }
 
   void switchDirection() {
@@ -87,28 +92,19 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   }
 
   Widget _buildElevationChart(BuildContext context, int routeIndex) {
-    print("ho");
     return Align(
-        alignment: Alignment.bottomCenter,
-        child: Stack(
-            alignment: AlignmentDirectional.bottomCenter,
-            children: <Widget>[
-              Container(
-                color: const Color(0xef232d37),
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.15,
-              ),
-              Container(
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: MediaQuery.of(context).size.height * 0.15,
-                child: ElevationChart(
-                  route: _routes[routeIndex],
-                  onTouch: (index) {
-                    mapWidgetKey.currentState.markElevation(index);
-                  },
-                ),
-              )
-            ]));
+      alignment: Alignment.bottomCenter,
+      child: ElevationChart(
+        key: elevationChartWidgetKey,
+        route: _routes[routeIndex],
+        onTouch: (index) {
+          mapWidgetKey.currentState.markElevation(index);
+        },
+        onClose: (){this.setState(() {
+          _heightChartEnabled = !_heightChartEnabled;
+        });},
+      ),
+    );
   }
 
   @override

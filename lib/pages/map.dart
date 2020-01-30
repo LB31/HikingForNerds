@@ -28,7 +28,9 @@ class MapPageState extends State<MapPage> {
             isStatic: false,
             onElevationChartToggle: toggleHeightChart,
           ),
-          if (_currentRoute != null && _currentRoute.elevations != null && _heightChartEnabled)
+          if (_currentRoute != null &&
+              _currentRoute.elevations != null &&
+              _heightChartEnabled)
             _buildElevationChart(context),
         ],
       ),
@@ -38,32 +40,22 @@ class MapPageState extends State<MapPage> {
 
   Widget _buildElevationChart(BuildContext context) {
     return Align(
-        alignment: Alignment.bottomCenter,
-        child: Stack(alignment: AlignmentDirectional.bottomCenter,
-            children: <Widget>[
-
-          Container(
-            color: const Color(0xef232d37),
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.15,
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width * 0.7,
-            height: MediaQuery.of(context).size.height * 0.15,
-            child: ElevationChart(
-              route: _currentRoute,
-              onTouch: (index) {
-                mapWidgetKey.currentState.markElevation(index);
-              },
-            ),
-          )
-        ]));
+      alignment: Alignment.bottomCenter,
+      child: ElevationChart(
+        route: _currentRoute,
+        onTouch: (index) {
+          mapWidgetKey.currentState.markElevation(index);
+        },
+        onClose: toggleHeightChart,
+      ),
+    );
   }
 
   void toggleHeightChart() {
     this.setState(() {
       _heightChartEnabled = !_heightChartEnabled;
     });
+    mapWidgetKey.currentState.toggleHeightChart();
   }
 
   void updateState(HikingRoute route) {
