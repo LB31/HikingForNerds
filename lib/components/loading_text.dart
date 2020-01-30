@@ -4,11 +4,6 @@ import 'dart:math';
 import 'package:hiking4nerds/services/localization_service.dart';
 
 class LoadingText extends StatefulWidget {
-  final bool isStatic;
-  final VoidCallback mapCreated;
-
-  LoadingText({Key key, @required this.isStatic, this.mapCreated})
-      : super(key: key);
 
   @override
   LoadingTextState createState() => LoadingTextState();
@@ -99,7 +94,7 @@ class LoadingTextState extends State<LoadingText> {
   @override
   Widget build(BuildContext context) {
     return Text(currentText, style: TextStyle(
-        fontSize: 16,
+        fontSize: 18,
         color: Colors.grey[600]),
       textAlign: TextAlign.center,);
   }
