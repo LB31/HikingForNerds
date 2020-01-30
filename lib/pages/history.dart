@@ -44,7 +44,7 @@ class _HistoryPageState extends State<HistoryPage> {
       pois.forEach((category) {
         chips.add(new Chip(
           elevation: 1,
-          label: Text(category.name,
+          label: Text(LocalizationService().getLocalization(english: '${category.nameEng}', german: '${category.nameGer}'),
               style: TextStyle(fontSize: 11, color: Colors.white)),
           backgroundColor: category.color,
         ));
@@ -209,7 +209,6 @@ class HistoryEntry {
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
   ElevationChart chart;
-  List<String> pois = [];
   HikingRoute route;
   Set<PoiCategory> poiCategories;
 
@@ -228,7 +227,7 @@ class HistoryEntry {
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
 
-    print('History Entry $date $distance Nodes ${route.path.length} POIs ...');
+    print('History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
   }
 
   String formatDistance(double n) {
