@@ -60,7 +60,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       });
     });
 
-    elevationChartWidgetKey.currentState.updateRoute(_routes[_currentRouteIndex]);
+    if (_routes[_currentRouteIndex] != null && _heightChartEnabled)
+      elevationChartWidgetKey.currentState.updateRoute(_routes[_currentRouteIndex]);
   }
 
   void switchDirection() {

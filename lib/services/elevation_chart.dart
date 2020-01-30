@@ -36,21 +36,30 @@ class ElevationChart extends StatefulWidget {
 
 class ElevationChartState extends State<ElevationChart> {
   List<FlSpot> routeDataList;
-  final FlSpot minSpot;
-  final FlSpot maxSpot;
+  FlSpot minSpot;
+  FlSpot maxSpot;
 
   static final double yAxisThreshold = 1.0;
   static final int yAxisLabelCount = 4;
   static final int xAxisLabelCount = 5;
 
   factory ElevationChartState(List<FlSpot> routeDataList) {
-    FlSpot minSpot = FlSpot(routeDataList.reduce((current, next) => current.x < next.x ? current : next).x,
-        routeDataList.reduce((current, next) => current.y < next.y ? current : next).y - yAxisThreshold);
-
-    FlSpot maxSpot = FlSpot(routeDataList.reduce((current, next) => current.x > next.x ? current : next).x,
-        routeDataList.reduce((current, next) => current.y > next.y ? current : next).y + yAxisThreshold);
+    FlSpot minSpot = getMinPoint(routeDataList);
+    FlSpot maxSpot = getMaxPoint(routeDataList);
 
     return ElevationChartState._(routeDataList, minSpot, maxSpot);
+  }
+
+  //its ugly, i know
+  static FlSpot getMinPoint(List<FlSpot> dataList){
+    return FlSpot(
+        dataList.reduce((current, next) => current.x < next.x ? current : next).x,
+        dataList.reduce((current, next) => current.y < next.y ? current : next).y - yAxisThreshold);
+  }
+
+  static FlSpot getMaxPoint(List<FlSpot> dataList){
+    return FlSpot(dataList.reduce((current, next) => current.x > next.x ? current : next).x,
+        dataList.reduce((current, next) => current.y > next.y ? current : next).y + yAxisThreshold);
   }
 
   void updateRoute(HikingRoute route){
@@ -60,6 +69,8 @@ class ElevationChartState extends State<ElevationChart> {
     if (routeDataList == null || listSpots != routeDataList){
       setState(() {
         routeDataList = listSpots;
+        minSpot = getMinPoint(listSpots);
+        maxSpot = getMaxPoint(listSpots);
       });
     }
   }
@@ -155,14 +166,14 @@ class ElevationChartState extends State<ElevationChart> {
         show: true,
         bottomTitles: SideTitles(
           showTitles: true,
-          reservedSize: 25,
+          reservedSize: 28,
           textStyle: TextStyle(
               color: Colors.white70,
               fontWeight: FontWeight.bold,
               fontSize: 13),
           getTitles: (value) {
             double difference = maxSpot.x - minSpot.x;
-            return value % (difference ~/ xAxisLabelCount) == 0
+            return value % (difference ~/ xAxisLabelCount + 1) == 0
                 ? value.toStringAsFixed(0) + " km"
                 : '';
           },
