@@ -19,7 +19,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
+            android:documentLaunchMode="intoExisting"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -46,8 +47,7 @@
                 <data android:scheme="resource" />
                 <data android:host="*" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.geojson" />
-                <data android:pathPattern=".*\\.gpx" />
+                <data android:pathPattern="/.*" />
             </intent-filter>
         </activity>
     </application>

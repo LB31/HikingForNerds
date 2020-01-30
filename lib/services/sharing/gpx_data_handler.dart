@@ -68,10 +68,7 @@ class GpxDataHandler extends ImportExportHandler{
   }
 
   //import part
-  Future<HikingRoute> parseRouteFromString(String dataPath) async {
-    File readSharedFile = await sharedFile(dataPath);
-    String xmlString = await readSharedFile.readAsString();
-
+  Future<HikingRoute> parseRouteFromXmlString(String xmlString) async {
     HikingRoute hikingRoute = _parseStringToRoute(xmlString);
     hikingRoute.totalLength = calculateDistance(hikingRoute.path);
 
