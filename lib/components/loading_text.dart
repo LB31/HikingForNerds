@@ -33,14 +33,14 @@ class LoadingTextState extends State<LoadingText> {
     "Wanderlieder werden einstudiert",
     "Picknickörbe werden geflochten",
     "Täler werden ausgegraben",
-    "Pflanzenkundebücher werden gedruckt"
+    "Pflanzenkundebücher werden gedruckt",
     "Bergziegen werden geschoren",
     "Nerdbrille wird eingepackt",
     "Wanderwege werden vermessen",
     "Straßen werden geteert",
     "Strohhüte werden geflochten",
     "Berge werden aufgeschüttet",
-    "Erdkrümmung wird geprüft"
+    "Erdkrümmung wird geprüft",
   ];
   List<String> textListGer = [
     "Binoculars are being packed",
@@ -61,12 +61,12 @@ class LoadingTextState extends State<LoadingText> {
     "Valleys are dug up",
     "Herbalism books are printed",
     "Mountain goats are shorn",
-    "Nerd glasses are packed"
+    "Nerd glasses are packed",
     "Hiking trails are measured",
     "Roads are being paved",
     "Straw hats are braided",
     "Mountains are piled up",
-    "Earth curvature is checked"
+    "Earth curvature is checked",
   ];
 
   @override
