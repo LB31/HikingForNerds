@@ -317,7 +317,7 @@ class _RouteListState extends State<RouteList> {
                         children: <Widget>[
                           Center(
                             child: Image.asset(
-                              "assets/animations/hiker.gif",
+                              "assets/animations/hikergrey.gif",
                               width: MediaQuery.of(context).size.width * 0.05,
                             ),
                           ),
@@ -327,7 +327,7 @@ class _RouteListState extends State<RouteList> {
                               height: MediaQuery.of(context).size.width * 0.1,
                               child: CircularProgressIndicator(
                                 valueColor:
-                                    new AlwaysStoppedAnimation<Color>(Colors.black),
+                                    new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
                               ),
                             ),
                           ),
