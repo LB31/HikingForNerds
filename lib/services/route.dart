@@ -22,7 +22,10 @@ class HikingRoute {
     this.pointsOfInterest = pointsOfInterest;
     this.elevations = elevations;
     this.date = DateTime.now();
-    this.altitudeType = AltitudeTypeHelper.differenceToType( getTotalElevationDifference(), path.length );
+  }
+
+  getAltitudeType () {
+    return AltitudeTypeHelper.differenceToType( getTotalElevationDifference(), path.length );
   }
 
   Future<Address> findAddress() async {

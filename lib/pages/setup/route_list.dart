@@ -368,7 +368,7 @@ class RouteListEntry {
       route.path,
       lineColor: Colors.black,
     );
-
+  
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
   }
