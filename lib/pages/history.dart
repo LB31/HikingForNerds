@@ -30,6 +30,7 @@ class _HistoryPageState extends State<HistoryPage> {
     setState(() {
       _routesLoaded = true;
       _routes.clear();
+      _totalDistance = 0;
       if (routes != null)
         routes.forEach((entry) {
           _routes.add(HistoryEntry(context, entry));
@@ -44,8 +45,8 @@ class _HistoryPageState extends State<HistoryPage> {
       child: RaisedButton(
         child: Text(LocalizationService()
             .getLocalization(english: 'Load routes', german: 'Routen laden')),
-        onPressed: () {
-          loadAllRoutes();
+        onPressed: () async {
+          await loadAllRoutes();
         },
       ),
     );
@@ -76,7 +77,7 @@ class _HistoryPageState extends State<HistoryPage> {
       TableRow(children: [
         Text(
           LocalizationService().getLocalization(
-              english: 'Total route distance',
+              english: 'Total route(s) distance',
               german: 'Gesamtlänge der Routen'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -84,7 +85,7 @@ class _HistoryPageState extends State<HistoryPage> {
               color: Colors.grey[600]),
         ),
         Text(
-          _totalDistance.toString(),
+          formatDistance(_totalDistance),
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
         ),
       ])
@@ -291,8 +292,8 @@ class HistoryEntry {
     print(
         'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
   }
+}
 
-  String formatDistance(double n) {
-    return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2);
-  }
+String formatDistance(double n) {
+    return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2) + ' km';
 }
