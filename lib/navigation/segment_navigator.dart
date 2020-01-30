@@ -61,7 +61,11 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.map:
         return MapPage(key: mapKey);
       case AppSegment.history:
-        return HistoryPage();
+        return HistoryPage(onSwitchToMap: (route) {
+            onChangeSegment(AppSegment.map);
+            // refresh the state of the new segment by passing parameters
+            mapKey.currentState.updateState(route);
+        });
       case AppSegment.more:
         return MorePage();
     }
