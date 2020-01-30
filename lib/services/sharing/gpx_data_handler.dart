@@ -60,10 +60,6 @@ class GpxDataHandler extends ImportExportHandler{
       ));
     }
 
-    var len = wpts.length;
-
-    print('######## NUM POIS $len');
-
     return new Trk(
       name: "pois",
       desc: LocalizationService().getLocalization(english: "contains pois of route", german: "enthält POIs der Route"),

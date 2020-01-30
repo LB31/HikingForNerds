@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
+import 'package:hiking4nerds/pages/setup/route_preview.dart';
 import 'package:hiking4nerds/services/database_helpers.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
@@ -10,6 +11,10 @@ import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 
 class HistoryPage extends StatefulWidget {
+  final SwitchToMapCallback onSwitchToMap;
+
+  HistoryPage({@required this.onSwitchToMap});
+
   @override
   _HistoryPageState createState() => _HistoryPageState();
 }
@@ -141,7 +146,10 @@ class _HistoryPageState extends State<HistoryPage> {
               child: ListView.builder(
                 itemBuilder: (context, index) {
                   return InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        HikingRoute route = _routes[index].route;
+                        widget.onSwitchToMap(route);
+                      },
                       child: Column(
                         children: <Widget>[
                           Row(
