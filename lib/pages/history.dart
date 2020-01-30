@@ -35,8 +35,9 @@ class _HistoryPageState extends State<HistoryPage> {
       _routes.clear();
       _totalDistance = 0;
       if(routes != null) {
-        routes.forEach((entry) {
-          _routes.add(HistoryEntry(context, entry));
+        routes.forEach((entry) async {
+          String address = (await entry.findAddress()).addressLine;
+          _routes.add(HistoryEntry(context, entry, address));
           _totalDistance += entry.totalLength;
         });
       }
@@ -160,7 +161,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       20.0, 12.0, 12.0, 12.0),
                                   child: Container(
                                     child: _routes[index].routeCanvas,
-                                    decoration: new BoxDecoration(
+                                    decoration: BoxDecoration(
                                         color: Colors.grey[300],
                                         border:
                                             Border.all(color: Colors.grey[600]),
@@ -170,20 +171,28 @@ class _HistoryPageState extends State<HistoryPage> {
                                             blurRadius: 3.0,
                                           ),
                                         ],
-                                        borderRadius: new BorderRadius.all(
+                                        borderRadius: BorderRadius.all(
                                             const Radius.circular(3.0))),
                                   )),
                               Padding(
                                 padding:
                                     const EdgeInsets.only(top: 10, bottom: 10),
-                                child: SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.5,
-                                  child: Wrap(
-                                    spacing: 5,
-                                    runSpacing: -10,
-                                    children: _generateChips(_routes[index]),
-                                  ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      child: Text('${_routes[index].address}'),
+                                      width: MediaQuery.of(context).size.width*0.5,
+                                    ),
+                                    SizedBox(
+                                      width:
+                                          MediaQuery.of(context).size.width * 0.5,
+                                      child: Wrap(
+                                        spacing: 5,
+                                        runSpacing: -10,
+                                        children: _generateChips(_routes[index]),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               Padding(
@@ -296,12 +305,14 @@ class HistoryEntry {
   String elevationLevel;
   HikingRoute route;
   Set<PoiCategory> poiCategories;
+  String address;
 
-  HistoryEntry(BuildContext context, HikingRoute route) {
+  HistoryEntry(BuildContext context, HikingRoute route, String address) {
     this.route = route;
     this.date = route.date.toString();
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
+    this.address = address;
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
       MediaQuery.of(context).size.width * 0.2,
@@ -309,7 +320,6 @@ class HistoryEntry {
       lineColor: Colors.black,
     );
     poiCategories = Set();
-
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
 
