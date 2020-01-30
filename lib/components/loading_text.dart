@@ -15,6 +15,7 @@ class LoadingText extends StatefulWidget {
 }
 
 class LoadingTextState extends State<LoadingText> {
+  Timer updateTimer;
   String currentText = "";
   List<String> textListGer = [
     "Fernglas wird eingepackt",
@@ -76,8 +77,14 @@ class LoadingTextState extends State<LoadingText> {
     updateText();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    updateTimer.cancel(); 
+  }
+
   void initUpdateTextTimer() {
-    Timer.periodic(Duration(seconds: 4), (Timer t) => updateText());
+    updateTimer = Timer.periodic(Duration(seconds: 4), (Timer t) => updateText());
   }
 
   void updateText() {
