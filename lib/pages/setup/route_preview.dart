@@ -167,6 +167,40 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               ),
             ),
           ]),
+          Positioned(
+              top: 95,
+              left: MediaQuery.of(context).size.width * 0.5 - 65,
+              child: Opacity(
+                opacity: 0.5,
+                child: Container(
+                  width: 130,
+                  decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                      BorderRadius.all(Radius.circular(40.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Text("Start"),
+                            new Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 18),
+                              child: Container(
+                                width: 55,
+                                height: 5,
+                                color: Color.fromARGB(255, 0, 153, 51),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )),
           if (!_heightChartEnabled)
             Stack(
               children: <Widget>[
@@ -249,40 +283,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                     ),
                   ),
                 ),
-                Positioned(
-                    top: 95,
-                    left: MediaQuery.of(context).size.width * 0.5 - 65,
-                    child: Opacity(
-                      opacity: 0.5,
-                      child: Container(
-                        width: 130,
-                        decoration: new BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(40.0))),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  Text("Start"),
-                                  new Spacer(),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 18),
-                                    child: Container(
-                                      width: 55,
-                                      height: 5,
-                                      color: Color.fromARGB(255, 0, 153, 51),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ))
               ],
             )
         ],
