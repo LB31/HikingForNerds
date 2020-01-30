@@ -400,8 +400,7 @@ class RouteListEntry {
   RouteListEntry(BuildContext context, HikingRoute route) {
     this.distance = formatDistance(route.totalLength);
     this.time = (route.totalLength * 12).toInt().toString();
-    this.altitudeType = AltitudeTypeHelper.differenceToType(
-        route.getTotalElevationDifference(), route.path.length);
+    this.altitudeType = route.getAltitudeType();
 
     this.routeCanvas = RouteCanvasWidget(
       MediaQuery.of(context).size.width * 0.2,
@@ -409,7 +408,7 @@ class RouteListEntry {
       route.path,
       lineColor: Colors.black,
     );
-
+  
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
   }

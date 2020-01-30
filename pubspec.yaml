@@ -29,6 +29,7 @@ dependencies:
   outline_material_icons: ^0.1.1
   geocoder: ^0.2.1
   shared_preferences: ^0.5.4
+  sqflite: ^1.2.0
   charts_flutter: ^0.8.1
   search_widget: ^1.0.0
   flushbar: ^1.9.1
@@ -45,7 +46,7 @@ dependencies:
 #      path: packages/share
 #      ref: feature/shareFile
 
-  path_provider: ^1.4.5
+  path_provider: ^1.5.1
 
   esys_flutter_share: ^1.0.2
 

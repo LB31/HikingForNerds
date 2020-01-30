@@ -56,7 +56,7 @@ class GpxDataHandler extends ImportExportHandler{
           lat: poi.latitude,
           lon: poi.longitude,
           name: "POI",
-          desc: (poi.tags != null) ? new JsonEncoder.withIndent("  ").convert(poi.tags) : LocalizationService().getLocalization(english: "N/A", german: "n. a.")
+          desc: (poi.category != null) ? poi.category.id : LocalizationService().getLocalization(english: "N/A", german: "n. a.")
       ));
     }
 
@@ -94,7 +94,7 @@ class GpxDataHandler extends ImportExportHandler{
       var idCounter = 0;
 
       trk.trksegs.forEach((trkSeg) => {
-        trkSeg.trkpts.forEach((poiWpt) => pointsOfInterest.add(new PointOfInterest(idCounter++, poiWpt.lat, poiWpt.lon, json.decode(poiWpt.desc))))
+        trkSeg.trkpts.forEach((poiWpt) => pointsOfInterest.add(new PointOfInterest.withCategory(idCounter++, poiWpt.lat, poiWpt.lon, poiWpt.desc)))
       });
     }
 
