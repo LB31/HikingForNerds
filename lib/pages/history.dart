@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/database_helpers.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
@@ -15,6 +16,7 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   List<HistoryEntry> _routes = [];
   bool _routesLoaded = false;
+  double _totalDistance = 0;
 
   @override
   void initState() {
@@ -27,14 +29,69 @@ class _HistoryPageState extends State<HistoryPage> {
     setState(() {
       _routes.clear();
       if (routes != null)
-        routes.forEach((entry) => _routes.add(HistoryEntry(context, entry)));
+        routes.forEach((entry) =>  {
+          _routes.add(HistoryEntry(context, entry)),
+          _totalDistance += entry.totalLength,
+        });          
       _routesLoaded = true;
     });
+  }
+
+  loadButton() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: RaisedButton(
+        child: Text(LocalizationService()
+            .getLocalization(english: 'Load routes', german: 'Routen laden')),
+        onPressed: () {
+          loadAllRoutes();
+        },
+      ),
+    );
   }
 
   delete(int rid) async {
     DatabaseHelper dbh = DatabaseHelper.instance;
     int id = await dbh.deleteRoute(rid);
+  }
+
+  buildHeader() {
+    Table header = Table(children: [
+      TableRow(children: [
+        Text(
+          LocalizationService().getLocalization(
+              english: 'Saved routes', german: 'Gespeicherte Routen'),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.grey[600]),
+        ),
+        Text(
+          _routes.length.toString(),
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+        ),
+      ]),
+      TableRow(children: [
+        Text(
+          LocalizationService().getLocalization(
+              english: 'Total route distance',
+              german: 'Gesamtlänge der Routen'),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.grey[600]),
+        ),
+        Text(
+          _totalDistance.toString(),
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+        ),
+      ])
+    ]);
+
+    return Column(children: [
+      Padding(padding: const EdgeInsets.all(12.0), child: header),
+      Divider(color: htwGrey)
+    ]);
   }
 
   List _generateChips(HistoryEntry entry) {
@@ -44,24 +101,25 @@ class _HistoryPageState extends State<HistoryPage> {
       pois.forEach((category) {
         chips.add(new Chip(
           elevation: 1,
-          label: Text(LocalizationService().getLocalization(english: '${category.nameEng}', german: '${category.nameGer}'),
+          label: Text(
+              LocalizationService().getLocalization(
+                  english: '${category.nameEng}',
+                  german: '${category.nameGer}'),
               style: TextStyle(fontSize: 11, color: Colors.white)),
           backgroundColor: category.color,
         ));
       });
     }
 
-    /*
     chips.add(Chip(
       elevation: 1,
       backgroundColor: Color(0xFFE1E4F3),
-      label: Text(AltitudeTypeHelper.asString(entry.altitudeType),
+      label: Text(AltitudeTypeHelper.asString(entry.route.altitudeType),
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
           )),
     ));
-    */
 
     return chips;
   }
@@ -69,18 +127,11 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if (_routesLoaded) {
+    if (_routesLoaded && _routes.length > 0) {
       body = Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              child: Text('Load Routes'),
-              onPressed: () {
-                loadAllRoutes();
-              },
-            ),
-          ),
+          buildHeader(),
+          loadButton(),
           Expanded(
             child: SizedBox(
               child: ListView.builder(
@@ -171,18 +222,24 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         ],
       );
-    } else {
-      body = Column(
+    } else if (_routesLoaded) {
+      Center(
+          child: Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: RaisedButton(
-              child: Text('Load Routes'),
-              onPressed: () {
-                loadAllRoutes();
-              },
-            ),
+            child: Text(LocalizationService().getLocalization(
+                english: 'No Routes saved yet',
+                german: 'Noch keine Routen gespeichert')),
           ),
+          loadButton()
+        ],
+      ));
+    } else {
+      body = Column(
+        children: <Widget>[
+          // TODO Remove Button
+          loadButton(),
           Center(
             child: new CircularProgressIndicator(),
           ),
@@ -209,6 +266,7 @@ class HistoryEntry {
   String time; // Route time needed in Minutes
   RouteCanvasWidget routeCanvas;
   ElevationChart chart;
+  String elevationLevel;
   HikingRoute route;
   Set<PoiCategory> poiCategories;
 
@@ -227,7 +285,8 @@ class HistoryEntry {
     if (route.pointsOfInterest != null)
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
 
-    print('History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
+    print(
+        'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
   }
 
   String formatDistance(double n) {
