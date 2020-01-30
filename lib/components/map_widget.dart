@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/location_service.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -90,7 +91,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _requestPermissions() async {
-    await requestLocationPermissionIfNotAlreadyGranted();
+    await LocationService.requestLocationPermissionIfNotAlreadyGranted();
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -259,7 +260,6 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   startRoute() {
-    forceRebuildMap();
     setZoom(16);
     setLatLng(_hikingRoute.path[0]);
     initUpdateRouteTimer();
@@ -402,32 +402,6 @@ class MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  Future<bool> isLocationPermissionGranted() async {
-    PermissionStatus permission =
-        await LocationPermissions().checkPermissionStatus();
-    return permission == PermissionStatus.granted;
-  }
-
-  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
-    bool granted = await isLocationPermissionGranted();
-
-    if(granted){
-      SharedPreferences.getInstance().then((prefs) {
-        bool rebuild = prefs.getBool("rebuild") ?? true;
-        prefs.setBool("rebuild", false);
-        if(rebuild) forceRebuildMap();
-      });
-    }
-
-    if (!granted && !_isCurrentlyGranting) {
-      _isCurrentlyGranting = true;
-      await LocationPermissions().requestPermissions();
-      _isCurrentlyGranting = false;
-      granted = await isLocationPermissionGranted();
-      if (granted) forceRebuildMap();
-    }
-  }
-
   void cycleTrackingMode() {
     switch (_myLocationTrackingMode) {
       case MyLocationTrackingMode.None:
@@ -455,22 +429,14 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
-    await requestLocationPermissionIfNotAlreadyGranted();
-    bool granted = await isLocationPermissionGranted();
+    await LocationService.requestLocationPermissionIfNotAlreadyGranted();
+    bool granted = await LocationService.isLocationPermissionGranted();
 
     if (granted) {
       setState(() {
         _myLocationTrackingMode = mode;
       });
     }
-  }
-
-  //TODO find better way to rebuild map?!
-  void forceRebuildMap() {
-    //Changing the map style causes map to be rebuild, showing the user location after location permissions have been granted. Otherwise a restart of the app is required.
-    setMapStyle(_currentStyle == _styles.keys.first
-        ? _styles.keys.elementAt(1)
-        : _styles.keys.elementAt(0));
   }
 
   void setZoom(double zoom) {

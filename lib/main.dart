@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/global_settings.dart';
+import 'package:hiking4nerds/splash_screen.dart';
 import 'package:hiking4nerds/styles.dart';
-import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +16,6 @@ void main() async {
         buttonTheme: ButtonThemeData(
           buttonColor: htwGreen,
         )),
-    home: App(),
+    home: SplashScreen(),
   ));
 }

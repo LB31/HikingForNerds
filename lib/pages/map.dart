@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/components/shareroute.dart';
 import 'package:hiking4nerds/services/elevation_chart.dart'; // needed for testing
+import 'package:hiking4nerds/services/location_service.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -52,18 +53,14 @@ class MapPageState extends State<MapPage> {
         [
           new PointOfInterest(0, 52.5102903, 13.4084606,
               {"amenity": "cafe", "name": "Main Street"}),
-          new PointOfInterest(
-              1, 52.5101514, 13.4081806, {"tourism": "bench"})
+          new PointOfInterest(1, 52.5101514, 13.4081806, {"tourism": "bench"})
         ],
         [3.3, 2.1, 50.2, 20.8]);
 
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          MapWidget(
-            key: mapWidgetKey,
-            isStatic: false
-          ),
+            MapWidget(key: mapWidgetKey, isStatic: false),
 
           //To test the elevation chart
           // Positioned(
