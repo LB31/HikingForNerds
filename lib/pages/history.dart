@@ -21,7 +21,6 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   List<HistoryEntry> _routes = [];
-  bool _routesLoaded = false;
   double _totalDistance = 0;
 
   @override
@@ -31,17 +30,17 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future loadAllRoutes() async {
-    _routesLoaded = false;
     List<HikingRoute> routes = await DatabaseHelper.instance.queryAllRoutes();
     setState(() {
-      _routesLoaded = true;
       _routes.clear();
       _totalDistance = 0;
-      if (routes != null)
+      if(routes != null) {
         routes.forEach((entry) {
           _routes.add(HistoryEntry(context, entry));
           _totalDistance += entry.totalLength;
         });
+      }
+      
     });
   }
 
@@ -260,10 +259,10 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         ],
       );
-    } else if (_routesLoaded) {
-      Center(
+    } else {
+      body = Center(
           child: Column(
-        children: <Widget>[
+          children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(LocalizationService().getLocalization(
@@ -273,16 +272,6 @@ class _HistoryPageState extends State<HistoryPage> {
           loadButton()
         ],
       ));
-    } else {
-      body = Column(
-        children: <Widget>[
-          // TODO Remove Button
-          loadButton(),
-          Center(
-            child: new CircularProgressIndicator(),
-          ),
-        ],
-      );
     }
 
     return Scaffold(
