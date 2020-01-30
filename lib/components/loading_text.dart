@@ -16,7 +16,7 @@ class LoadingText extends StatefulWidget {
 
 class LoadingTextState extends State<LoadingText> {
   String currentText = "";
-  List<String> textListEn = [
+  List<String> textListGer = [
     "Fernglas wird eingepackt",
     "Wanderschuhe werden abgestaubt",
     "Suche nach optimaler Wegbeschaffenheit",
@@ -42,7 +42,7 @@ class LoadingTextState extends State<LoadingText> {
     "Berge werden aufgeschüttet",
     "Erdkrümmung wird geprüft",
   ];
-  List<String> textListGer = [
+  List<String> textListEn = [
     "Binoculars are being packed",
     "Hiking shoes are dusted off",
     "Searching for optimal road conditions",
