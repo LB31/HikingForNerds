@@ -334,7 +334,10 @@ class _RouteListState extends State<RouteList> {
                         ],
                       ),
                     ),
-                    LoadingText(),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: LoadingText(),
+                    ),
                   ],
                 ),
               ),
