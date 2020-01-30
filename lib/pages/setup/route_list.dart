@@ -8,7 +8,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/poi_category.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:hiking4nerds/components/loading_text.dart';
 
 class RouteList extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreview;
@@ -306,7 +306,44 @@ class _RouteListState extends State<RouteList> {
         if (!_routesCalculated)
           Expanded(
             child: Center(
-              child: new CircularProgressIndicator(),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.13,
+                      height: MediaQuery.of(context).size.width * 0.13,
+                      child: Stack(
+                        children: <Widget>[
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Image.asset(
+                                "assets/animations/hikergrey.gif",
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height,
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: LoadingText(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         if (_routesCalculated && _routeList.length == 0)
@@ -334,7 +371,8 @@ class _RouteListState extends State<RouteList> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      //backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: htwGreen,
         title: Text(LocalizationService().getLocalization(
