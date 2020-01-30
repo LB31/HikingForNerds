@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:outline_material_icons/outline_material_icons.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:hiking4nerds/styles.dart';
+import 'package:hiking4nerds/services/route.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class MapButtons extends StatelessWidget {
   //Why do these variables exist? check out: https://stackoverflow.com/a/51033284/5630207
@@ -10,15 +14,19 @@ class MapButtons extends StatelessWidget {
       this.currentStyle,
       this.onCycleTrackingMode,
       this.setMapStyle,
+      this.centerRoute,
+      this.hikingRoute,
       this.onElevationChartToggle});
 
   final MyLocationTrackingMode currentTrackingMode;
   final VoidCallback onCycleTrackingMode;
   final VoidCallback onElevationChartToggle;
+  final VoidCallback centerRoute;
 
   final String currentStyle;
   final Map<String, String> styles;
   final SetMapStyleCallback setMapStyle;
+  final HikingRoute hikingRoute;
 
   Icon getTrackingModeIcon() {
     switch (currentTrackingMode) {
@@ -27,7 +35,7 @@ class MapButtons extends StatelessWidget {
       case MyLocationTrackingMode.Tracking:
         return Icon(Icons.navigation);
       case MyLocationTrackingMode.TrackingCompass:
-        return Icon(Icons.rotate_90_degrees_ccw);
+        return Icon(FontAwesomeIcons.solidCompass);
       default:
         return Icon(OMIcons.navigation);
     }
@@ -80,6 +88,23 @@ class MapButtons extends StatelessWidget {
                 heroTag: "btn-gps",
                 child: getTrackingModeIcon(),
                 onPressed: onCycleTrackingMode),
+          ),
+        ),
+        if(this.hikingRoute != null)
+        Positioned(
+          right: MediaQuery.of(context).size.width * 0.05,
+          bottom: 75,
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: FloatingActionButton(
+              backgroundColor: htwGrey,
+              heroTag: "btn-center",
+              child: Icon(Icons.center_focus_strong),
+              onPressed: () {
+                centerRoute();
+              },
+            ),
           ),
         ),
       ],

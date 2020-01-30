@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:collection';
 import 'dart:math';
 import 'dart:async';
 import 'package:collection/priority_queue.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hiking4nerds/services/elevation_query.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:quiver/core.dart';
@@ -13,9 +11,7 @@ import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/routing/edge.dart';
 import 'package:hiking4nerds/services/routing/graph.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
-import 'package:hiking4nerds/services/routing/way.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:r_tree/r_tree.dart' as rtree;
 import '../localization_service.dart';
 
@@ -77,6 +73,7 @@ class OsmData{
   static const double POIADJACENCYDISTANCE = 0.07;
   static const double beeLineToRealRatio = 0.7; // estimate of how much the beeline distance differs from real path distance
   static const double beeLineToRealRatioWithPOI = 0.6; // estimate of how much the beeline distance differs from real path distance (for some reason different when using poi algorithm)
+  static const double routeEqualFromPercantage = 0.8; //routes that have more nodes in common than this are equal
 
   Graph graph;
   int _routeCalculationStartTime;
@@ -113,6 +110,21 @@ class OsmData{
 
 
     List<HikingRoute> routes = await compute(_doRouteCalculationsThreaded, data);
+
+    List<Set<Node>> usedRouteNodes = routes.map((route) => route.path.toSet()).toList();
+    Map<HikingRoute, bool> markedForDeletion = Map();
+    for(var i=0;i < routes.length; i++){
+      for(var j= (i+1); j <routes.length; j++){
+        var equalNodes = 0;
+        usedRouteNodes[i].forEach((routeNode) { if (usedRouteNodes[j].contains(routeNode)) equalNodes++;});
+        var routeEquality = equalNodes/usedRouteNodes[i].length;
+        if(routeEquality > routeEqualFromPercantage){
+          markedForDeletion.putIfAbsent(routes[i], () => true);
+        }
+      }
+    }
+
+    routes.removeWhere((route) => markedForDeletion[route] ?? false == true);
 
     var elevationTimestamp = DateTime.now().millisecondsSinceEpoch;
     for(var route in routes){
@@ -315,19 +327,18 @@ class OsmData{
 
       List<Node> routeNodes = List();
       route.forEach((edge) => routeNodes.addAll(graph.edgeToNodes(edge)));
-
       if(totalRouteLength < targetActualDistance * 0.8 || totalRouteLength > targetActualDistance * 1.2){
         retryCount ++;
         if(PROFILING) print("Route too long or to short (" + totalRouteLength.toString() + ") , retrying... retry count: " + retryCount.toString());
         continue;
       }
-      var findAdjacentPoiTimestamp = DateTime.now().millisecondsSinceEpoch;
+
       routeNodes.forEach((node) {
         var searchTopLeft = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 315); //returns top, left in that order
         var searchBottomRight = projectCoordinate(node.latitude, node.longitude, POIADJACENCYDISTANCE, 135); //returns bottom, right in that order
         includedPois.addAll(poiRTree.search(Rectangle.fromPoints(Point(searchTopLeft[0], searchTopLeft[1]), Point(searchBottomRight[0], searchBottomRight[1]))).map((e) => e.value));
       });
-      if(PROFILING) print('${includedPois.length} found in ${findAdjacentPoiTimestamp - DateTime.now().millisecondsSinceEpoch} ms.');
+
       var routeResult = HikingRoute(routeNodes, totalRouteLength, includedPois.toList());
       routes.add(routeResult);
       if(PROFILING) print('Route ${routes.length} done in ${DateTime.now().millisecondsSinceEpoch - timestampRouteStart} ms. Total length: ${routeResult.totalLength}. Nr of POI: ${routeResult.pointsOfInterest.length}');

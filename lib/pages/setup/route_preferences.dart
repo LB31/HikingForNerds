@@ -95,7 +95,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                           child: Slider(
                             activeColor: htwGreen,
                             inactiveColor: htwGrey,
-                            min: 1.0,
+                            min: 2.0,
                             max: 30.0,
                             label: distance.toString(),
                             onChanged: (value) {
@@ -142,14 +142,14 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                 ],
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                padding: EdgeInsets.all(10),
                 child: Divider(color: htwGrey),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    LocalizationService().getLocalization(english: "Select Altitude Level", german: "Höhenlevel wählen"),
+                    LocalizationService().getLocalization(english: "Select Altitude Difference", german: "Höhendifferenz wählen"),
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -168,6 +168,7 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                   color: htwGrey,
                 ),
               ),
+              SizedBox(height: 100,)
             ],
           ),
           Positioned(
@@ -182,17 +183,17 @@ class _RoutePreferencesState extends State<RoutePreferences> {
               child: FloatingActionButton(
                   backgroundColor: htwGreen,
                   heroTag: "btn-go",
-                  child: Icon(FontAwesomeIcons.check, size: 32),
+                  child: Icon(FontAwesomeIcons.check, size: 30),
                   onPressed: () {
                     widget.routeParams.distanceKm = distance;
                     widget.routeParams.poiCategories = selectedPoiCategories;
                     widget.routeParams.altitudeType =
                         AltitudeTypeHelper.fromIndex(selectedAltitude);
-
                     widget.onPushRouteList(widget.routeParams);
                   }),
             ),
           ),
+
         ],
       ),
     );

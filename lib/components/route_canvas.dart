@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
@@ -6,31 +8,26 @@ class RouteCanvasWidget extends StatelessWidget {
   final double width, height;
   final List<Node> nodes;
   final double innerPadding;
-  final Color backgroundColor;
   final Color lineColor;
   final double strokeWidth;
 
   const RouteCanvasWidget(this.width, this.height, this.nodes,
       {this.innerPadding = 0.2,
-      this.backgroundColor = Colors.white70,
       this.lineColor = Colors.black,
       this.strokeWidth = 1.5});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: width,
-        height: height,
-        color: backgroundColor,
-        child: CustomPaint(
-            painter: RoutePainter(
-                width,
-                height,
-                getPointsFromNodes(this.nodes, this.innerPadding),
-                this.lineColor,
-                this.strokeWidth)),
-      ),
+    return Container(
+      width: width,
+      height: height,
+      child: CustomPaint(
+          painter: RoutePainter(
+              width,
+              height,
+              getPointsFromNodes(this.nodes, this.innerPadding),
+              this.lineColor,
+              this.strokeWidth)),
     );
   }
 
@@ -80,6 +77,9 @@ class RoutePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = new Paint();
+    canvas.translate(width/2, height/2);
+    canvas.rotate(-pi/2);
+    canvas.translate(-width/2, -height/2);
     paint.color = this.lineColor;
     paint.strokeWidth = this.strokeWidth;
 

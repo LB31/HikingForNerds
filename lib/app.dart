@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hiking4nerds/navigation/segment_navigator.dart';
 import 'navigation/bottom_navigation.dart';
 
@@ -8,7 +9,7 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
-  AppSegment _currentSegment = AppSegment.map;
+  AppSegment _currentSegment = AppSegment.setup;
 
   final Map<AppSegment, GlobalKey<NavigatorState>> _navigatorKeys = {
     AppSegment.setup: GlobalKey<NavigatorState>(),
@@ -25,6 +26,11 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     return WillPopScope(
       onWillPop: () async =>
           !await _navigatorKeys[_currentSegment].currentState.maybePop(),

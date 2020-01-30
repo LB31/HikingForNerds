@@ -8,7 +8,7 @@ class ElevationChart extends StatefulWidget {
   final HikingRoute route;
 
   List<FlSpot> _createData(HikingRoute route) {
-    final List<FlSpot> chartData = new List();
+    final List<FlSpot> git = new List();
 
     double lastDistance = 0;
     for (int i = 0; i < route.elevations.length; i++) {
