@@ -1,4 +1,5 @@
 import 'package:geocoder/geocoder.dart';
+import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/database_helpers.dart';
@@ -10,6 +11,7 @@ class HikingRoute {
   List<PointOfInterest> pointsOfInterest;
   List<double>
       elevations; // elevations of route points in m; route points and their elevations have the same index
+  AltitudeType altitudeType;
   DateTime date; // date created
 
   HikingRoute(List<Node> path, double totalLength,
@@ -20,6 +22,7 @@ class HikingRoute {
     this.pointsOfInterest = pointsOfInterest;
     this.elevations = elevations;
     this.date = DateTime.now();
+    this.altitudeType = AltitudeTypeHelper.differenceToType( getTotalElevationDifference(), path.length );
   }
 
   Future<Address> findAddress() async {
