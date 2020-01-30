@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:hiking4nerds/services/pointofinterest.dart';
 
+
 class MapWidget extends StatefulWidget {
   final bool isStatic;
   final VoidCallback mapCreated;
@@ -209,6 +210,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void drawPois(HikingRoute route, double zoom) async {
+    if(route == null) return;
     List<PointOfInterest> pois = route.pointsOfInterest;
     if (pois != null) {
       pois.forEach((poi) async {
@@ -258,6 +260,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   startRoute() {
+    forceRebuildMap();
     setZoom(16);
     setLatLng(_hikingRoute.path[0]);
     initUpdateRouteTimer();
@@ -456,7 +459,10 @@ class MapWidgetState extends State<MapWidget> {
 
   //TODO find better way to rebuild map?!
   void forceRebuildMap() {
-    setMapStyle(_styles.keys.elementAt(1)); //Changing the map style cause map the be rebuild, showing the user location after location permissions have been granted. Otherwise a restart of the app is required. 
+    //Changing the map style causes map to be rebuild, showing the user location after location permissions have been granted. Otherwise a restart of the app is required.
+    setMapStyle(_currentStyle == _styles.keys.first
+        ? _styles.keys.elementAt(1)
+        : _styles.keys.elementAt(0));
   }
 
   void setZoom(double zoom) {
