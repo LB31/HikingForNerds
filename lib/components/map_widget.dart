@@ -224,12 +224,14 @@ class MapWidgetState extends State<MapWidget> {
         } else {
           await mapController.clearCircles();
           await drawRouteStartingPoint(_hikingRoute);
-          SymbolOptions poiOptions = SymbolOptions(
+          if (poi.category != null) {
+            SymbolOptions poiOptions = SymbolOptions(
               iconImage: poi.category.symbolPath,
               geometry: LatLng(poi.latitude, poi.longitude),
               iconSize: 1,
-          );
-          await mapController.addSymbol(poiOptions);
+            );
+            await mapController.addSymbol(poiOptions);
+          }
         }
       });
     }
