@@ -91,7 +91,7 @@ class _HistoryPageState extends State<HistoryPage> {
               color: Colors.grey[600]),
         ),
         Text(
-          formatDistance(_totalDistance),
+          formatDistance(_totalDistance) + ' km',
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
         ),
       ])
@@ -211,7 +211,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: ButtonTheme(
-                                          minWidth: 42,
+                                          minWidth: 32,
                                           buttonColor: htwGreen,
                                           child: RaisedButton.icon(
                                             icon: Icon(Icons.delete_outline),
@@ -331,5 +331,5 @@ class HistoryEntry {
 }
 
 String formatDistance(double n) {
-  return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2) + ' km';
+  return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2);
 }
