@@ -202,26 +202,38 @@ class _HistoryPageState extends State<HistoryPage> {
                                       SizedBox(height: 5),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: RaisedButton(
-                                          child: Text('Delete'),
-                                          onPressed: () {
-                                            delete(_routes[index].route.dbId);
-                                          },
+                                        child: ButtonTheme(
+                                          minWidth: 42,
+                                          buttonColor: htwGreen,
+                                          child: RaisedButton.icon(
+                                            icon: Icon(Icons.delete_outline),
+                                            onPressed: () {
+                                              delete(_routes[index].route.dbId);
+                                            },
+                                            label: Text(''),
+                                          ),
                                         ),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: RaisedButton(
-                                          child: Text('Share'),
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder:
-                                                (BuildContext context) =>
-                                                  ShareRoute(
-                                                    route: _routes[index].route,
-                                                  ));
-                                          },
+                                        child: ButtonTheme(
+                                          minWidth: 32,
+                                          buttonColor: htwGreen,
+                                          child: RaisedButton.icon(
+                                            icon: Icon(Icons.share),
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          ShareRoute(
+                                                            route:
+                                                                _routes[index]
+                                                                    .route,
+                                                          ));
+                                            },
+                                            label: Text(''),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -306,7 +318,7 @@ class HistoryEntry {
       route.pointsOfInterest.forEach((poi) => poiCategories.add(poi.category));
 
     print(
-      'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
+        'History Entry $date $distance Nodes ${route.path.length} POIs ${poiCategories.length}');
   }
 }
 
