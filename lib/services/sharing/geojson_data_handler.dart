@@ -56,7 +56,9 @@ class GeojsonDataHandler extends ImportExportHandler{
       if (!pointOfInterest.tags.containsKey("name"))
         poi.properties.putIfAbsent("name", () => "POI" + pointOfInterest.id.toString());
 
-      poi.properties.addAll(pointOfInterest.tags);
+      //poi.properties.addAll(pointOfInterest.tags);
+      poi.properties['poi_category'] = pointOfInterest.category.id;
+
       poi.geometry = _toGeojsonPoint(pointOfInterest);
 
       pois.add(poi);
@@ -186,11 +188,11 @@ class GeojsonDataHandler extends ImportExportHandler{
       }else if (feature.type == GeoJsonFeatureType.point){
         GeoJsonPoint point = feature.geometry as GeoJsonPoint;
 
-        PointOfInterest pointOfInterest = new PointOfInterest(
+        PointOfInterest pointOfInterest = new PointOfInterest.withCategory(
           hikingRoute.pointsOfInterest.length,
           point.geoPoint.latitude,
           point.geoPoint.longitude,
-          feature.properties);
+          feature.properties['poi_category']);
 
         hikingRoute.pointsOfInterest.add(pointOfInterest);
       }
