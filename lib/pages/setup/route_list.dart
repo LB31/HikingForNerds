@@ -312,23 +312,22 @@ class _RouteListState extends State<RouteList> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.1,
                       height: MediaQuery.of(context).size.width * 0.1,
                       child: Stack(
                         children: <Widget>[
                           Center(
-                            child: Image.asset(
-                              "assets/animations/hikergrey.gif",
-                              width: MediaQuery.of(context).size.width * 0.05,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Image.asset(
+                                "assets/animations/hikergrey.gif",
+                              ),
                             ),
                           ),
                           Center(
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1,
-                              height: MediaQuery.of(context).size.width * 0.1,
-                              child: CircularProgressIndicator(
-                                valueColor:
-                                    new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
-                              ),
+                            child: CircularProgressIndicator(
+                              valueColor:
+                              new AlwaysStoppedAnimation<Color>(Colors.grey[600]),
                             ),
                           ),
                         ],
