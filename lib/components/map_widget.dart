@@ -454,8 +454,10 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  //TODO find way to rebuild map?!
-  void forceRebuildMap() {}
+  //TODO find better way to rebuild map?!
+  void forceRebuildMap() {
+    setMapStyle(_styles.keys.elementAt(1)); //Changing the map style cause map the be rebuild, showing the user location after location permissions have been granted. Otherwise a restart of the app is required. 
+  }
 
   void setZoom(double zoom) {
     mapController.moveCamera(CameraUpdate.zoomTo(zoom));
