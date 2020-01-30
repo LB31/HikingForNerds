@@ -45,7 +45,7 @@ class LoadingTextState extends State<LoadingText> {
   List<String> textListGer = [
     "Binoculars are being packed",
     "Hiking shoes are dusted off",
-    "Search for optimal road conditions",
+    "Searching for optimal road conditions",
     "Walking sticks are carved",
     "Travelling provisions are being prepared",
     "Signposts are put up",
