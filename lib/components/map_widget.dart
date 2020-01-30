@@ -24,7 +24,12 @@ class MapWidget extends StatefulWidget {
   final VoidCallback mapCreated;
   final VoidCallback onElevationChartToggle;
 
-  MapWidget({Key key, @required this.isStatic, this.mapCreated, this.onElevationChartToggle}) : super(key: key);
+  MapWidget(
+      {Key key,
+      @required this.isStatic,
+      this.mapCreated,
+      this.onElevationChartToggle})
+      : super(key: key);
 
   @override
   MapWidgetState createState() => MapWidgetState();
@@ -33,15 +38,13 @@ class MapWidget extends StatefulWidget {
 class MapWidgetState extends State<MapWidget> {
   static const double defaultZoom = 12.0;
   static const double displayPoiSymbolZoom = 14.0;
-  final CameraPosition _cameraInitialPos;
-  final CameraTargetBounds _cameraTargetBounds;
-
   static bool _isCurrentlyGranting = false;
-  static bool lockMarkerTransaction = false;
-
   static const platform =
       const MethodChannel('app.channel.hikingfornerds.data');
+
   HikingRoute sharedRoute;
+  final CameraTargetBounds _cameraTargetBounds;
+  final CameraPosition _cameraInitialPos;
 
   HikingRoute _hikingRoute;
   int _currentRouteIndex = 0;
@@ -54,12 +57,12 @@ class MapWidgetState extends State<MapWidget> {
   LatLng _lastUserLocation;
 
   Timer _timer;
-
   double _lastZoom = 12;
 
   CameraPosition _position;
   MapboxMapController mapController;
   bool _compassEnabled = false;
+  bool _heightChartVisible = false;
   bool _isMoving = false;
   MinMaxZoomPreference _minMaxZoomPreference =
       const MinMaxZoomPreference(0.0, 22.0);
@@ -96,8 +99,7 @@ class MapWidgetState extends State<MapWidget> {
   initState() {
     super.initState();
     _loadOfflineTiles();
-    if (Platform.isAndroid)
-      _getIntentData();
+    if (Platform.isAndroid) _getIntentData();
     _requestPermissions();
   }
 
@@ -126,8 +128,10 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> _loadOfflineTiles() async {
     try {
-      _styles["klokan-tech"] = "https://h4nsolo.f4.htw-berlin.de/styles/klokantech-basic/style.json";
-      _styles["bright-osm"] = "https://h4nsolo.f4.htw-berlin.de/styles/osm-bright/style.json";
+      _styles["klokan-tech"] =
+          "https://h4nsolo.f4.htw-berlin.de/styles/klokantech-basic/style.json";
+      _styles["bright-osm"] =
+          "https://h4nsolo.f4.htw-berlin.de/styles/osm-bright/style.json";
       _currentStyle = _styles.keys.first;
       await installOfflineMapTiles("assets/offline-data/berlin_klokan-tech.db");
     } catch (err) {
@@ -204,6 +208,7 @@ class MapWidgetState extends State<MapWidget> {
       _linePassedRoute = linePassedRoute;
       _currentRouteIndex = 0;
       _lastUserLocation = null;
+      _heightChartVisible = false;
     });
 
     if (!widget.isStatic) {
@@ -233,8 +238,7 @@ class MapWidgetState extends State<MapWidget> {
       if (startPathLength > routeEndingLength) {
         return i + 1;
       } else {
-        startPathLength +=
-            getDistance(route.path[i], route.path[i + 1]);
+        startPathLength += getDistance(route.path[i], route.path[i + 1]);
       }
       i++;
     }
@@ -259,9 +263,9 @@ class MapWidgetState extends State<MapWidget> {
           await mapController.clearCircles();
           await drawRouteStartingPoint(_hikingRoute);
           SymbolOptions poiOptions = SymbolOptions(
-              iconImage: poi.category.symbolPath,
-              geometry: LatLng(poi.latitude, poi.longitude),
-              iconSize: 1,
+            iconImage: poi.category.symbolPath,
+            geometry: LatLng(poi.latitude, poi.longitude),
+            iconSize: 1,
           );
           await mapController.addSymbol(poiOptions);
         }
@@ -287,7 +291,7 @@ class MapWidgetState extends State<MapWidget> {
     setZoom(zoom);
   }
 
-  void centerCurrentRoute(){
+  void centerCurrentRoute() {
     centerCameraOverRoute(_hikingRoute);
   }
 
@@ -338,7 +342,9 @@ class MapWidgetState extends State<MapWidget> {
       int finalRouteNodesThreshold =
           _remainingRoute.length < _route.length - 25 ? 0 : 25;
 
-      for (int i = currentRouteIndex; i < _route.length - finalRouteNodesThreshold; i++) {
+      for (int i = currentRouteIndex;
+          i < _route.length - finalRouteNodesThreshold;
+          i++) {
         double distanceToCurrentLocation = getDistance(_route[i], userLatLng);
         if (distanceToCurrentLocation < 0.1) {
           currentRouteIndex = i;
@@ -353,8 +359,10 @@ class MapWidgetState extends State<MapWidget> {
         _lastUserLocation = userLatLng;
       });
 
-      LineOptions optionsRemainingRoute = LineOptions(geometry: _remainingRoute);
-      await mapController.updateLine(_lineRemainingRoute, optionsRemainingRoute);
+      LineOptions optionsRemainingRoute =
+          LineOptions(geometry: _remainingRoute);
+      await mapController.updateLine(
+          _lineRemainingRoute, optionsRemainingRoute);
       LineOptions optionsPassedRoute = LineOptions(geometry: _passedRoute);
       await mapController.updateLine(_linePassedRoute, optionsPassedRoute);
     }
@@ -524,7 +532,7 @@ class MapWidgetState extends State<MapWidget> {
       return Stack(
         children: <Widget>[
           _buildMapBox(context),
-          if (!widget.isStatic)
+          if (!widget.isStatic && !_heightChartVisible)
             MapButtons(
               currentTrackingMode: _myLocationTrackingMode,
               styles: _styles,
@@ -532,8 +540,11 @@ class MapWidgetState extends State<MapWidget> {
               onCycleTrackingMode: cycleTrackingMode,
               setMapStyle: setMapStyle,
               centerRoute: centerCurrentRoute,
-              hikingRoute: _hikingRoute,
-              onElevationChartToggle: widget.onElevationChartToggle,
+              hikingRouteAvailable: _hikingRoute != null,
+              onElevationChartToggle: () {
+                setState(() => _heightChartVisible = !_heightChartVisible);
+                widget.onElevationChartToggle();
+              },
             ),
         ],
       );
@@ -575,23 +586,23 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> markElevation(int index) async {
-    if (lockMarkerTransaction) return;
-    lockMarkerTransaction = true;
-    LatLng latLngPosition = _route[index];
-    SymbolOptions optionsElevationPoint = SymbolOptions(
-      geometry: latLngPosition,
-      iconImage: "assets/img/symbols/location_pin.png",
-      iconOffset: Offset(0, -10),
+    if (index == -1) {
+      removeSelectedElevation();
+    } else {
+      LatLng latLngPosition = _route[index];
+      SymbolOptions optionsElevationPoint = SymbolOptions(
+        geometry: latLngPosition,
+        iconImage: "assets/img/symbols/location_pin.png",
+        iconOffset: Offset(0, -10),
       );
-    if (selectedElevationSymbol == null)
-      selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
-    else
-      await mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
-
-    lockMarkerTransaction = false;
+      if (selectedElevationSymbol == null)
+        selectedElevationSymbol = await mapController.addSymbol(optionsElevationPoint);
+      else
+        await mapController.updateSymbol(selectedElevationSymbol, optionsElevationPoint);
+    }
   }
 
-  void removeSelectedElevation(){
+  void removeSelectedElevation() {
     if (selectedElevationSymbol != null) {
       mapController.removeSymbol(selectedElevationSymbol);
       selectedElevationSymbol = null;

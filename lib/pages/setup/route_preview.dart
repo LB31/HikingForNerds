@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/services/elevation_chart.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -23,8 +24,8 @@ class RoutePreviewPage extends StatefulWidget {
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
-  int retryCounter = 0;
-
+  int _drawRouteRetryCounter = 0;
+  bool _heightChartEnabled = false;
   List<HikingRoute> _routes = [];
   String _routeAddressLine = LocalizationService()
       .getLocalization(english: 'Loading..', german: 'Lädt..');
@@ -41,17 +42,17 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   }
 
   void switchRoute(int index) async {
-    if (retryCounter >= 10) {
-      retryCounter = 0;
+    if (_drawRouteRetryCounter >= 10) {
+      _drawRouteRetryCounter = 0;
       return;
     }
 
     setState(() => _currentRouteIndex = index);
     mapWidgetKey.currentState.drawRoute(_routes[_currentRouteIndex]).then((_) {
-      retryCounter = 0;
+      _drawRouteRetryCounter = 0;
     }).catchError((error) {
       new Future.delayed(const Duration(milliseconds: 200), () {
-        retryCounter++;
+        _drawRouteRetryCounter++;
         switchRoute(index);
       });
     });
@@ -85,10 +86,34 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     switchRoute(_currentRouteIndex);
   }
 
+  Widget _buildElevationChart(BuildContext context, int routeIndex) {
+    print("ho");
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Stack(
+            alignment: AlignmentDirectional.bottomCenter,
+            children: <Widget>[
+              Container(
+                color: const Color(0xef232d37),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.15,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height * 0.15,
+                child: ElevationChart(
+                  route: _routes[routeIndex],
+                  onTouch: (index) {
+                    mapWidgetKey.currentState.markElevation(index);
+                  },
+                ),
+              )
+            ]));
+  }
+
   @override
   Widget build(BuildContext context) {
-    HikingRoute currentRoute = _routes[_currentRouteIndex];
-    double routeLength = currentRoute.totalLength;
+    double routeLength = _routes[_currentRouteIndex].totalLength;
     int avgHikingSpeed = 12; // 12 min per km
 
     return Scaffold(
@@ -106,6 +131,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             isStatic: true,
             mapCreated: onMapWidgetCreated,
           ),
+          if (_heightChartEnabled)
+            _buildElevationChart(context, _currentRouteIndex),
           if (_routes.length == 0) CalculatingRoutesDialog(),
           Column(children: <Widget>[
             Container(
@@ -144,102 +171,124 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               ),
             ),
           ]),
-          Positioned(
-            left: MediaQuery.of(context).size.width * 0.05,
-            bottom: 16,
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: FloatingActionButton(
-                backgroundColor: htwGrey,
-                heroTag: "btn-switch-direction",
-                child: Icon(Icons.swap_horizontal_circle),
-                onPressed: () {
-                  switchDirection();
-                },
-              ),
-            ),
-          ),
-          Positioned(
-            right: MediaQuery.of(context).size.width * 0.05,
-            bottom: 16,
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: FloatingActionButton(
-                backgroundColor: htwGrey,
-                heroTag: "btn-gps",
-                child: Icon(Icons.gps_fixed),
-                onPressed: () {
-                  moveToCurrentLocation();
-                },
-              ),
-            ),
-          ),
-          Positioned(
-            right: MediaQuery.of(context).size.width * 0.05,
-            bottom: 75,
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: FloatingActionButton(
-                backgroundColor: htwGrey,
-                heroTag: "btn-center",
-                child: Icon(Icons.center_focus_strong),
-                onPressed: () {
-                  mapWidgetKey.currentState.centerCameraOverRoute(_routes[_currentRouteIndex]);
-                },
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 10,
-            left: MediaQuery.of(context).size.width * 0.5 - 35,
-            child: SizedBox(
-              width: 70,
-              height: 70,
-              child: FloatingActionButton(
-                backgroundColor: htwGreen,
-                heroTag: "btn-go",
-                child: Icon(FontAwesomeIcons.hiking, size: 34),
-                onPressed: (() =>
-                    widget.onSwitchToMap(_routes[_currentRouteIndex])),
-              ),
-            ),
-          ),
-          Positioned(
-              top: 95,
-              left: MediaQuery.of(context).size.width * 0.5 - 65,
-              child: Opacity(
-                opacity: 0.5,
-                child: Container(
-                  width: 130,
-                  decoration: new BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(40.0))),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Text("Start"),
-                            new Spacer(),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 18),
-                              child: Container(
-                                width: 55,
-                                height: 5,
-                                color: Color.fromARGB(255, 0, 153, 51),
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
+          if (!_heightChartEnabled)
+            Stack(
+              children: <Widget>[
+                Positioned(
+                    bottom: 75,
+                    left: MediaQuery.of(context).size.width * 0.05,
+                    child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: FloatingActionButton(
+                          heroTag: "btn-heightchart",
+                          child: Icon(Icons.photo),
+                          onPressed: () {
+                            this.setState(() {
+                              _heightChartEnabled = !_heightChartEnabled;
+                            });
+                          },
+                        ))),
+                Positioned(
+                  left: MediaQuery.of(context).size.width * 0.05,
+                  bottom: 16,
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: FloatingActionButton(
+                      backgroundColor: htwGrey,
+                      heroTag: "btn-switch-direction",
+                      child: Icon(Icons.swap_horizontal_circle),
+                      onPressed: () {
+                        switchDirection();
+                      },
                     ),
                   ),
                 ),
-              ))
+                Positioned(
+                  right: MediaQuery.of(context).size.width * 0.05,
+                  bottom: 16,
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: FloatingActionButton(
+                      backgroundColor: htwGrey,
+                      heroTag: "btn-gps",
+                      child: Icon(Icons.gps_fixed),
+                      onPressed: () {
+                        moveToCurrentLocation();
+                      },
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: MediaQuery.of(context).size.width * 0.05,
+                  bottom: 75,
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: FloatingActionButton(
+                      backgroundColor: htwGrey,
+                      heroTag: "btn-center",
+                      child: Icon(Icons.center_focus_strong),
+                      onPressed: () {
+                        mapWidgetKey.currentState
+                            .centerCameraOverRoute(_routes[_currentRouteIndex]);
+                      },
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  left: MediaQuery.of(context).size.width * 0.5 - 35,
+                  child: SizedBox(
+                    width: 70,
+                    height: 70,
+                    child: FloatingActionButton(
+                      backgroundColor: htwGreen,
+                      heroTag: "btn-go",
+                      child: Icon(FontAwesomeIcons.hiking, size: 34),
+                      onPressed: (() =>
+                          widget.onSwitchToMap(_routes[_currentRouteIndex])),
+                    ),
+                  ),
+                ),
+                Positioned(
+                    top: 95,
+                    left: MediaQuery.of(context).size.width * 0.5 - 65,
+                    child: Opacity(
+                      opacity: 0.5,
+                      child: Container(
+                        width: 130,
+                        decoration: new BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(40.0))),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                          child: Column(
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Text("Start"),
+                                  new Spacer(),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 18),
+                                    child: Container(
+                                      width: 55,
+                                      height: 5,
+                                      color: Color.fromARGB(255, 0, 153, 51),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ))
+              ],
+            )
         ],
       ),
     );
