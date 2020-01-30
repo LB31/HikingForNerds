@@ -116,6 +116,14 @@ class _RoutePreferencesState extends State<RoutePreferences> {
                         ),
                       ],
                     ),
+                    if(distance > 20)
+                    Center(
+                      child: Text(LocalizationService().getLocalization(english: "Experimental", german: "Experimentell"),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.redAccent),),
+                    )
                   ],
                 ),
               ),
