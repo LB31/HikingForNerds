@@ -411,6 +411,13 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
     bool granted = await isLocationPermissionGranted();
+
+
+    if(granted){
+      forceRebuildMap();
+    }
+
+
     if (!granted && !_isCurrentlyGranting) {
       _isCurrentlyGranting = true;
       await LocationPermissions().requestPermissions();

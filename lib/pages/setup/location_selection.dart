@@ -25,13 +25,19 @@ class LocationSelectionPage extends StatefulWidget {
 class _LocationSelectionPageState extends State<LocationSelectionPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
   String searchedLocation = "";
+  Timer setSearchBarAddressTimer;
 
   @override
   initState() {
     super.initState();
-    Timer.periodic(Duration(seconds: 3), (Timer t) => setSearchBarAddressToCameraCenter());
+    setSearchBarAddressTimer = Timer.periodic(Duration(seconds: 3), (Timer t) => setSearchBarAddressToCameraCenter());
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    if(setSearchBarAddressTimer != null) setSearchBarAddressTimer.cancel();
+  }
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
