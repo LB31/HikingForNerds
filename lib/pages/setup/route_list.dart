@@ -10,7 +10,6 @@ import 'package:hiking4nerds/styles.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/loading_text.dart';
 
-
 class RouteList extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreview;
   final RouteParams routeParams;
@@ -195,7 +194,9 @@ class _RouteListState extends State<RouteList> {
       entry.poiCategories.forEach((category) {
         chips.add(new Chip(
           elevation: 1,
-          label: Text(LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer),
+          label: Text(
+              LocalizationService().getLocalization(
+                  english: category.nameEng, german: category.nameGer),
               style: TextStyle(fontSize: 11, color: Colors.white)),
           backgroundColor: category.color,
         ));
@@ -306,14 +307,32 @@ class _RouteListState extends State<RouteList> {
           Expanded(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Image.asset(
-                      "assets/animations/hikinganimation.gif",
-                      //height: 125.0,
-                      width: MediaQuery.of(context).size.width * 0.6,
+                    SizedBox(
+                      height: MediaQuery.of(context).size.width * 0.1,
+                      child: Stack(
+                        children: <Widget>[
+                          Center(
+                            child: Image.asset(
+                              "assets/animations/hiker.gif",
+                              width: MediaQuery.of(context).size.width * 0.05,
+                            ),
+                          ),
+                          Center(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.1,
+                              height: MediaQuery.of(context).size.width * 0.1,
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                    new AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     LoadingText(),
                   ],
