@@ -1,113 +1,227 @@
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/osmdata.dart';
+import 'package:hiking4nerds/services/routing/geo_utilities.dart';
+import 'package:hiking4nerds/styles.dart';
 
-import 'localization_service.dart';
-import 'routing/geo_utilities.dart';
-
-class ElevationChart extends StatelessWidget {
+class ElevationChart extends StatefulWidget {
   final HikingRoute route;
-  final bool interactive;
-  final bool withLabels;
+  final TouchCallback onTouch;
+  final VoidCallback onClose;
 
-  final Function(int) onSelectionChanged;
-
-  ElevationChart(this.route, {this.onSelectionChanged, this.interactive = true, this.withLabels = true});
-
-  @override
-  Widget build(BuildContext context) {
-    String bottomText = LocalizationService().getLocalization(english: "Distance in m", german: "Diszanz in m");
-    String leftText = LocalizationService().getLocalization(english: "Elevation in m", german: "Erhebung in m");
-    int fontSize = 12;
-    charts.SelectionTrigger interaction;
-
-    interaction = interactive
-        ? charts.SelectionTrigger.tapAndDrag
-        : charts.SelectionTrigger.hover;
-
-    List<charts.ChartBehavior> behaviours = [
-      new charts.SelectNearest(eventTrigger: interaction)
-    ];
-
-    if (withLabels) {
-      behaviours.add(new charts.ChartTitle(bottomText,
-          behaviorPosition: charts.BehaviorPosition.bottom,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-              charts.OutsideJustification.middleDrawArea));
-      behaviours.add(new charts.ChartTitle(leftText,
-          behaviorPosition: charts.BehaviorPosition.start,
-          titleStyleSpec: new charts.TextStyleSpec(fontSize: fontSize),
-          titleOutsideJustification:
-              charts.OutsideJustification.middleDrawArea));
-    }
-
-    return new Container(
-      child: new charts.LineChart(
-        _createData(route),
-        defaultRenderer:
-            new charts.LineRendererConfig(includeArea: true, stacked: true),
-        behaviors: behaviours,
-        selectionModels: [
-          new charts.SelectionModelConfig(
-            type: charts.SelectionModelType.info,
-            changedListener: _onSelectionChanged,
-          )
-        ],
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xAA7c94b6),
-        border: Border.all(
-          color: Colors.black,
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-  }
-
-
-  static List<charts.Series<RouteChart, double>> _createData(HikingRoute route) {
-
-    final List<RouteChart> chartData = new List();
+  List<FlSpot> createData(HikingRoute route) {
+    final List<FlSpot> chartData = new List();
 
     double lastDistance = 0;
     for (int i = 0; i < route.elevations.length; i++) {
       double distance = 0;
       if (i > 0) {
-        distance = getDistance(route.path[i - 1], route.path[i]); // * 1000; for testing with smaller routes
+        distance = getDistance(route.path[i - 1], route.path[i]);
         distance += lastDistance;
         lastDistance = distance;
       }
-      chartData.add(new RouteChart(route.elevations[i], distance, i));
+      chartData.add(new FlSpot(distance, route.elevations[i]));
     }
 
-    return [
-      new charts.Series<RouteChart, double>(
-        id: '',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        domainFn: (RouteChart sales, _) => sales.distance,
-        measureFn: (RouteChart sales, _) => sales.elevation,
-        data: chartData,
-      ),
-    ];
+    return chartData;
   }
 
-  _onSelectionChanged(charts.SelectionModel<num> model) {
-    final selectedDatum = model.selectedDatum;
-    if (selectedDatum.isNotEmpty) {
-      selectedDatum.forEach((charts.SeriesDatum datumPair) {
-        onSelectionChanged(datumPair.datum.index);
+  @override
+  ElevationChartState createState() =>
+      ElevationChartState(createData(route));
+
+
+  ElevationChart({Key key, this.route, this.onTouch, this.onClose}) : super(key: key);
+}
+
+class ElevationChartState extends State<ElevationChart> {
+  List<FlSpot> routeDataList;
+  FlSpot minSpot;
+  FlSpot maxSpot;
+
+  static final double yAxisThreshold = 1.0;
+  static final int yAxisLabelCount = 4;
+  static final int xAxisLabelCount = 5;
+
+  factory ElevationChartState(List<FlSpot> routeDataList) {
+    FlSpot minSpot = getMinPoint(routeDataList);
+    FlSpot maxSpot = getMaxPoint(routeDataList);
+
+    return ElevationChartState._(routeDataList, minSpot, maxSpot);
+  }
+
+  //its ugly, i know
+  static FlSpot getMinPoint(List<FlSpot> dataList){
+    return FlSpot(
+        dataList.reduce((current, next) => current.x < next.x ? current : next).x,
+        dataList.reduce((current, next) => current.y < next.y ? current : next).y - yAxisThreshold);
+  }
+
+  static FlSpot getMaxPoint(List<FlSpot> dataList){
+    return FlSpot(dataList.reduce((current, next) => current.x > next.x ? current : next).x,
+        dataList.reduce((current, next) => current.y > next.y ? current : next).y + yAxisThreshold);
+  }
+
+  void updateRoute(HikingRoute route){
+    if (route == null) return;
+    List<FlSpot> listSpots = widget.createData(route);
+    if (listSpots == null) return;
+    if (routeDataList == null || listSpots != routeDataList){
+      setState(() {
+        routeDataList = listSpots;
+        minSpot = getMinPoint(listSpots);
+        maxSpot = getMaxPoint(listSpots);
       });
     }
   }
+
+  ElevationChartState._(this.routeDataList, this.minSpot, this.maxSpot);
+
+  List<Color> gradientColors = [
+    htwGreen,
+    const Color(0xff02d39a),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: <Widget>[
+        Container(
+          color: const Color(0xef232d37),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height * 0.18,
+          child: Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              iconSize: 24,
+              icon: Icon(Icons.close),
+              onPressed: widget.onClose
+            ),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.7,
+          height: MediaQuery.of(context).size.height * 0.18,
+          padding: EdgeInsets.only(top: 16),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+          ),
+          child: LineChart(
+              mainData(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  LineChartData mainData() {
+    return LineChartData(
+      lineTouchData:
+          LineTouchData(getTouchedSpotIndicator: (barData, indicators) {
+        if (widget.onTouch != null) {
+          int index = indicators.length > 0 ? indicators.first : -1;
+          widget.onTouch(index);
+        }
+
+        if (indicators == null) {
+          return [];
+        }
+        return indicators.map((int index) {
+          /// Indicator Line
+          Color lineColor = Colors.white;
+          if (barData.dotData.show) {
+            lineColor = barData.dotData.dotColor;
+          }
+          const double lineStrokeWidth = 2;
+          final FlLine flLine =
+              FlLine(color: lineColor, strokeWidth: lineStrokeWidth);
+
+          /// Indicator dot
+          double dotSize = 5;
+          Color dotColor = Colors.white;
+          if (barData.dotData.show) {
+            dotSize = barData.dotData.dotSize * 1.8;
+            dotColor = barData.dotData.dotColor;
+          }
+          final dotData = FlDotData(
+            dotSize: dotSize,
+            dotColor: dotColor,
+          );
+
+          return TouchedSpotIndicatorData(flLine, dotData);
+        }).toList();
+      }),
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: false,
+        getDrawingHorizontalLine: (value) {
+          return const FlLine(
+            color: Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        bottomTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 28,
+          textStyle: TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.bold,
+              fontSize: 13),
+          getTitles: (value) {
+            double difference = maxSpot.x - minSpot.x;
+            return value % (difference ~/ xAxisLabelCount + 1) == 0
+                ? value.toStringAsFixed(0) + " km"
+                : '';
+          },
+        ),
+        leftTitles: SideTitles(
+          showTitles: true,
+          textStyle: TextStyle(
+            color: Colors.white70,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+          getTitles: (value) {
+            double difference = maxSpot.y - minSpot.y;
+            return value % (difference ~/ yAxisLabelCount) == 0
+                ? value.toStringAsFixed(0) + " m"
+                : '';
+          },
+          reservedSize: 50,
+        ),
+      ),
+      borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: const Color(0xff37434d), width: 1)),
+      minX: minSpot.x,
+      maxX: maxSpot.x,
+      minY: minSpot.y,
+      maxY: maxSpot.y,
+      lineBarsData: [
+        LineChartBarData(
+          spots: routeDataList,
+          isCurved: false,
+          colors: gradientColors,
+          barWidth: 1,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(
+            show: false,
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            colors:
+                gradientColors.map((color) => color.withOpacity(0.3)).toList(),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class RouteChart {
-  final double elevation;
-  final double distance;
-  final int index;
-
-  RouteChart(this.elevation, this.distance, this.index);
-}
+/// changes current segment to specified segment, optionally
+/// pop previous segment to root page
+typedef TouchCallback = void Function(int index);
