@@ -12,7 +12,7 @@ class _CreditsPageState extends State<CreditsPage> {
       children: <Widget>[
         Padding(
           padding: EdgeInsets.all(20.0),
-          child: Text("enter credits here"
+          child: Text("Developed by:\nJakub, Philipp, Mario, Robin, Leonid, Patrik, Roman\nsupvervised by Prof. Lenz\n2020" 
           ),
         ),
       ],
