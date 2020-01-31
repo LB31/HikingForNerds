@@ -192,14 +192,14 @@ class _RouteListState extends State<RouteList> {
     List<Widget> chips = List();
     if (entry.poiCategories != null && entry.poiCategories.isNotEmpty) {
       entry.poiCategories.forEach((category) {
-        chips.add(new Chip(
-          elevation: 1,
-          label: Text(
-              LocalizationService().getLocalization(
-                  english: category.nameEng, german: category.nameGer),
-              style: TextStyle(fontSize: 11, color: Colors.white)),
-          backgroundColor: category.color,
-        ));
+        if(category != null){
+          chips.add(new Chip(
+            elevation: 1,
+            label: Text(LocalizationService().getLocalization(english: category.nameEng, german: category.nameGer),
+                style: TextStyle(fontSize: 11, color: Colors.white)),
+            backgroundColor: category.color,
+          ));
+        }
       });
     }
 
