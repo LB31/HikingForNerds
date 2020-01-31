@@ -193,7 +193,7 @@ class MapWidgetState extends State<MapWidget> {
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
         circleColor: "#0000FF",
-        circleRadius: 16,
+        circleRadius: 10,
         circleBlur: 0.25,
         circleOpacity: 0.5);
     await mapController.addCircle(optionsStartingPoint);
