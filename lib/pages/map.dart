@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
+import 'package:hiking4nerds/pages/history.dart';
 import 'package:hiking4nerds/services/elevation_chart.dart';
-import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/route.dart';
-import 'package:hiking4nerds/services/routing/node.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -58,9 +57,12 @@ class MapPageState extends State<MapPage> {
     mapWidgetKey.currentState.toggleHeightChart();
   }
 
-  void updateState(HikingRoute route) {
+  void updateState(HikingRoute route, [bool saveToHistory = true]) {
     _currentRoute = route;
     _heightChartEnabled = false;
     mapWidgetKey.currentState.drawRoute(route);
+    if (saveToHistory) {
+      HistoryPage.addRouteIfNew(route);
+    }
   }
 }

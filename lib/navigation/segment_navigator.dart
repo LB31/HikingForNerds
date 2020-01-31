@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hiking4nerds/app.dart';
 import 'package:hiking4nerds/navigation/bottom_navigation.dart';
 import 'package:hiking4nerds/pages/history.dart';
 import 'package:hiking4nerds/pages/map.dart';
@@ -7,6 +8,7 @@ import 'package:hiking4nerds/pages/setup/location_selection.dart';
 import 'package:hiking4nerds/pages/setup/route_preferences.dart';
 import 'package:hiking4nerds/pages/setup/route_list.dart';
 import 'package:hiking4nerds/pages/setup/route_preview.dart';
+import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/services/sharing/import_service.dart';
 
 class SegmentRoutes {
@@ -40,6 +42,7 @@ class SegmentRoutes {
 /// > additional option to update the state of this segment (updateState)
 class SegmentNavigator extends StatelessWidget {
   static GlobalKey<MapPageState> mapKey = GlobalKey<MapPageState>();
+  static GlobalKey<HistoryPageState> historyKey = GlobalKey<HistoryPageState>();
   static ImportService _importService = new ImportService();
   final ChangeSegmentCallback onChangeSegment;
   final GlobalKey<NavigatorState> navigatorKey;
@@ -48,6 +51,7 @@ class SegmentNavigator extends StatelessWidget {
   SegmentNavigator({@required this.navigatorKey, @required this.segment, @required this.onChangeSegment}) {
     _importService.addLifecycleIntentHandler(switchToHistory: (() {
       onChangeSegment(AppSegment.history);
+      historyKey.currentState.updateState();
     }));
   }
 
@@ -61,7 +65,10 @@ class SegmentNavigator extends StatelessWidget {
       case AppSegment.map:
         return MapPage(key: mapKey);
       case AppSegment.history:
-        return HistoryPage();
+        return HistoryPage(key: historyKey, onSwitchToMap: (HikingRoute route) {
+          onChangeSegment(AppSegment.map);
+          mapKey.currentState.updateState(route, false);
+        },);
       case AppSegment.more:
         return MorePage();
     }
