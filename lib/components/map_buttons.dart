@@ -52,7 +52,7 @@ class MapButtons extends StatelessWidget {
                   height: 50,
                   child: FloatingActionButton(
                     heroTag: "btn-heightchart",
-                    child: Icon(Icons.photo),
+                    child: Icon(FontAwesomeIcons.solidChartBar),
                     onPressed: onElevationChartToggle,
                   ))),
         Positioned(
