@@ -78,6 +78,8 @@ class _RouteListState extends State<RouteList> {
       List<PointOfInterest> newPois = new List();
       Map<String, List<PointOfInterest>> poiMap = new HashMap();
       for(PointOfInterest poi in route.pointsOfInterest){
+        if (poi.category == null) continue;
+
         if (!poiMap.containsKey(poi.category.id)){
           poiMap[poi.category.id] = [poi];
         }else{
@@ -201,7 +203,7 @@ class _RouteListState extends State<RouteList> {
       TableRow(children: [
         Text(
           LocalizationService().getLocalization(
-              english: 'Altitude differences', german: 'Höhendifferenz'),
+              english: 'Altitude difference', german: 'Höhendifferenz'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
