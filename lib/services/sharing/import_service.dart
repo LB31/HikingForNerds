@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:hiking4nerds/pages/history.dart';
 import '../lifecycle_event_handler.dart';
 import '../route.dart';
 import 'import_export_handler.dart';
@@ -23,7 +24,7 @@ class ImportService {
     _sharedRoute = await _getSharedData();
     _appSuspended = false;
     if (_onSwitchToHistory != null && _sharedRoute != null) {
-      // TODO @patrik save data to db
+      HistoryPage.addRouteIfNew(_sharedRoute);
       _onSwitchToHistory();
       _sharedRoute = null;
     }
