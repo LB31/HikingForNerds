@@ -6,14 +6,19 @@ import 'package:hiking4nerds/styles.dart';
 import 'app.dart';
 
 class SplashScreen extends StatelessWidget {
+  static bool isFirstBuild = true;
   @override
   Widget build(BuildContext context) {
-    LocationService.requestLocationPermissionIfNotAlreadyGranted()
-        .then((result) {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context) => App())
-      );
-    });
+    if(isFirstBuild) {
+      LocationService.requestLocationPermissionIfNotAlreadyGranted()
+          .then((result) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (BuildContext context) => App())
+        );
+      });
+    }
+
+    isFirstBuild = false;
 
     return Column(children: [
       Expanded(
