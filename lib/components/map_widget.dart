@@ -134,7 +134,7 @@ class MapWidgetState extends State<MapWidget> {
     mapController.clearSymbols();
   }
 
-  Future drawRoute(HikingRoute route, [bool center = true]) async {
+  Future drawRoute(HikingRoute route, [bool center = true, bool preventRestart = false]) async {
     clearMap();
     await drawRouteStartingPoint(route);
     drawPois(route, 12);
@@ -183,7 +183,7 @@ class MapWidgetState extends State<MapWidget> {
       _heightChartVisible = false;
     });
 
-    if (!widget.isStatic) {
+    if (!widget.isStatic && !preventRestart) {
       startRoute();
     }
   }
@@ -193,7 +193,7 @@ class MapWidgetState extends State<MapWidget> {
     CircleOptions optionsStartingPoint = CircleOptions(
         geometry: startingPoint,
         circleColor: "#0000FF",
-        circleRadius: 16,
+        circleRadius: 10,
         circleBlur: 0.25,
         circleOpacity: 0.5);
     await mapController.addCircle(optionsStartingPoint);
@@ -470,10 +470,28 @@ class MapWidgetState extends State<MapWidget> {
     mapController.moveCamera(CameraUpdate.newLatLng(latLng));
   }
 
-  void setMapStyle(String style) {
+  void setMapStyle(String style) async {
     setState(() {
       _currentStyle = style;
     });
+
+    redrawExistingRoute();
+  }
+
+  redrawExistingRoute() async {
+    if(_hikingRoute != null){
+      int currentRouteIndex = _currentRouteIndex;
+      List<LatLng> passedRoute = _passedRoute;
+      List<LatLng> remainingRoute = _remainingRoute;
+      LatLng lastUserLocation = _lastUserLocation;
+      await drawRoute(_hikingRoute, false, true);
+      setState(() {
+        _currentRouteIndex = currentRouteIndex;
+        _passedRoute = passedRoute;
+        _remainingRoute = remainingRoute;
+        _lastUserLocation = lastUserLocation;
+      });
+    }
   }
 
   void _extractMapInfo() {
