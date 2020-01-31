@@ -1,7 +1,10 @@
+import 'dart:collection';
+
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/route_canvas.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/pointofinterest.dart';
 import 'package:hiking4nerds/services/routing/osmdata.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'package:hiking4nerds/services/route.dart';
@@ -25,6 +28,7 @@ class _RouteListState extends State<RouteList> {
   bool _routesCalculated = false;
   String _startingLocationAddress = LocalizationService()
       .getLocalization(english: 'Loading..', german: 'Lädt..');
+  static final int maximumPointsOfInterest = 10;
 
   @override
   void initState() {
@@ -63,6 +67,36 @@ class _RouteListState extends State<RouteList> {
           widget.routeParams.distanceKm,
           10);
     }
+
+    List<HikingRoute> filteredRoutes = new List();
+    for(HikingRoute route in routes) {
+
+      if (route.pointsOfInterest == null){
+        filteredRoutes.add(route);
+        continue;
+      }
+      List<PointOfInterest> newPois = new List();
+      Map<String, List<PointOfInterest>> poiMap = new HashMap();
+      for(PointOfInterest poi in route.pointsOfInterest){
+        if (poi.category == null) continue;
+
+        if (!poiMap.containsKey(poi.category.id)){
+          poiMap[poi.category.id] = [poi];
+        }else{
+          poiMap[poi.category.id].add(poi);
+        }
+      }
+
+      for(List<PointOfInterest> poiList in poiMap.values){
+        poiList.shuffle();
+        newPois.addAll(poiList.sublist(0, maximumPointsOfInterest < poiList.length ? maximumPointsOfInterest : poiList.length));
+      }
+
+      route.pointsOfInterest = newPois;
+      filteredRoutes.add(route);
+    }
+    routes = filteredRoutes;
+
 
     if (routes.length != 0) {
       routes = routes.toList(growable: true);
@@ -169,7 +203,7 @@ class _RouteListState extends State<RouteList> {
       TableRow(children: [
         Text(
           LocalizationService().getLocalization(
-              english: 'Altitude differences', german: 'Höhendifferenz'),
+              english: 'Altitude difference', german: 'Höhendifferenz'),
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
