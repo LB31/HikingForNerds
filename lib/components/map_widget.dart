@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hiking4nerds/components/map_buttons.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/location_service.dart';
 import 'package:hiking4nerds/services/routing/geo_utilities.dart';
 import 'package:hiking4nerds/services/route.dart';
 import 'package:hiking4nerds/styles.dart';
@@ -97,7 +98,7 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void _requestPermissions() async {
-    await requestLocationPermissionIfNotAlreadyGranted();
+    await LocationService.requestLocationPermissionIfNotAlreadyGranted();
   }
 
   Future<void> _loadOfflineTiles() async {
@@ -416,23 +417,6 @@ class MapWidgetState extends State<MapWidget> {
     super.dispose();
   }
 
-  Future<bool> isLocationPermissionGranted() async {
-    PermissionStatus permission =
-        await LocationPermissions().checkPermissionStatus();
-    return permission == PermissionStatus.granted;
-  }
-
-  Future<void> requestLocationPermissionIfNotAlreadyGranted() async {
-    bool granted = await isLocationPermissionGranted();
-    if (!granted && !_isCurrentlyGranting) {
-      _isCurrentlyGranting = true;
-      await LocationPermissions().requestPermissions();
-      _isCurrentlyGranting = false;
-      granted = await isLocationPermissionGranted();
-      if (granted) forceRebuildMap();
-    }
-  }
-
   void cycleTrackingMode() {
     switch (_myLocationTrackingMode) {
       case MyLocationTrackingMode.None:
@@ -460,8 +444,8 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   void setTrackingMode(MyLocationTrackingMode mode) async {
-    await requestLocationPermissionIfNotAlreadyGranted();
-    bool granted = await isLocationPermissionGranted();
+    await LocationService.requestLocationPermissionIfNotAlreadyGranted();
+    bool granted = await LocationService.isLocationPermissionGranted();
 
     if (granted) {
       setState(() {
@@ -469,9 +453,6 @@ class MapWidgetState extends State<MapWidget> {
       });
     }
   }
-
-  //TODO find way to rebuild map?!
-  void forceRebuildMap() {}
 
   void setZoom(double zoom) {
     mapController.moveCamera(CameraUpdate.zoomTo(zoom));

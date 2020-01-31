@@ -135,30 +135,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
         // Units
-        Row(
-          mainAxisAlignment: axisAlignment,
-          children: <Widget>[
-            createHeading(LocalizationService().getLocalization(english: "Units", german: "Einheiten")),
-            DropdownButton<String>(
-              value: gs.selectedUnit,
-              icon: Icon(Icons.arrow_drop_down),
-              iconSize: 24,
-              elevation: 16,
-              style: TextStyle(color: htwBlue),
-              underline: Container(
-                height: 2,
-                color: htwBlue,
-              ),
-              onChanged: (String newValue) {
-                setState(() {
-                  gs.selectedUnit = newValue;
-                  saveSettings();
-                });
-              },
-              items: buildDropdownItems(gs.unitOptions),
-            )
-          ],
-        ),
         // Delete downloaded maps
         RaisedButton(
           color: htwGreen,

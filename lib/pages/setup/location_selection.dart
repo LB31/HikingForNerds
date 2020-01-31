@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiking4nerds/components/map_widget.dart';
 import 'package:hiking4nerds/services/localization_service.dart';
+import 'package:hiking4nerds/services/location_service.dart';
 import 'package:hiking4nerds/services/routing/node.dart';
 import 'package:hiking4nerds/styles.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -11,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hiking4nerds/services/routeparams.dart';
 import 'dart:io' show Platform;
 import 'dart:async';
-
 
 class LocationSelectionPage extends StatefulWidget {
   final RouteParamsCallback onPushRoutePreferences;
@@ -25,13 +25,20 @@ class LocationSelectionPage extends StatefulWidget {
 class _LocationSelectionPageState extends State<LocationSelectionPage> {
   final GlobalKey<MapWidgetState> mapWidgetKey = GlobalKey<MapWidgetState>();
   String searchedLocation = "";
+  Timer setSearchBarAddressTimer;
 
   @override
   initState() {
     super.initState();
-    Timer.periodic(Duration(seconds: 3), (Timer t) => setSearchBarAddressToCameraCenter());
+    setSearchBarAddressTimer = Timer.periodic(
+        Duration(seconds: 3), (Timer t) => setSearchBarAddressToCameraCenter());
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    if (setSearchBarAddressTimer != null) setSearchBarAddressTimer.cancel();
+  }
 
   Future<void> moveToCurrentLocation() async {
     LocationData currentLocation = await Location().getLocation();
@@ -41,14 +48,16 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
     setSearchBarAddress(currentLatLng);
   }
 
-  setSearchBarAddressToCameraCenter(){
-    if(mapWidgetKey.currentState.mapController != null && !mapWidgetKey.currentState.mapController.isCameraMoving){
-      LatLng cameraCenter = mapWidgetKey.currentState.mapController.cameraPosition.target;
+  setSearchBarAddressToCameraCenter() {
+    if (mapWidgetKey.currentState.mapController != null &&
+        !mapWidgetKey.currentState.mapController.isCameraMoving) {
+      LatLng cameraCenter =
+          mapWidgetKey.currentState.mapController.cameraPosition.target;
       setSearchBarAddress(cameraCenter);
     }
   }
 
-  setSearchBarAddress(LatLng latLng) async{
+  setSearchBarAddress(LatLng latLng) async {
     List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(
         Coordinates(latLng.latitude, latLng.longitude));
     setState(() {
@@ -103,7 +112,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
     double shortestSide = MediaQuery.of(context).size.shortestSide;
     int offset = 0;
     if (Platform.isIOS) {
-      if(shortestSide < 800) offset += 20;
+      if (shortestSide < 800) offset += 20;
     }
     return -45 - 70 - offset;
   }
@@ -120,10 +129,10 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
       ),
       body: Stack(
         children: <Widget>[
-          MapWidget(
-            key: mapWidgetKey,
-            isStatic: true,
-          ),
+            MapWidget(
+              key: mapWidgetKey,
+              isStatic: true,
+            ),
           Center(
             heightFactor: 1.5,
             child: SizedBox(
@@ -226,6 +235,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
 class CustomSearchDelegate extends SearchDelegate<String> {
   List<String> _history = List<String>();
+
   CustomSearchDelegate() {
     SharedPreferences.getInstance().then((prefs) {
       _history = prefs.getStringList("searchHistory") ?? List<String>();

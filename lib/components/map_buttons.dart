@@ -64,8 +64,8 @@ class MapButtons extends StatelessWidget {
             child: FloatingActionButton(
               heroTag: "btn-maptype",
               child: Icon(currentStyle == styles.keys.first
-                  ? Icons.terrain
-                  : Icons.satellite),
+                  ? FontAwesomeIcons.map
+                  : FontAwesomeIcons.mapMarked),
               onPressed: () {
                 setMapStyle(currentStyle == styles.keys.first
                     ? styles.keys.elementAt(1)
