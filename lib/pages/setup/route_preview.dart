@@ -213,7 +213,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         height: 50,
                         child: FloatingActionButton(
                           heroTag: "btn-heightchart",
-                          child: Icon(Icons.photo),
+                          child: Icon(FontAwesomeIcons.solidChartBar),
                           onPressed: () {
                             this.setState(() {
                               _heightChartEnabled = !_heightChartEnabled;

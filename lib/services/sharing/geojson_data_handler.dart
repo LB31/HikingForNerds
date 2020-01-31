@@ -33,7 +33,8 @@ class GeojsonDataHandler extends ImportExportHandler{
     List<GeoJsonFeature> geojsonFeatures = new List<GeoJsonFeature>();
 
     geojsonFeatures.add(_createPathFeature(hikingRoute.path, hikingRoute.elevations));
-    _createPOIFeature(hikingRoute.pointsOfInterest).forEach((poi) => geojsonFeatures.add(poi));
+    if (hikingRoute.pointsOfInterest != null)
+      _createPOIFeature(hikingRoute.pointsOfInterest).forEach((poi) => geojsonFeatures.add(poi));
 
     return new GeoJsonFeatureCollection(geojsonFeatures);
   }

@@ -26,8 +26,8 @@ class GpxDataHandler extends ImportExportHandler{
 
     gpx.rtes = new List<Rte>();
     gpx.rtes.add(_getRoute(route.path, route.elevations));
-    gpx.trks.add(_getPOIs(route.pointsOfInterest));
-
+    if (route.pointsOfInterest != null)
+      gpx.trks.add(_getPOIs(route.pointsOfInterest));
 
     return GpxWriter().asString(gpx, pretty: true);
   }
